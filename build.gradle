@@ -1,6 +1,8 @@
 plugins {
     id 'java'
     id 'application'
+    id 'jacoco'
+    id 'org.sonarqube' version "2.7"
 }
 
 group 'telraam'
@@ -13,6 +15,12 @@ repositories {
 }
 application {
     mainClassName = 'telraam.App'
+    run {
+        dependsOn 'build'
+    }
+    build {
+        dependsOn 'test'
+    }
 }
 
 dependencies {
@@ -23,5 +31,18 @@ test {
     useJUnitPlatform()
     testLogging {
         events "passed", "skipped", "failed"
+    }
+}
+jacoco {
+    toolVersion= "0.8.4"
+    reportsDir = file("$buildDir/coverage")
+}
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.5
+            }
+        }
     }
 }
