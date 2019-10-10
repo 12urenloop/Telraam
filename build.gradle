@@ -15,12 +15,6 @@ repositories {
 }
 application {
     mainClassName = 'telraam.App'
-    run {
-        dependsOn 'build'
-    }
-    build {
-        dependsOn 'test'
-    }
 }
 
 dependencies {
