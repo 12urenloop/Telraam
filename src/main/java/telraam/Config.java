@@ -2,8 +2,6 @@ package telraam;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.module.Configuration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -21,6 +19,7 @@ public class Config {
     private Properties properties;
     private String propertyFile;
     private Map<String, String> propFileMap;
+    private String configKey;
 
     private Config() {
         this.propFileMap =
@@ -30,15 +29,21 @@ public class Config {
         String envKey = System.getenv("CONFIG_KEY");
         if (envKey == null ||
                 !this.propFileMap.containsKey(envKey.toUpperCase())) {
-            logger.log(Level.SEVERE,
+            logger.severe(
                     "Environment variable CONFIG_KEY must be set to one of TESTING, DEVELOPMENT or PRODUCTION");
             throw new RuntimeException(
                     "Could not initialize: CONFIG_KEY missing");
         }
 
-        this.propertyFile = this.propFileMap.get(envKey.toUpperCase());
-        logger.log(Level.INFO,
-                String.format("Running in %s mode", envKey.toUpperCase()));
+        this.configKey = envKey.toUpperCase();
+        this.propertyFile = this.propFileMap.get(this.configKey);
+        // Since there is a method call in the info() call, sonar wants us
+        // to make sure the info level is actually active, since the
+        // method within info() will be called regardless of whether
+        // the logging is active or not, creating unnecessary overhead
+        if (logger.isLoggable(Level.INFO)) {
+            logger.info(String.format("Running in %s mode", this.configKey));
+        }
 
         this.properties = new Properties();
         try (InputStream inputStream = this.getClass()
@@ -52,7 +57,7 @@ public class Config {
             String errorMsg =
                     String.format("Could not load property file: %s%n%s",
                             propertyFile, e.getMessage());
-            logger.log(Level.SEVERE, errorMsg);
+            logger.severe(errorMsg);
             throw new RuntimeException(
                     "Initialization failed: unable to load property file");
         }
@@ -72,9 +77,19 @@ public class Config {
 
     /**
      * Get the database URL corresponding to the current environment
+     *
      * @return the url
      */
     public String getDbUrl() {
         return dbUrl;
+    }
+
+    /**
+     * Get the currently active environment
+     *
+     * @return DEVELOPMENT, PRODUCTION or TESTING
+     */
+    public String getCurrentEnvironment() {
+        return this.configKey;
     }
 }
