@@ -1,7 +1,6 @@
 package telraam;
 
 import telraam.database.ConnectionManager;
-import telraam.database.DBTest;
 
 import java.sql.Connection;
 import java.util.logging.Level;

@@ -9,6 +9,10 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Singleton for loading config settings. Requires a CONFIG_KEY environment
+ * variable to exist.
+ */
 public class Config {
     private static final Logger logger =
             Logger.getLogger(Config.class.getName());
@@ -54,6 +58,11 @@ public class Config {
         }
     }
 
+    /**
+     * Initialize the singleton instance if it doesn't exist, and return it
+     *
+     * @return the instance
+     */
     public static Config getInstance() {
         if (myInstance == null) {
             myInstance = new Config();
@@ -61,6 +70,10 @@ public class Config {
         return myInstance;
     }
 
+    /**
+     * Get the database URL corresponding to the current environment
+     * @return the url
+     */
     public String getDbUrl() {
         return dbUrl;
     }

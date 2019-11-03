@@ -8,6 +8,9 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Singleton for managing the database connection.
+ */
 public class ConnectionManager {
     private static final Logger logger =
             Logger.getLogger(ConnectionManager.class.getName());
@@ -23,6 +26,11 @@ public class ConnectionManager {
         }
     }
 
+    /**
+     * Initialize the singleton instance if it doesn't exist, and return it
+     *
+     * @return the instance
+     */
     public static ConnectionManager getInstance() {
         if (myInstance == null) {
             myInstance = new ConnectionManager();
@@ -30,6 +38,11 @@ public class ConnectionManager {
         return myInstance;
     }
 
+    /**
+     * Get the database connection.
+     *
+     * @return the connection.
+     */
     public Connection getConnection() {
         return connection;
     }
