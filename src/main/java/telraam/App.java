@@ -1,5 +1,9 @@
 package telraam;
 
+import telraam.database.ConnectionManager;
+import telraam.database.DBTest;
+
+import java.sql.Connection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -8,6 +12,7 @@ public class App {
 
     public static void main(String[] args) {
         logger.log(Level.INFO, "Main method");
+        Connection conn = ConnectionManager.getInstance().getConnection();
     }
 
     /**

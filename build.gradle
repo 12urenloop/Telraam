@@ -3,6 +3,7 @@ plugins {
     id 'application'
     id 'jacoco'
     id 'org.sonarqube' version "2.7"
+    id 'idea'
 }
 
 group 'telraam'
@@ -17,18 +18,40 @@ application {
     mainClassName = 'telraam.App'
 }
 
+task runDev{
+
+    finalizedBy {
+        run.environment("CONFIG_KEY", "DEVELOPMENT")
+        run
+    }
+}
+task runProd{
+
+    finalizedBy {
+        run.environment("CONFIG_KEY", "PRODUCTION")
+        run
+    }
+}
+idea {
+    module {
+        inheritOutputDirs = true
+    }
+}
+
 dependencies {
     testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
+    implementation('org.xerial:sqlite-jdbc:3.8.11.2')
 }
 
 test {
+    environment("CONFIG_KEY", "TESTING")
     useJUnitPlatform()
     testLogging {
         events "passed", "skipped", "failed"
     }
 }
 jacoco {
-    toolVersion= "0.8.4"
+    toolVersion = "0.8.4"
     reportsDir = file("$buildDir/coverage")
 }
 jacocoTestCoverageVerification {
