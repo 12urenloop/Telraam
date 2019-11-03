@@ -1,9 +1,12 @@
+import org.flywaydb.gradle.task.FlywayMigrateTask
+
 plugins {
     id 'java'
     id 'application'
     id 'jacoco'
     id 'org.sonarqube' version "2.7"
     id 'idea'
+    id 'org.flywaydb.flyway' version "6.0.8"
 }
 
 group 'telraam'
@@ -18,14 +21,14 @@ application {
     mainClassName = 'telraam.App'
 }
 
-task runDev{
+task runDev {
 
     finalizedBy {
         run.environment("CONFIG_KEY", "DEVELOPMENT")
         run
     }
 }
-task runProd{
+task runProd {
 
     finalizedBy {
         run.environment("CONFIG_KEY", "PRODUCTION")
@@ -41,6 +44,7 @@ idea {
 dependencies {
     testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
     implementation('org.xerial:sqlite-jdbc:3.8.11.2')
+    implementation('org.postgresql:postgresql:42.2.8')
 }
 
 test {
@@ -62,4 +66,25 @@ jacocoTestCoverageVerification {
             }
         }
     }
+}
+def prodProps = new Properties()
+file("src/main/resources/telraam/prodConfig.properties").withInputStream {
+    prodProps.load(it)
+}
+task migrateProductionDatabase(type: FlywayMigrateTask) {
+    url = prodProps.getProperty("DB_URL")
+}
+def devProps = new Properties()
+file("src/main/resources/telraam/devConfig.properties").withInputStream {
+    devProps.load(it)
+}
+task migrateDevelopmentDatabase(type: FlywayMigrateTask) {
+    url = devProps.getProperty("DB_URL")
+}
+def testProps = new Properties()
+file("src/main/resources/telraam/testConfig.properties").withInputStream {
+    testProps.load(it)
+}
+task migrateTestingDatabase(type: FlywayMigrateTask) {
+    url = testProps.getProperty("DB_URL")
 }
