@@ -18,12 +18,13 @@ public class ConnectionManager {
     private Connection connection;
 
     private ConnectionManager() {
-        try (Connection conn = DriverManager
-                .getConnection(Config.getInstance().getDbUrl())) {
-            this.connection = conn;
+        try {
+            this.connection = DriverManager
+                    .getConnection(Config.getInstance().getDbUrl());
         } catch (SQLException sqle) {
             logger.log(Level.SEVERE, sqle.getMessage());
         }
+
     }
 
     /**
