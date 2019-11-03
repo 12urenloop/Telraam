@@ -59,11 +59,28 @@ jacoco {
     toolVersion = "0.8.4"
     reportsDir = file("$buildDir/coverage")
 }
+jacocoTestReport {
+    afterEvaluate {
+        classDirectories.setFrom files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**/database/models/**'
+            ])
+        })
+    }
+
+}
 jacocoTestCoverageVerification {
+    afterEvaluate {
+        classDirectories.setFrom files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**/database/models/**'
+            ])
+        })
+    }
     violationRules {
         rule {
             limit {
-                minimum = 0.5
+                minimum = 0.7
             }
         }
     }
