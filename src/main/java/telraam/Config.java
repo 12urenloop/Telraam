@@ -16,6 +16,7 @@ public class Config {
             Logger.getLogger(Config.class.getName());
     private static Config myInstance;
     private String dbUrl;
+    private String dbDriver;
     private Properties properties;
     private String propertyFile;
     private Map<String, String> propFileMap;
@@ -23,9 +24,9 @@ public class Config {
 
     private Config() {
         this.propFileMap =
-                Map.of("TESTING", "testConfig.properties", "DEVELOPMENT",
-                        "devConfig.properties", "PRODUCTION",
-                        "prodConfig.properties");
+                Map.of("TESTING", "testConfig.properties",
+                        "DEVELOPMENT", "devConfig.properties",
+                        "PRODUCTION", "prodConfig.properties");
         String envKey = System.getenv("CONFIG_KEY");
         if (envKey == null ||
                 !this.propFileMap.containsKey(envKey.toUpperCase())) {
@@ -51,6 +52,7 @@ public class Config {
 
             this.properties.load(inputStream);
             this.dbUrl = this.properties.getProperty("DB_URL");
+            this.dbDriver = this.properties.getProperty("DB_DRIVER");
 
         } catch (IOException e) {
 
@@ -82,6 +84,10 @@ public class Config {
      */
     public String getDbUrl() {
         return dbUrl;
+    }
+
+    public String getDbDriver(){
+        return dbDriver;
     }
 
     /**

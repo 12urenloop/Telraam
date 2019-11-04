@@ -1,13 +1,19 @@
 package telraam.database.models;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Objects;
 
 public class Baton {
     private Integer id;
     private String name;
 
-    public Baton(Integer id, String name) {
-        this.id = id;
+    public Baton(ResultSet rs) throws SQLException {
+        this.id = rs.getInt("id");
+        this.name = rs.getString("name");
+    }
+
+    public Baton(String name) {
         this.name = name;
     }
 
