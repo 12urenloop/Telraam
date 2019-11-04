@@ -1,4 +1,4 @@
-package telraam.database.daos.jdbc;
+package telraam.database.jdbc;
 
 import telraam.database.daos.BatonDAO;
 import telraam.database.models.Baton;

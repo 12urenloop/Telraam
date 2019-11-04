@@ -1,6 +1,6 @@
 package telraam.database;
 
-import telraam.database.daos.jdbc.JDBCDataAccessProvider;
+import telraam.database.jdbc.JDBCDataAccessProvider;
 
 public class Database {
 

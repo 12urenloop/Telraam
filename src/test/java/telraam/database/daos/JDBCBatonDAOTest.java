@@ -8,11 +8,8 @@ import telraam.Config;
 import telraam.database.DataAccessContext;
 import telraam.database.DataAccessException;
 import telraam.database.Database;
-import telraam.database.daos.jdbc.JDBCBatonDAO;
-import telraam.database.daos.jdbc.JDBCDataAccessContext;
 import telraam.database.models.Baton;
 
-import java.sql.Connection;
 import java.util.List;
 import java.util.logging.Logger;
 

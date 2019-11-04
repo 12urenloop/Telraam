@@ -1,4 +1,4 @@
-package telraam.database.daos.jdbc;
+package telraam.database.jdbc;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
