@@ -1,21 +1,16 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Telraam [test-force]" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="Telraam [migrateProductionDatabase]" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
-      <option name="env">
-        <map>
-          <entry key="CONFIG_KEY" value="TESTING" />
-        </map>
-      </option>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
       <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="--rerun-tasks" />
+      <option name="scriptParameters" value="-i" />
       <option name="taskDescriptions">
         <list />
       </option>
       <option name="taskNames">
         <list>
-          <option value="test" />
+          <option value="migrateProductionDatabase" />
         </list>
       </option>
       <option name="vmOptions" value="" />
