@@ -43,7 +43,7 @@ class JDBCBatonDAOTest {
         Baton newBaton = dac.getBatonDAO().insert(new Baton("baton2"));
 
         assertEquals(1, newBaton.getId()); // It's the first generated id in the table
-        assertEquals("baton1", newBaton.getName());
+        assertEquals("baton2", newBaton.getName());
     }
 
     @Test
