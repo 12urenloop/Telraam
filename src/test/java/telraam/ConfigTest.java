@@ -1,9 +1,9 @@
 package telraam;
 
 import org.junit.jupiter.api.Test;
-import telraam.database.ConnectionManager;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ConfigTest {
 

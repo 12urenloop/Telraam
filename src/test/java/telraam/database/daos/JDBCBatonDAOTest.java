@@ -1,43 +1,56 @@
 package telraam.database.daos;
 
 import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import telraam.Config;
-import telraam.database.ConnectionManager;
+import telraam.database.DataAccessContext;
+import telraam.database.DataAccessException;
+import telraam.database.Database;
+import telraam.database.daos.jdbc.JDBCBatonDAO;
+import telraam.database.daos.jdbc.JDBCDataAccessContext;
 import telraam.database.models.Baton;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class JDBCBatonDAOTest {
     private static final Logger logger =
             Logger.getLogger(JDBCBatonDAOTest.class.getName());
-    Connection connection;
+
+    // We need to use one context during testing. The tables are dropped when the connection is closed.
+    private DataAccessContext dac;
 
     @BeforeEach
-    void setUp() throws SQLException {
-
-        this.connection = ConnectionManager.getInstance().getConnection();
+    void setUp() {
+        dac =  Database.getInstance().getDataAccessContext();
         Flyway flyway = Flyway.configure()
                 .dataSource(Config.getInstance().getDbUrl(), null, null).load();
         flyway.migrate();
-        PreparedStatement statement =
-                this.connection.prepareStatement(
-                        "insert into baton (name) values (?)");
-        statement.setString(1, "baton1");
-        statement.execute();
+    }
+
+    @AfterEach
+    void BreakDown() throws DataAccessException {
+        dac.close();
+    }
+
+    @Test
+    void insert(){
+        Baton newBaton = dac.getBatonDAO().insert(new Baton("baton1"));
+
+        assertEquals(1, newBaton.getId()); // It's the first generated id in the table
+        assertEquals("baton1", newBaton.getName());
     }
 
     @Test
     void getAll() {
-        BatonDAO dao = new JDBCBatonDAO();
-        List<Baton> batons = dao.getAll();
+        dac.getBatonDAO().insert(new Baton("baton1"));
+
+        List<Baton> batons = dac.getBatonDAO().getAll();
         assertEquals(1, batons.size());
         assertEquals("baton1", batons.get(0).getName());
     }

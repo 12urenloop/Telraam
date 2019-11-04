@@ -1,5 +1,7 @@
 package telraam.database.daos;
 
+import telraam.database.models.Baton;
+
 import java.util.List;
 
 /**
@@ -9,13 +11,14 @@ public interface DAO<T> {
 
     /**
      * Get all objects present in the database.
+     *
      * @return the list of objects
      */
     List<T> getAll();
 
     T getById(Integer id);
 
-    void insert(T newObject);
+    Baton insert(T newObject);
 
     void delete(Integer id);
 }
