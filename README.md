@@ -1,5 +1,9 @@
 # Telraam
 New and hopefully improved application to count laps of the 12urenloop event
 
-## Requirements
-- Java 11 (JDK)
+All of the documentation is gathered in the [wiki][telraamwiki].
+
+Get started contributing [here][wikistarted]
+
+[telraamwiki]: https://github.com/12urenloop/Telraam/wiki 
+[wikistarted]: https://github.com/12urenloop/Telraam/wiki/Getting-Started
