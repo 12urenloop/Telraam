@@ -31,7 +31,7 @@ class JDBCBatonDAOTest {
     }
 
     @AfterEach
-    void BreakDown() throws DataAccessException {
+    void breakDown() throws DataAccessException {
         dac.close();
     }
 
@@ -39,7 +39,6 @@ class JDBCBatonDAOTest {
     void insert(){
         Baton newBaton = dac.getBatonDAO().insert(new Baton("baton2"));
 
-        assertEquals(1, newBaton.getId()); // It's the first generated id in the table
         assertEquals("baton2", newBaton.getName());
     }
 
