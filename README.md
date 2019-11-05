@@ -1,11 +1,9 @@
 # Telraam
 New and hopefully improved application to count laps of the 12urenloop event
 
-## Requirements
-- Java 11 (JDK)
+All of the documentation is gathered in the [wiki][telraamwiki].
 
-This is just my one cent about how to manage you database using DAO's
+Get started contributing [here][wikistarted]
 
-We got a database singleton that houses the DataAccessProvider. It's only there as a wrapper to change our actual database implementation. You can change this by a 'WhateverIsMySourceDataAccessProvider' that has all the necessary interfaces and their methods implemented and it will just work fine.
-
-This provider can give us a context which houses one database connection. With this we
+[telraamwiki]: https://github.com/12urenloop/Telraam/wiki 
+[wikistarted]: https://github.com/12urenloop/Telraam/wiki/Getting-Started
