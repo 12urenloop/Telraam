@@ -3,7 +3,7 @@
 Yes I really need a README to explain my shitty code.
 So, generics are a thing in Java. But they suck.
 
-The main class in this package is the BeaconAggregator, which is basically an Event<B> generator, B being the thing built from the data.
+The main class in this package is the BeaconAggregator, which is basically an `Event<B>` generator, B being the thing built from the data.
 
 BeaconAggregator extends TCPFactory that spawns all the connecting Beacon<B> that actually do the generating. On TCPFactories you can subscribe handlers for basic events, like Errors (with `onError`), data (with `onData`) and disconnects (with `onDisconnect`).
 
