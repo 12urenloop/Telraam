@@ -23,7 +23,7 @@ database:
   maxWaitForConnection: 1s
 
   # the SQL query to run when validating a connection's liveness
-  validationQuery: "SELECT * FROM baton LIMIT 1"
+  validationQuery: "SELECT 1"
 
   # the timeout before a connection validation queries fail
   validationQueryTimeout: 3s
@@ -42,3 +42,14 @@ database:
 
   # the minimum amount of time an connection must sit idle in the pool before it is eligible for eviction
   minIdleTime: 1 minute
+
+# Logging settings.
+logging:
+
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: DEBUG
+
+  appenders:
+    - type: console
+      threshold: WARN
+      target: stderr

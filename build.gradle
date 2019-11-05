@@ -102,7 +102,7 @@ jacocoTestCoverageVerification {
     }
 }
 def prodProps = new Properties()
-file("$rootProject.projectDir/src/main/resources/telraam/prodConfig.yml").withInputStream {
+file("$rootProject.projectDir/src/main/resources/telraam/prodConfig.properties").withInputStream {
     prodProps.load(it)
 }
 task migrateProductionDatabase(type: FlywayMigrateTask) {
@@ -110,20 +110,17 @@ task migrateProductionDatabase(type: FlywayMigrateTask) {
 }
 
 def devProps = new Properties()
-file("$rootProject.projectDir/src/main/resources/telraam/devConfig.yml").withInputStream {
+file("$rootProject.projectDir/src/main/resources/telraam/devConfig.properties").withInputStream {
     devProps.load(it)
 }
 task migrateDevelopmentDatabase(type: FlywayMigrateTask) {
     url = devProps.getProperty("DB_URL")
     user = devProps.getProperty("DB_USER")
-    System.out.println("--------------------")
-    System.out.println(url)
-    System.out.println(user)
     password = devProps.getProperty("DB_PASSWORD")
 }
 
 def testProps = new Properties()
-file("$rootProject.projectDir/src/main/resources/telraam/testConfig.yml").withInputStream {
+file("$rootProject.projectDir/src/main/resources/telraam/testConfig.properties").withInputStream {
     testProps.load(it)
 }
 task migrateTestingDatabase(type: FlywayMigrateTask) {

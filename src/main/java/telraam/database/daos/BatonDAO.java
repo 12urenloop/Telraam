@@ -1,6 +1,7 @@
 package telraam.database.daos;
 
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
+import org.jdbi.v3.sqlobject.config.RegisterRowMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
@@ -14,7 +15,8 @@ import java.util.Optional;
 
 public interface BatonDAO {
 
-    @SqlQuery("select * from batons")
+    @SqlQuery("select * from baton")
+    @RegisterBeanMapper(Baton.class)
     List<Baton> listBatons();
 
     @SqlUpdate("insert into baton (name) values (:name)")
@@ -23,5 +25,6 @@ public interface BatonDAO {
     Id insert(@BindBean Baton baton);
 
     @SqlQuery("select * from baton where id = :id")
+    @RegisterBeanMapper(Baton.class)
     Optional<Baton> findBatonById(@Bind("id") int id);
 }
