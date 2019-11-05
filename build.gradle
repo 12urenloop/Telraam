@@ -14,8 +14,14 @@ version '1.0-SNAPSHOT'
 
 sourceCompatibility = 11
 
+// Set our project variables
+project.ext {
+    dropwizardVersion = '1.3.9'
+}
+
 repositories {
     mavenCentral()
+    jcenter()
 }
 application {
     mainClassName = 'telraam.App'
@@ -25,6 +31,7 @@ task runDev {
 
     finalizedBy {
         run.environment("CONFIG_KEY", "DEVELOPMENT")
+        run.args('server', "$rootProject.projectDir/src/main/resources/telraam/devConfig.yml")
         run
     }
 }
@@ -32,6 +39,7 @@ task runProd {
 
     finalizedBy {
         run.environment("CONFIG_KEY", "PRODUCTION")
+        run.args('server', "$rootProject.projectDir/src/main/resources/telraam/prodConfig.yml")
         run
     }
 }
@@ -42,10 +50,18 @@ idea {
 }
 
 dependencies {
+    implementation(
+            'io.dropwizard:dropwizard-core:' + dropwizardVersion,
+            'io.dropwizard:dropwizard-hibernate:' + dropwizardVersion,
+            'io.dropwizard:dropwizard-auth:' + dropwizardVersion,
+            'io.dropwizard:dropwizard-jdbi3:' + dropwizardVersion
+    )
     testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
     implementation('com.h2database:h2:1.4.199')
     implementation('org.postgresql:postgresql:42.2.8')
     testImplementation('org.flywaydb:flyway-core:6.0.8')
+    testImplementation("org.mockito:mockito-core:1.+")
+    testImplementation("io.dropwizard:dropwizard-testing:" + dropwizardVersion)
 }
 
 test {
@@ -86,21 +102,28 @@ jacocoTestCoverageVerification {
     }
 }
 def prodProps = new Properties()
-file("src/main/resources/telraam/prodConfig.properties").withInputStream {
+file("$rootProject.projectDir/src/main/resources/telraam/prodConfig.yml").withInputStream {
     prodProps.load(it)
 }
 task migrateProductionDatabase(type: FlywayMigrateTask) {
     url = prodProps.getProperty("DB_URL")
 }
+
 def devProps = new Properties()
-file("src/main/resources/telraam/devConfig.properties").withInputStream {
+file("$rootProject.projectDir/src/main/resources/telraam/devConfig.yml").withInputStream {
     devProps.load(it)
 }
 task migrateDevelopmentDatabase(type: FlywayMigrateTask) {
     url = devProps.getProperty("DB_URL")
+    user = devProps.getProperty("DB_USER")
+    System.out.println("--------------------")
+    System.out.println(url)
+    System.out.println(user)
+    password = devProps.getProperty("DB_PASSWORD")
 }
+
 def testProps = new Properties()
-file("src/main/resources/telraam/testConfig.properties").withInputStream {
+file("$rootProject.projectDir/src/main/resources/telraam/testConfig.yml").withInputStream {
     testProps.load(it)
 }
 task migrateTestingDatabase(type: FlywayMigrateTask) {
