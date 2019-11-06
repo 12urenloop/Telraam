@@ -67,7 +67,7 @@ public class BeaconTest {
             if (connections < 1) {
                 while (true) {
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(2000);
                     } catch (Exception e) {
                     }
                 }
@@ -117,14 +117,14 @@ public class BeaconTest {
         });
 
         new Thread(ba).start();
-        Thread.sleep(100);
+        Thread.sleep(500);
 
         // Check if all beacons are connected
         assertEquals(connects, 5);
 
         // Check if they can disconnect at will
         connectedSockets.remove(0).close();
-        Thread.sleep(100);
+        Thread.sleep(200);
         assertEquals(exits, 1);
 
         // Check if no beacon messages are sent with incomplete data
@@ -132,7 +132,7 @@ public class BeaconTest {
         for (OurSocket s: connectedSockets) {
             s.write("hadeksfd".getBytes());
         }
-        Thread.sleep(100);
+        Thread.sleep(200);
         assertEquals(data, 0);
 
         // But not too much either
@@ -140,14 +140,14 @@ public class BeaconTest {
             s.write("dsa".getBytes());
         }
 
-        Thread.sleep(100);
+        Thread.sleep(200);
         assertEquals(data, connectedSockets.size());
 
         // Do they all close correctly
         for (OurSocket s: connectedSockets) {
             s.close();
         }
-        Thread.sleep(100);
+        Thread.sleep(200);
         assertEquals(exits, 5);
 
         // No errors received
