@@ -15,6 +15,8 @@ public class BeaconAggregator extends TCPFactory<BeaconMessage> implements Callb
     }
 
     public Void handle(Event<BeaconMessage> event) {
+        // this is the handler for event.
+        // Sending the data to the correct handlers set by TCPFactory
         event.handle(this);
         return null;
     }

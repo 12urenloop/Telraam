@@ -5,6 +5,10 @@ public abstract class EventGenerator<B> extends Generator<Event<B>> {
         super(handler);
     }
 
+    protected void connect() {
+        super.handle(new Event.Connect<>());
+    }
+
     protected void data(B data) {
         super.handle(new Event.Data<>(data));
     }

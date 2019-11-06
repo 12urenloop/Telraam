@@ -27,6 +27,15 @@ public abstract class Event<B> {
         }
     }
 
+    public static class Connect<B> extends Event<B> {
+        public Connect() {
+        }
+
+        void handle(EventHandler<B> h) {
+            h.connect();
+        }
+    }
+
     public static class Exit<B> extends Event<B> {
         public Exit() {
         }
@@ -38,6 +47,7 @@ public abstract class Event<B> {
 
     public interface EventHandler<B> {
         void exit();
+        void connect();
 
         void error(Exception e);
 

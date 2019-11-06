@@ -6,25 +6,31 @@ import java.net.Socket;
 import java.util.List;
 import java.util.ArrayList;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class TCPFactory<B> implements Event.EventHandler<B>, Runnable {
+    private static Logger logger = Logger.getLogger(TCPFactory.class.getName());
+
     protected Callback<Void, Socket> creator;
     private ServerSocket socket;
     List<Callback<Void, B>> handlers = new ArrayList<>();
     List<Callback<Void, Exception>> errorHandlers = new ArrayList<>();
     List<Callback<Void, Void>> exitHandlers = new ArrayList<>();
+    List<Callback<Void, Void>> connectHandlers = new ArrayList<>();
 
     public TCPFactory(Callback<Void, Socket> creator, int port) throws IOException {
         this(port);
         this.creator = creator;
-
-        new Thread(this).run();
     }
 
     protected TCPFactory(int port) throws IOException {
         this.socket = new ServerSocket(port);
+        logger.log(Level.INFO, "Starting tcp on port "+port);
     }
 
     public void run() {
+        logger.log(Level.INFO, "Accepting actual connections");
         while (true) {
             try {
                 Socket s = socket.accept();
@@ -50,12 +56,20 @@ public class TCPFactory<B> implements Event.EventHandler<B>, Runnable {
         return this;
     }
 
+    public TCPFactory<B> onConnect(Callback<Void, Void> handler) {
+        this.connectHandlers.add(handler);
+        return this;
+    }
+
     public void exit() {
         this.exitHandlers.forEach((eh) -> eh.handle(null));
     }
 
+    public void connect() {
+        this.connectHandlers.forEach((th) -> th.handle(null));
+    }
+
     public void error(Exception e) {
-        // Hiding types with lambda's
         this.errorHandlers.forEach((eh) -> eh.handle(e));
     }
 

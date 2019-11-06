@@ -6,6 +6,7 @@ public class BeaconMessage {
     public BeaconMessage() {
     }
 
+    // DO NOT STORE THIS DATA, IT WILL BE OVERWRITTEN
     public BeaconMessage(byte[] data) {
         this.data = data;
     }
