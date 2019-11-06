@@ -12,6 +12,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.BeforeAll;
 
@@ -24,6 +26,8 @@ import org.junit.jupiter.api.BeforeAll;
 */
 public class BeaconTest {
 
+    private static final Semaphore barrier = new Semaphore(8);
+
     static List<OurSocket> connectedSockets = new ArrayList<>();
 
     public static class OurSocket extends Socket {
@@ -32,6 +36,7 @@ public class BeaconTest {
 
         public OurSocket() throws IOException {
             super();
+            barrier.acquireUninterruptibly();
 
             pis = new PipedInputStream();
             pos = new PipedOutputStream(pis);
@@ -41,12 +46,17 @@ public class BeaconTest {
             return this.pis;
         }
 
-        public void write(byte[] buf) throws IOException {
+        public void write(byte[] buf, boolean acq) throws IOException {
+            if (acq) {
+                barrier.acquireUninterruptibly();
+            }
+
             pos.write(buf);
             pos.flush();
         }
 
         public void close() throws IOException {
+            barrier.acquireUninterruptibly();
             pos.close();
             pis.close();
             super.close();
@@ -65,6 +75,7 @@ public class BeaconTest {
         public Socket accept() throws IOException {
             // Only spawn connections amount of sockets
             if (connections < 1) {
+                barrier.release();
                 while (true) {
                     try {
                         Thread.sleep(2000);
@@ -81,7 +92,10 @@ public class BeaconTest {
     }
 
     static BeaconAggregator ba;
-    static int data, connects, errors, exits;
+    static AtomicInteger data = new AtomicInteger();
+    static AtomicInteger connects = new AtomicInteger();
+    static AtomicInteger errors = new AtomicInteger();
+    static AtomicInteger exits = new AtomicInteger();
 
     @BeforeAll
     public static void init() throws Exception {
@@ -97,60 +111,77 @@ public class BeaconTest {
     public void testEverythingBeacon() throws Exception {
 
         ba.onConnect((_e) -> {
-            connects += 1;
+            connects.incrementAndGet();
+            barrier.release();
             return null;
         });
 
         ba.onData((_e) -> {
-            data += 1;
+            data.incrementAndGet();
+            barrier.release();
             return null;
         });
 
         ba.onDisconnect((_e) -> {
-            exits += 1;
+            exits.incrementAndGet();
+            barrier.release();
             return null;
         });
 
         ba.onError((_e) -> {
-            errors += 1;
+            errors.incrementAndGet();
             return null;
         });
 
+        barrier.acquire();
         new Thread(ba).start();
-        Thread.sleep(500);
+
+        barrier.acquire(8);
+        barrier.release(8);
 
         // Check if all beacons are connected
-        assertEquals(connects, 5);
+        assertEquals(5, connects.get());
 
         // Check if they can disconnect at will
         connectedSockets.remove(0).close();
-        Thread.sleep(500);
-        assertEquals(exits, 1);
+
+        barrier.acquire(8);
+        barrier.release(8);
+
+        assertEquals(exits.get(), 1);
 
         // Check if no beacon messages are sent with incomplete data
         // Aka do they buffer correctly?
         for (OurSocket s: connectedSockets) {
-            s.write("hadeksfd".getBytes());
+            s.write("hadeksfd".getBytes(), false);
         }
-        Thread.sleep(500);
-        assertEquals(data, 0);
+
+        barrier.acquire(8);
+        barrier.release(8);
+
+        assertEquals(data.get(), 0);
 
         // But not too much either
         for (OurSocket s: connectedSockets) {
-            s.write("dsa".getBytes());
+            s.write("dsa".getBytes(), true);
         }
 
-        Thread.sleep(500);
-        assertEquals(data, connectedSockets.size());
+        barrier.acquire(8);
+        barrier.release(8);
+
+        assertEquals(data.get(), connectedSockets.size());
 
         // Do they all close correctly
         for (OurSocket s: connectedSockets) {
             s.close();
         }
-        Thread.sleep(500);
-        assertEquals(exits, 5);
+
+        barrier.acquire(8);
+        barrier.release(8);
+
+        assertEquals(exits.get(), 5);
 
         // No errors received
-        assertEquals(errors, 0);
+        assertEquals(errors.get(), 0);
     }
 }
