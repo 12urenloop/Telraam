@@ -142,6 +142,7 @@ public class BeaconTest {
 
         // Check if all beacons are connected
         assertEquals(5, connects.get());
+        assertEquals(errors.get(), 0);
 
         // Check if they can disconnect at will
         connectedSockets.remove(0).close();
@@ -150,6 +151,7 @@ public class BeaconTest {
         barrier.release(8);
 
         assertEquals(exits.get(), 1);
+        assertEquals(errors.get(), 0);
 
         // Check if no beacon messages are sent with incomplete data
         // Aka do they buffer correctly?
@@ -161,6 +163,7 @@ public class BeaconTest {
         barrier.release(8);
 
         assertEquals(data.get(), 0);
+        assertEquals(errors.get(), 0);
 
         // But not too much either
         for (OurSocket s: connectedSockets) {
@@ -171,6 +174,7 @@ public class BeaconTest {
         barrier.release(8);
 
         assertEquals(data.get(), connectedSockets.size());
+        assertEquals(errors.get(), 0);
 
         // Do they all close correctly
         for (OurSocket s: connectedSockets) {
