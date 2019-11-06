@@ -31,10 +31,16 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
 
         byte[] buf = new byte[messageSize];
         int at = 0;
+        InputStream is;
 
         try {
-            InputStream is = s.getInputStream();
+            is = s.getInputStream();
+        } catch (IOException e) {
+            error(e);
+            return;
+        }
 
+        try {
             while (true) {
                 int c = is.read(buf, at, messageSize - at);
                 if (c < 0) throw new EOFException();
@@ -44,10 +50,7 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
                     at = 0;
                 }
             }
-        } catch (EOFException e) {
-            exit();
         } catch (IOException e) {
-            error(e);
             exit();
         }
     }
