@@ -62,7 +62,6 @@ public class BeaconTest {
             barrier.acquireUninterruptibly();
             pos.close();
             pis.close();
-            super.close();
         }
     }
 

@@ -107,3 +107,5 @@ task migrateTestingDatabase(type: FlywayMigrateTask) {
     url = testProps.getProperty("DB_URL")
     baselineOnMigrate = true
 }
+
+// org.gradle.logging.level=info
