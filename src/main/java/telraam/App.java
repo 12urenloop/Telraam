@@ -6,6 +6,7 @@ import io.dropwizard.jdbi3.bundles.JdbiExceptionsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.jdbi.v3.core.Jdbi;
+import telraam.api.BatonResource;
 import telraam.api.HelloworldResource;
 import telraam.database.daos.BatonDAO;
 import telraam.database.models.Baton;
@@ -45,8 +46,10 @@ public class App extends Application<AppConfiguration> {
         final BatonDAO dao = database.onDemand(BatonDAO.class);
         Id id = dao.insert(new Baton("Heto"));
 
+        // TODO By default everything should be logged to stdout (see dropwizard logging docs) but it isn't
         List<Baton> batons = dao.listBatons();
         if(logger.isLoggable(Level.INFO)) {
+            logger.info("Baton testing information");
             logger.info(batons.stream().map(Baton::getName).collect(Collectors.joining(" : ")));
             logger.info(String.valueOf(dao.findBatonById(id.getId())));
         }
@@ -57,6 +60,7 @@ public class App extends Application<AppConfiguration> {
                 configuration.getDefaultName()
         );
         environment.jersey().register(resource);
+        environment.jersey().register(new BatonResource(database.onDemand(BatonDAO.class)));
 
         // Register healthcheck
         // environment.healthChecks().register("database", new DatabaseHealthCheck(database));
