@@ -7,14 +7,14 @@ import java.net.Socket;
 
 public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
     private Socket s;
-    private int messageSize = 10;
+    private int messageSize = BeaconMessage.MESSAGESIZE;
 
     public Beacon(Socket socket, Callback<Void, Event<BeaconMessage>> h) {
         super(h);
 
         this.s = socket;
 
-        new Thread(this).run();
+        new Thread(this).start();
     }
 
     public void run() {

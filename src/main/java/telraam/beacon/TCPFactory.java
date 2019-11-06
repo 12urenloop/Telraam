@@ -25,12 +25,13 @@ public class TCPFactory<B> implements Event.EventHandler<B>, Runnable {
     }
 
     protected TCPFactory(int port) throws IOException {
-        this.socket = new ServerSocket(port);
+        if (port > 0)
+            this.socket = new ServerSocket(port);
         logger.log(Level.INFO, "Starting tcp on port "+port);
     }
 
     public void run() {
-        logger.log(Level.INFO, "Accepting actual connections");
+        logger.log(Level.INFO, "Actually accepting connections");
         while (true) {
             try {
                 Socket s = socket.accept();

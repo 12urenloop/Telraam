@@ -1,6 +1,8 @@
 package telraam.beacon;
 
 public class BeaconMessage {
+    public static final int MESSAGESIZE = 10;
+
     public byte[] data;
 
     public BeaconMessage() {
