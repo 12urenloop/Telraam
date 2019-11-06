@@ -16,6 +16,8 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.BeforeAll;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
 * Beacon integration test.
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.BeforeAll;
 * @author  Arthur Vercruysse
 */
 public class BeaconTest {
+    private static Logger logger = Logger.getLogger(BeaconTest.class.getName());
 
     private static final Semaphore barrier = new Semaphore(8);
 
@@ -129,7 +132,7 @@ public class BeaconTest {
         });
 
         ba.onError((e) -> {
-            System.out.println(e.getLocalizedMessage());
+            logger.log(Level.SEVERE, "error", e);
             errors.incrementAndGet();
             return null;
         });
