@@ -13,5 +13,11 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite::memory:</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="Telraam - dev" uuid="c585fb29-cc7b-4398-a3d0-3b785841d52a">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://localhost:5432/telraam_dev</jdbc-url>
+    </data-source>
   </component>
 </project>
