@@ -13,6 +13,7 @@ import telraam.database.models.Id;
 import telraam.healthchecks.TemplateHealthCheck;
 
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -45,8 +46,10 @@ public class App extends Application<AppConfiguration> {
         Id id = dao.insert(new Baton("Heto"));
 
         List<Baton> batons = dao.listBatons();
-        logger.info(String.join(" : ", batons.stream().map(Baton::getName).collect(Collectors.toList())));
-        logger.info(String.valueOf(dao.findBatonById(id.getId())));
+        if(logger.isLoggable(Level.INFO)) {
+            logger.info(batons.stream().map(Baton::getName).collect(Collectors.joining(" : ")));
+            logger.info(String.valueOf(dao.findBatonById(id.getId())));
+        }
 
         // Add api resources
         final HelloworldResource resource = new HelloworldResource(

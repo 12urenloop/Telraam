@@ -50,18 +50,29 @@ idea {
 }
 
 dependencies {
+    // Web framework stuff
     implementation(
             'io.dropwizard:dropwizard-core:' + dropwizardVersion,
             'io.dropwizard:dropwizard-hibernate:' + dropwizardVersion,
             'io.dropwizard:dropwizard-auth:' + dropwizardVersion,
-            'io.dropwizard:dropwizard-jdbi3:' + dropwizardVersion
+            'io.dropwizard:dropwizard-jdbi3:' + dropwizardVersion,
+
     )
-    testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
+    // Database
     implementation('com.h2database:h2:1.4.199')
     implementation('org.postgresql:postgresql:42.2.8')
+
+    // Testing
+    testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
     testImplementation('org.flywaydb:flyway-core:6.0.8')
     testImplementation("org.mockito:mockito-core:1.+")
     testImplementation("io.dropwizard:dropwizard-testing:" + dropwizardVersion)
+
+    // JAX-B dependencies for JDK 9+  -> https://stackoverflow.com/a/43574427
+    implementation "javax.xml.bind:jaxb-api:2.2.11"
+    implementation "com.sun.xml.bind:jaxb-core:2.2.11"
+    implementation "com.sun.xml.bind:jaxb-impl:2.2.11"
+    implementation "javax.activation:activation:1.1.1"
 }
 
 test {

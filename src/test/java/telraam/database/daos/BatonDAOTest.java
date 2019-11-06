@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class BatonDAOTest {
 
     public DAOTestExtension daoTestRule = DAOTestExtension.newBuilder()
-            .addEntityClass(Baton.class)
+            .addEntityClass(BatonDAO.class)
             .build();
 
 //    private BatonDAO batonDAO;
@@ -30,7 +30,7 @@ public class BatonDAOTest {
 
     @Test
     public void createPerson() {
-        assertFalse(false);
+        assertTrue(true);
 
 //        final Id leId = daoTestRule.inTransaction(() -> batonDAO.insert(new Baton("Jeff")));
 //        assertTrue(leId.getId() > 0);
@@ -43,7 +43,7 @@ public class BatonDAOTest {
 
     @Test
     public void findAll() {
-        assertFalse(false);
+        assertTrue(true);
 
 //        daoTestRule.inTransaction(() -> {
 //            batonDAO.insert(new Baton("Jeff"));
@@ -58,7 +58,7 @@ public class BatonDAOTest {
 
     @Test
     public void handlesNullFullName() {
-        assertFalse(false);
+        assertTrue(true);
 //        assertThrows(ConstraintViolationException.class, ()->
 //                        daoTestRule.inTransaction(() -> batonDAO.create(new Baton("The null"))));
     }
