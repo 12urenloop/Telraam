@@ -1,23 +1,35 @@
 package telraam.beacon;
 
-public abstract class EventGenerator<B> extends Generator<Event<B>> {
+/**
+* Callback<Void, Event<B>> wrapper in disguise.
+* Exposing simpler methods to wrap in the right Event<B>.
+*
+* @author  Arthur Vercruysse
+*/
+public abstract class EventGenerator<B> {
+    protected Callback<Void, Event<B>> handler;
+
     public EventGenerator(Callback<Void, Event<B>> handler) {
-        super(handler);
+        this.handler = handler;
     }
 
     protected void connect() {
-        super.handle(new Event.Connect<>());
+        handle(new Event.Connect<>());
     }
 
     protected void data(B data) {
-        super.handle(new Event.Data<>(data));
+        handle(new Event.Data<>(data));
     }
 
     protected void error(Exception e) {
-        super.handle(new Event.Error<>(e));
+        handle(new Event.Error<>(e));
     }
 
     protected void exit() {
-        super.handle(new Event.Exit<>());
+        handle(new Event.Exit<>());
+    }
+
+    protected void handle(Event<B> event) {
+        handler.handle(event);
     }
 }

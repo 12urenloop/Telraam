@@ -9,15 +9,22 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+* The meat and potato's, but actually just spawning new connections with a creator,
+* and exposing subscriber pattern.
+*
+* @author  Arthur Vercruysse
+*/
 public class TCPFactory<B> implements Event.EventHandler<B>, Runnable {
     private static Logger logger = Logger.getLogger(TCPFactory.class.getName());
 
-    protected Callback<Void, Socket> creator;
     private ServerSocket socket;
-    List<Callback<Void, B>> handlers = new ArrayList<>();
-    List<Callback<Void, Exception>> errorHandlers = new ArrayList<>();
-    List<Callback<Void, Void>> exitHandlers = new ArrayList<>();
-    List<Callback<Void, Void>> connectHandlers = new ArrayList<>();
+    protected Callback<Void, Socket> creator;
+
+    protected List<Callback<Void, B>> handlers = new ArrayList<>();
+    protected List<Callback<Void, Exception>> errorHandlers = new ArrayList<>();
+    protected List<Callback<Void, Void>> exitHandlers = new ArrayList<>();
+    protected List<Callback<Void, Void>> connectHandlers = new ArrayList<>();
 
     public TCPFactory(Callback<Void, Socket> creator, int port) throws IOException {
         this(port);

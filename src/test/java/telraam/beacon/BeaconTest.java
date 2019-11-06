@@ -15,10 +15,14 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 
-import java.util.logging.Logger;
-
+/**
+* Beacon integration test.
+* Spoofing ServerSocket and Socket so you can write to it at will.
+* TODO: Test socket exception, but I don't really know what could fail.
+*
+* @author  Arthur Vercruysse
+*/
 public class BeaconTest {
-    private static Logger logger = Logger.getLogger(BeaconTest.class.getName());
 
     static List<OurSocket> connectedSockets = new ArrayList<>();
 
@@ -72,7 +76,6 @@ public class BeaconTest {
             OurSocket s = new OurSocket();
             // super.implAccept(s); // This fails, and should not be called
             connectedSockets.add(s);
-            logger.info("Created new socket");
             return s;
         }
     }

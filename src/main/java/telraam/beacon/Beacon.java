@@ -5,6 +5,15 @@ import java.io.InputStream;
 import java.io.EOFException;
 import java.net.Socket;
 
+/**
+* Beacon is socket wrapper that listens to the sockets
+* and emits BeaconMessages when enough bytes are read.
+*
+* Beacons are closed at the first Exception encountered.
+* This could be changed if need be.
+*
+* @author  Arthur Vercruysse
+*/
 public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
     private Socket s;
     private int messageSize = BeaconMessage.MESSAGESIZE;
@@ -35,7 +44,6 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
                     at = 0;
                 }
             }
-
         } catch (EOFException e) {
             exit();
         } catch (IOException e) {
