@@ -128,7 +128,8 @@ public class BeaconTest {
             return null;
         });
 
-        ba.onError((_e) -> {
+        ba.onError((e) -> {
+            System.out.println(e.getLocalizedMessage());
             errors.incrementAndGet();
             return null;
         });
