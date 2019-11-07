@@ -5,8 +5,9 @@ public class Team {
     private String name;
     private Integer baton_id;
 
-    public Team(int id, String name) {
-        this.id = id;
+    public Team() {};
+
+    public Team(String name) {
         this.name = name;
     }
 
