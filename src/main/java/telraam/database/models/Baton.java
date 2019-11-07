@@ -6,6 +6,8 @@ public class Baton {
     private Integer id;
     private String name;
 
+    public Baton(){}
+
     public Baton(String name) {
         this.name = name;
     }
