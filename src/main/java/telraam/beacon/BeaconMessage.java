@@ -13,6 +13,11 @@ public class BeaconMessage {
 
     // DO NOT STORE THIS DATA, IT WILL BE OVERWRITTEN
     public BeaconMessage(byte[] data) {
-        this.data = data;
+        this.data = data.clone();
+    }
+
+    @Override
+    public String toString() {
+        return new String(this.data);
     }
 }
