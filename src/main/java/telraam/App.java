@@ -44,7 +44,7 @@ public class App extends Application<AppConfiguration> {
         final Jdbi database = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
 
         final BatonDAO dao = database.onDemand(BatonDAO.class);
-        Id id = dao.insert(new Baton("Heto"));
+        Id id = dao.insert(new Baton("Hjhgfdfghjhgfeto"));
 
         // TODO By default everything should be logged to stdout (see dropwizard logging docs) but it isn't
         List<Baton> batons = dao.listBatons();
