@@ -26,7 +26,7 @@ public class BatonResource {
     }
 
     /**
-     * @return All the baton's in the database
+     * @return All the batons in the database
      */
     @GET
     public List<Baton> getListOfBatons() {
@@ -82,7 +82,10 @@ public class BatonResource {
         }
     }
 
-
+    /**
+     *
+     * @return a boolean if the baton could be deleted
+     */
 
     @DELETE @Path(ENTITY_PATH)
     public boolean deleteBaton(@PathParam(ID_NAME) Optional<Integer> id) {
