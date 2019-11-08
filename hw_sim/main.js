@@ -3,6 +3,8 @@
 const ArgumentParser = require('argparse').ArgumentParser;
 const net = require('net');
 
+var args;
+
 // Standard Normal variate using Box-Muller transform.
 function randn_bm(mean, dev) {
     var u = 0,
@@ -14,23 +16,26 @@ function randn_bm(mean, dev) {
 }
 
 class Beacon {
-    constructor(id, host, port) {
+    constructor(id) {
         this.socket = net.Socket();
-        this.socket.connect(port, host);
+        this.socket.connect(args.port, args.address);
         this.id = id;
     }
 
     send(id) {
         const buffer = Buffer.alloc(10);
         console.log("Beacon", id, "Runner", this.id);
+        buffer.writeInt8(this.id);
+        buffer.writeInt8(id, 1);
+        buffer.writeBigInt64LE(BigInt(Date.now()), 2);
         this.socket.write(buffer);
     }
 }
 
 class Runner {
-    constructor(id, mean, dev, beacons) {
+    constructor(id, mean, beacons) {
         this.mean = mean;
-        this.dev = dev;
+        this.dev = args.round_deviation;
         this.beacons = beacons;
         this.at = 0;
         this.id = id;
@@ -72,16 +77,16 @@ function main() {
     parser.addArgument(['-d', "--runner_deviation"], { defaultValue: 10, type: "int", help: "Standard deviation of runner speed (per runner)" });
     parser.addArgument(['-D', "--round_deviation"], { defaultValue: 0, type: "int", help: "Standard deviation of runner speed (per round)" });
 
-    const args = parser.parseArgs();
+    args = parser.parseArgs();
 
     const beacons = [];
     for (let i = 0; i < args.beacons; i++) {
-        beacons.push(new Beacon(i + 1, args.address, args.port));
+        beacons.push(new Beacon(i + 1));
     }
 
     const runners = [];
     for (let i = 0; i < args.runners; i++) {
-        runners.push(new Runner(i + 1, randn_bm(args.mean, args.runner_deviation), args.round_deviation, beacons));
+        runners.push(new Runner(i + 1, randn_bm(args.mean, args.runner_deviation), beacons));
     }
 }
 main();
