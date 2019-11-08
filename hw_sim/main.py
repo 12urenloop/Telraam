@@ -23,21 +23,50 @@ parser.add_argument('-D', "--round_deviation", action="store", default=0, type=i
 def get_from_dist(mean, dev):
     return random.normalvariate(mean, dev)
 
-id = 0
+def return_one_byte():
+    return b'\x01'
+
+batons = return_one_byte()
 
 running = True
-def get_id():
-    global id
-    id += 1
-    return format(id, '010d')
+def get_id_baton():
+    global batons
+    batons += return_one_byte()
+    return batons
+
+
+beacons = return_one_byte()
+def get_id_beacon():
+    global beacons
+    beacons += return_one_byte()
+    return beacons
 
 class Beacon:
     def __init__(self, host, port):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
+        self.id = get_id_beacon()
 
     def send(self, id):
-        self.socket.sendall(id)
+        print("sending")
+        bs = bytes(10)
+        bs[0] = b'\x01'
+        bs[1] = b'\x01'
+        t = 345l
+        print(1)
+        bs[2] = t
+        bs[3] = t << 8
+        bs[4] = t << 16
+        bs[5] = t << 24
+        bs[6] = t << 32
+        bs[7] = t << 40
+        bs[8] = t << 48
+        bs[9] = t << 56
+        print(str(bs))
+        self.socket.sendall(bs)
+        # print(str(self.socket.send(bs)))
+        # print(str(self.socket.send(id)))
+        # self.socket.sendall(long(time.time() * 1000))
 
     def kill(self):
         self.socket.close()
@@ -48,7 +77,7 @@ class Runner(threading.Thread):
         self.mean = mean
         self.dev = dev
         self.beacons = itertools.cycle(beacons)
-        self.id = get_id()
+        self.id = get_id_baton()
         self.running = True
 
     def run(self):
@@ -78,11 +107,10 @@ if __name__ == "__main__":
     runners = [Runner(get_from_dist(configs.mean, configs.runner_deviation), configs.round_deviation, beacons) for _ in range(configs.runners)]
     for runner in runners:
         runner.start()
-        print("starting "+runner.id)
+        print("starting "+str(runner.id))
 
     try:
         while(True):
             time.sleep(1)
     except KeyboardInterrupt:
         quit(runners, beacons)
-        sys.exit(0)
