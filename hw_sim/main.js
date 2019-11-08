@@ -46,7 +46,10 @@ class Runner {
     }
 
     send() {
-        this.beacons[this.at].send(this.id);
+        if (Math.random() >= args.miss_rate) {
+            this.beacons[this.at].send(this.id);
+        }
+
         this.at++;
 
         if (this.at >= this.beacons.length) {
@@ -68,15 +71,15 @@ function main() {
         addHelp: true,
         description: 'Argparse example'
     });
-    parser.addArgument(['-p', "--port"], { defaultValue: 4564, type: "int", help: "Port to use" });
 
+    parser.addArgument(['-p', "--port"], { defaultValue: 4564, type: "int", help: "Port to use" });
     parser.addArgument(['-a', "--address"], { defaultValue: "127.0.0.1", help: "Ip address to test" });
     parser.addArgument(['-b', "--beacons"], { defaultValue: 2, type: "int", help: "Amount of beacons" });
     parser.addArgument(['-r', "--runners"], { defaultValue: 5, type: "int", help: "Amount of runners" });
     parser.addArgument(['-m', "--mean"], { defaultValue: 500, type: "int", help: "Mean of runner speed (ms per round)" });
-    parser.addArgument(['-d', "--runner_deviation"], { defaultValue: 10, type: "int", help: "Standard deviation of runner speed (per runner)" });
-    parser.addArgument(['-D', "--round_deviation"], { defaultValue: 0, type: "int", help: "Standard deviation of runner speed (per round)" });
-
+    parser.addArgument(['-d', "--runner-deviation"], { defaultValue: 10, type: "int", help: "Standard deviation of runner speed (per runner)" });
+    parser.addArgument(['-D', "--round-deviation"], { defaultValue: 0, type: "int", help: "Standard deviation of runner speed (per round)" });
+    parser.addArgument(['--miss-rate'], { defaultValue: 0, type: "float", help: "Missrate of runner detection." });
     args = parser.parseArgs();
 
     const beacons = [];
