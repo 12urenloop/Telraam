@@ -32,23 +32,6 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
         new Thread(this).start();
     }
 
-    // This function is slow as fuck please FIXME
-    private void rewriteBuffer(byte[] buf, int from, int to, int size) {
-        if (to + size >= buf.length)
-            throw new IndexOutOfBoundsException(to + size);
-
-        if (from + size >= buf.length)
-            throw new IndexOutOfBoundsException(from + size);
-
-        if (from < to) { // Please do not overwrite data
-            for (int i = size - 1; i >= 0; i--)
-                buf[to + i] = buf[from + i];
-        } else {
-            for (int i = 0; i < size; i++)
-                buf[to + i] = buf[from + i];
-        }
-    }
-
     public void run() {
         this.connect();
 
@@ -73,6 +56,7 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
                 int c = is.read(buf);
                 if (c < 0)
                     throw new EOFException();
+                System.out.println("" + (int) buf[0]);
 
                 for (int i = 0; i < c; i++) {
                     byte b = buf[i];
@@ -85,8 +69,14 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
                         // Delete current msgBuf content and start over
                         if (sTagIndex == startTag.length) {
                             sTagIndex = 0;
-                            msgBuf.clear();
-                            readingMsg = true;
+
+                            if (readingMsg) {
+                                // TODO: Maybe we want to reset msgBuf idk
+                                this.error(new BeaconException.MsgStartWithNoEnd());
+                            } else {
+                                msgBuf.clear();
+                                readingMsg = true;
+                            }
                         }
                     } else {
                         sTagIndex = 0;
@@ -109,9 +99,10 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
 
                                 this.data(new BeaconMessage(msgBuf));
                                 readingMsg = false;
+                            } else {
+                                this.error(new BeaconException.MsgEndWithNoStart());
                             }
                         }
-
                     } else {
                         eTagIndex = 0;
                     }

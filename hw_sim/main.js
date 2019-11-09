@@ -23,19 +23,20 @@ class Beacon {
     }
 
     send(id) {
-        // This is so ugly
-        const buffer = Buffer.alloc(18);
-        let offset = 0;
         console.log("Beacon", id, "Runner", this.id);
 
-        buffer.writeInt8(60, offset);
-        offset += 1; // '<'
-        buffer.writeInt8(60, offset);
-        offset += 1; // '<'
-        buffer.writeInt8(60, offset);
-        offset += 1; // '<'
-        buffer.writeInt8(60, offset);
-        offset += 1; // '<'
+        // This is so ugly
+        const start_tag = [60, 60, 60, 60];
+        const end_tag = [62, 62, 62, 62];
+        const actual_message_size = 10;
+
+        const buffer = Buffer.alloc(actual_message_size + start_tag.length + end_tag.length);
+
+        let offset = 0;
+        for (let tag of start_tag) {
+            buffer.writeInt8(tag, offset);
+            offset += 1; // '<'
+        }
 
         buffer.writeInt8(this.id, offset);
         offset += 1;
@@ -45,15 +46,10 @@ class Beacon {
         buffer.writeBigInt64LE(BigInt(Date.now()), offset);
         offset += 8;
 
-        buffer.writeInt8(62, offset);
-        offset += 1; // '>'
-        buffer.writeInt8(62, offset);
-        offset += 1; // '>'
-        buffer.writeInt8(62, offset);
-        offset += 1; // '>'
-        buffer.writeInt8(62, offset);
-        offset += 1; // '>'
-
+        for (let tag of end_tag) {
+            buffer.writeInt8(tag, offset);
+            offset += 1; // '<'
+        }
         this.socket.write(buffer);
     }
 }
