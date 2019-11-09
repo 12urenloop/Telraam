@@ -56,7 +56,6 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
                 int c = is.read(buf);
                 if (c < 0)
                     throw new EOFException();
-                System.out.println("" + (int) buf[0]);
 
                 for (int i = 0; i < c; i++) {
                     byte b = buf[i];

@@ -20,12 +20,12 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 /**
-* Beacon integration test.
-* Spoofing ServerSocket and Socket so you can write to it at will.
-* TODO: Test socket exception, but I don't really know what could fail.
-*
-* @author  Arthur Vercruysse
-*/
+ * Beacon integration test. Spoofing ServerSocket and Socket so you can write to
+ * it at will. TODO: Test socket exception, but I don't really know what could
+ * fail.
+ *
+ * @author Arthur Vercruysse
+ */
 public class BeaconTest {
     private static Logger logger = Logger.getLogger(BeaconTest.class.getName());
 
@@ -133,6 +133,7 @@ public class BeaconTest {
         ba.onError((e) -> {
             logger.log(Level.SEVERE, "error", e);
             errors.incrementAndGet();
+            barrier.release();
             return null;
         });
 
@@ -157,8 +158,8 @@ public class BeaconTest {
 
         // Check if no beacon messages are sent with incomplete data
         // Aka do they buffer correctly?
-        for (OurSocket s: connectedSockets) {
-            s.write("hadeksfd".getBytes(), false);
+        for (OurSocket s : connectedSockets) {
+            s.write("<<<<fdsdtestds".getBytes(), false);
         }
 
         barrier.acquire(8);
@@ -168,8 +169,8 @@ public class BeaconTest {
         assertEquals(errors.get(), 0);
 
         // But not too much either
-        for (OurSocket s: connectedSockets) {
-            s.write("dsa".getBytes(), true);
+        for (OurSocket s : connectedSockets) {
+            s.write(">>>>".getBytes(), true);
         }
 
         barrier.acquire(8);
@@ -178,8 +179,31 @@ public class BeaconTest {
         assertEquals(data.get(), connectedSockets.size());
         assertEquals(errors.get(), 0);
 
+        // Test invalid msg send
+
+        // Invalid message
+        connectedSockets.get(0).write("<<<<fsdtestds>>>>".getBytes(), true);
+
+        barrier.acquire(8);
+        barrier.release(8);
+        assertEquals(errors.get(), 1);
+
+        // No opening tag
+        connectedSockets.get(0).write("<<<jkfd;ajk;bjkea>>>>".getBytes(), true);
+
+        barrier.acquire(8);
+        barrier.release(8);
+        assertEquals(errors.get(), 2);
+
+        // 2 Opening tags
+        connectedSockets.get(0).write("<<<<jkdfasbjkea<<<<fdsdtestds".getBytes(), true);
+
+        barrier.acquire(8);
+        barrier.release(8);
+        assertEquals(errors.get(), 3);
+
         // Do they all close correctly
-        for (OurSocket s: connectedSockets) {
+        for (OurSocket s : connectedSockets) {
             s.close();
         }
 
@@ -189,6 +213,6 @@ public class BeaconTest {
         assertEquals(exits.get(), 5);
 
         // No errors received
-        assertEquals(errors.get(), 0);
+        assertEquals(errors.get(), 3);
     }
 }
