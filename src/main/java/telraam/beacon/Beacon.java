@@ -97,7 +97,13 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
                                     msgBuf.remove(msgBuf.size() - 1);
                                 }
 
-                                this.data(new BeaconMessage(msgBuf));
+                                // Catch errors thrown at message decoding and propagate
+                                try {
+                                    this.data(new BeaconMessage(msgBuf));
+                                } catch (Exception e) {
+                                    this.error(e);
+                                }
+
                                 readingMsg = false;
                             } else {
                                 this.error(new BeaconException.MsgEndWithNoStart());
