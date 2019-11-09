@@ -23,11 +23,37 @@ class Beacon {
     }
 
     send(id) {
-        const buffer = Buffer.alloc(10);
+        // This is so ugly
+        const buffer = Buffer.alloc(18);
+        let offset = 0;
         console.log("Beacon", id, "Runner", this.id);
-        buffer.writeInt8(this.id);
-        buffer.writeInt8(id, 1);
-        buffer.writeBigInt64LE(BigInt(Date.now()), 2);
+
+        buffer.writeInt8(60, offset);
+        offset += 1; // '<'
+        buffer.writeInt8(60, offset);
+        offset += 1; // '<'
+        buffer.writeInt8(60, offset);
+        offset += 1; // '<'
+        buffer.writeInt8(60, offset);
+        offset += 1; // '<'
+
+        buffer.writeInt8(this.id, offset);
+        offset += 1;
+        buffer.writeInt8(id, offset);
+        offset += 1;
+
+        buffer.writeBigInt64LE(BigInt(Date.now()), offset);
+        offset += 8;
+
+        buffer.writeInt8(62, offset);
+        offset += 1; // '>'
+        buffer.writeInt8(62, offset);
+        offset += 1; // '>'
+        buffer.writeInt8(62, offset);
+        offset += 1; // '>'
+        buffer.writeInt8(62, offset);
+        offset += 1; // '>'
+
         this.socket.write(buffer);
     }
 }
@@ -67,9 +93,8 @@ class Runner {
 
 function main() {
     const parser = new ArgumentParser({
-        version: '0.0.1',
         addHelp: true,
-        description: 'Argparse example'
+        description: 'Hardware simulation script for Telraam'
     });
 
     parser.addArgument(['-p', "--port"], { defaultValue: 4564, type: "int", help: "Port to use" });
