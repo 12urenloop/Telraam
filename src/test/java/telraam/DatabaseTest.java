@@ -1,55 +1,46 @@
 package telraam;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.jdbi3.strategies.TimedAnnotationNameStrategy;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.db.ManagedDataSource;
-import io.dropwizard.jdbi3.JdbiFactory;
-import io.dropwizard.jersey.validation.Validators;
-import io.dropwizard.logging.BootstrapLogging;
 import io.dropwizard.setup.Environment;
-import org.eclipse.jetty.util.component.LifeCycle;
+import io.dropwizard.testing.ResourceHelpers;
+import io.dropwizard.testing.junit5.DropwizardAppExtension;
+import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import org.flywaydb.core.Flyway;
 import org.jdbi.v3.core.Jdbi;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith(DropwizardExtensionsSupport.class)
 public abstract class DatabaseTest {
-    static {
-        BootstrapLogging.bootstrap();
-    }
+    private static final String CONFIG_PATH =
+            ResourceHelpers.resourceFilePath("telraam/testConfig.yml");
+    protected static final DropwizardAppExtension<AppConfiguration> APP_EXTENSION =
+            new DropwizardAppExtension<>(App.class,
+                    CONFIG_PATH);
+    protected static Jdbi jdbi;
+    private static Flyway flyway;
 
-    private MetricRegistry metricRegistry = new MetricRegistry();
-    private Environment environment;
-    protected Jdbi jdbi;
+    @BeforeAll
+    public static void initialize() {
+        Environment environment = APP_EXTENSION.getEnvironment();
+        DataSourceFactory dataSourceFactory =
+                APP_EXTENSION.getConfiguration().getDataSourceFactory();
+        ManagedDataSource ds = dataSourceFactory
+                .build(environment.metrics(),
+                        environment.getName());
+        flyway = Flyway.configure()
+                .dataSource(ds)
+                .schemas()
+                .load();
+        jdbi = ((App) APP_EXTENSION.getApplication()).getDatabase();
+    }
 
     @BeforeEach
     public void setUp() throws Exception {
-        environment = new Environment("test", new ObjectMapper(),
-                Validators.newValidator(), metricRegistry,
-                ClassLoader.getSystemClassLoader());
-        DataSourceFactory dataSourceFactory = new DataSourceFactory();
-        dataSourceFactory.setUrl("jdbc:h2:mem:jdbi3-test");
-        dataSourceFactory.setUser("sa");
-        dataSourceFactory.setDriverClass("org.h2.Driver");
-        ManagedDataSource ds = dataSourceFactory
-                .build(environment.metrics(), environment.getName());
-
-        Flyway flyway = Flyway.configure().dataSource(ds).schemas().load();
-
+        flyway.clean();
         flyway.migrate();
-        jdbi = new JdbiFactory(new TimedAnnotationNameStrategy())
-                .build(environment, dataSourceFactory, ds, "h2");
-        for (LifeCycle lc : environment.lifecycle().getManagedObjects()) {
-            lc.start();
-        }
     }
 
-    @AfterEach
-    public void tearDown() throws Exception {
-        for (LifeCycle lc : environment.lifecycle().getManagedObjects()) {
-            lc.stop();
-        }
-    }
 }

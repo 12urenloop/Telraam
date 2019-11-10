@@ -33,5 +33,5 @@ class BatonDAOTest extends DatabaseTest {
         assertEquals("testbaton", baton.getName());
 
     }
-
 }
+
