@@ -14,15 +14,15 @@ Any* version of npm. Any* version of node.
 
 ## Arguments
 
-\-h: Show all the help messages.
-\-p: What port to connect to.
-\-a: What address to connect to.
-\-r: The amount of runners to spawn.
-\-b: The amount of beacons to spawn.
-\-m: The average time per round
-\-d: Standard deviation for the average runner speed.
-\-D: Standard deviation of round speed, global for all runners.
-\--miss-rate: Missrate of runner detection.
+- `-h`: Show all the help messages.
+- `-p`: What port to connect to.
+- `-a`: What address to connect to.
+- `-r`: The amount of runners to spawn.
+- `-b`: The amount of beacons to spawn.
+- `-m`: The average time per round
+- `-d`: Standard deviation for the average runner speed.
+- `-D`: Standard deviation of round speed, global for all runners.
+- `--miss-rate`: Missrate of runner detection.
 
 ### Todo: added bonusses
 
