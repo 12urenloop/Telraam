@@ -22,7 +22,6 @@ class BatonDAOTest extends DatabaseTest {
 
     @Test
     void createBaton() {
-        batonDAO = jdbi.onDemand(BatonDAO.class);
         Baton testbaton = new Baton("testbaton");
         final Id testId = batonDAO.insert(testbaton);
         assertTrue(testId.getId() > 0);
@@ -31,7 +30,6 @@ class BatonDAOTest extends DatabaseTest {
         assertFalse(batonOptional.isEmpty());
         Baton baton = batonOptional.get();
         assertEquals("testbaton", baton.getName());
-
     }
 }
 
