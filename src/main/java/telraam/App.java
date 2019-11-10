@@ -5,18 +5,20 @@ import io.dropwizard.jdbi3.JdbiFactory;
 import io.dropwizard.jdbi3.bundles.JdbiExceptionsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.BatonResource;
 import telraam.api.HelloworldResource;
+import telraam.beacon.BeaconAggregator;
 import telraam.database.daos.BatonDAO;
 import telraam.database.models.Baton;
 import telraam.database.models.Id;
 import telraam.healthchecks.TemplateHealthCheck;
 
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
+
 
 
 public class App extends Application<AppConfiguration> {
@@ -26,7 +28,13 @@ public class App extends Application<AppConfiguration> {
     private Jdbi database;
 
     public static void main(String[] args) throws Exception {
-        new App().run(args);
+        BeaconAggregator ba = new BeaconAggregator(4564);
+        ba.onError((e) -> {logger.warning(e.getMessage()); return null;});
+        ba.onData((e) -> {logger.info(e.toString()); return null;});
+        ba.onConnect((_e) -> {logger.info("Connect"); return null;});
+        ba.onDisconnect((_e) -> {logger.info("Disconnected"); return null;});
+        // new App().run(args);
+        ba.run();
     }
 
     @Override
