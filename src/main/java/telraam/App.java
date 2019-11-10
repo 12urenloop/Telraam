@@ -23,6 +23,9 @@ import telraam.healthchecks.TemplateHealthCheck;
 
 public class App extends Application<AppConfiguration> {
     private static Logger logger = Logger.getLogger(App.class.getName());
+    private AppConfiguration config;
+    private Environment environment;
+    private Jdbi database;
 
     public static void main(String[] args) throws Exception {
         BeaconAggregator ba = new BeaconAggregator(4564);
@@ -45,22 +48,15 @@ public class App extends Application<AppConfiguration> {
         bootstrap.addBundle(new JdbiExceptionsBundle());
     }
 
+
     @Override
     public void run(AppConfiguration configuration, Environment environment) throws Exception {
+        this.config = configuration;
+        this.environment = environment;
         // Add database
         final JdbiFactory factory = new JdbiFactory();
-        final Jdbi database = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
+        database = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
 
-        final BatonDAO dao = database.onDemand(BatonDAO.class);
-        Id id = dao.insert(new Baton("Heto"));
-
-        // TODO By default everything should be logged to stdout (see dropwizard logging docs) but it isn't
-        List<Baton> batons = dao.listBatons();
-        if(logger.isLoggable(Level.INFO)) {
-            logger.info("Baton testing information");
-            logger.info(batons.stream().map(Baton::getName).collect(Collectors.joining(" : ")));
-            logger.info(String.valueOf(dao.findBatonById(id.getId())));
-        }
 
         // Add api resources
         final HelloworldResource resource = new HelloworldResource(
@@ -74,5 +70,17 @@ public class App extends Application<AppConfiguration> {
         // environment.healthChecks().register("database", new DatabaseHealthCheck(database));
         environment.healthChecks().register("template", new TemplateHealthCheck(configuration.getTemplate()));
         logger.warning("TEST LOG");
+    }
+
+    public AppConfiguration getConfig() {
+        return config;
+    }
+
+    public Environment getEnvironment() {
+        return environment;
+    }
+
+    public Jdbi getDatabase() {
+        return database;
     }
 }
