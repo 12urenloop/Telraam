@@ -1,8 +1,10 @@
 # Hardware simulation script
 
 ## Requirements
+Any versions of the below should work, but when in doubt, take the latest one
 
-Any* version of npm. Any* version of node.
+- `npm` 
+- `node`
 
 ## Setup
 
@@ -10,13 +12,15 @@ Any* version of npm. Any* version of node.
 
 ## Run
 
-`node main.js`
+- First make sure an instance of telraam is running (see below how to specify the telraam address and port)
+
+- Then run: `node main.js`
 
 ## Arguments
 
 - `-h`: Show all the help messages.
-- `-p`: What port to connect to.
-- `-a`: What address to connect to.
+- `-p`: What port to connect to (default: `4564`)
+- `-a`: What address to connect to (default: `127.0.0.1`).
 - `-r`: The amount of runners to spawn.
 - `-b`: The amount of beacons to spawn.
 - `-m`: The average time per round
