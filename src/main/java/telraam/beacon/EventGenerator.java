@@ -1,8 +1,8 @@
 package telraam.beacon;
 
 /**
-* Callback<Void, Event<B>> wrapper in disguise.
-* Exposing simpler methods to wrap in the right Event<B>.
+* {@link Callback Callback&lt;Void, Event&lt;B&gt;&gt;} wrapper in disguise.
+* Exposing simpler methods to wrap in the right {@link Event Event&lt;B&gt;}
 *
 * @author  Arthur Vercruysse
 */

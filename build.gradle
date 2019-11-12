@@ -48,6 +48,7 @@ idea {
         inheritOutputDirs = true
     }
 }
+build.finalizedBy(javadoc)
 
 dependencies {
     // Web framework stuff
