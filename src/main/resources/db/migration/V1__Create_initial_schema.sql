@@ -33,7 +33,7 @@ create table team
 	id serial not null
 		constraint team_pk
 			primary key,
-	name varchar(255),
+	name varchar(255) not null,
 	baton_id integer
 		constraint team_baton_id_fk
 			references baton

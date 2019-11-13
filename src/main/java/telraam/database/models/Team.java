@@ -5,10 +5,16 @@ public class Team {
     private String name;
     private Integer batonId;
 
-    public Team() {}
+    public Team() {
+    }
 
     public Team(String name) {
         this.name = name;
+    }
+
+    public Team(String name, int batonId) {
+        this.name = name;
+        this.batonId = batonId;
     }
 
     public Integer getId() {
