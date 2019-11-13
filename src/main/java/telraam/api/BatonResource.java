@@ -45,6 +45,7 @@ public class BatonResource {
     }
 
     /**
+     * @param id the id to search for
      * @return a specific baton on the id
      */
     @GET @Path(ENTITY_PATH)
@@ -63,6 +64,8 @@ public class BatonResource {
 
     /**
      * Update a specific baton with the specified information
+     * @param id the id of the baton to update
+     * @return the response
      */
     @PUT @Path(ENTITY_PATH)
     public Response updateBaton(@PathParam(ID_NAME) Optional<Integer> id) {
