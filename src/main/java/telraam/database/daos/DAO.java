@@ -14,6 +14,6 @@ public interface DAO<T> {
 
     int deleteById(int id);
 
-    int update(Baton baton);
+    int update(T modelObj);
 
 }

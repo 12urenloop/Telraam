@@ -6,9 +6,7 @@ import org.jdbi.v3.sqlobject.customizer.BindBean;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
-import telraam.database.models.Baton;
 import telraam.database.models.Beacon;
-import telraam.database.models.Id;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +34,6 @@ public interface BeaconDAO extends DAO<Beacon>{
 
     @Override
     @SqlUpdate("UPDATE beacon SET name = :name WHERE id = :id")
-    int update(@BindBean Baton baton);
+    int update(@BindBean Beacon beacon);
 
 }
