@@ -7,7 +7,6 @@ import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.Baton;
-import telraam.database.models.Id;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +21,6 @@ public interface BatonDAO extends DAO<Baton> {
     @Override
     @SqlUpdate("INSERT INTO baton (name) VALUES (:name)")
     @GetGeneratedKeys({"id"})
-    @RegisterBeanMapper(Id.class)
     int insert(@BindBean Baton baton);
 
     @Override
@@ -37,6 +35,5 @@ public interface BatonDAO extends DAO<Baton> {
 
     @Override
     @SqlUpdate("UPDATE baton SET name = :name WHERE id = :id")
-    @RegisterBeanMapper(Baton.class)
     int update(@BindBean Baton baton);
 }
