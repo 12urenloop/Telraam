@@ -8,20 +8,33 @@ import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.Detection;
 import telraam.database.models.Id;
+
 import java.util.List;
 import java.util.Optional;
 
-public interface DetectionDAO {
-    @SqlQuery("select * from baton")
+public interface DetectionDAO extends DAO<Detection> {
+    @SqlQuery("SELECT * FROM detection")
     @RegisterBeanMapper(Detection.class)
     List<Detection> getAll();
 
-    // @SqlUpdate("insert into baton (name) values (:name)")
-    // @GetGeneratedKeys({"id"})
-    // @RegisterBeanMapper(Id.class)
-    Id insert(@BindBean Detection detection);
+    @Override
+    @SqlUpdate("INSERT INTO detection (beacon_id, baton_id, timestamp) " +
+            "VALUES (:beaconId, :batonId, :timestamp)")
+    @GetGeneratedKeys({"id"})
+    int insert(@BindBean Detection detection);
 
-    // @SqlQuery("select * from baton where id = :id")
-    // @RegisterBeanMapper(Baton.class)
+    @SqlQuery("SELECT * FROM detection WHERE id = :id")
+    @RegisterBeanMapper(Detection.class)
     Optional<Detection> getById(@Bind("id") int id);
+
+    @Override
+    @SqlUpdate("DELETE FROM detection WHERE id = :id")
+    int deleteById(@Bind("id") int id);
+
+    @Override
+    @SqlUpdate("UPDATE detection SET " +
+            "baton_id = :batonId, " +
+            "beacon_id = :beaconId, " +
+            "timestamp = :timestamp")
+    int update(@BindBean Detection modelObj);
 }

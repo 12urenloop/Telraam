@@ -4,15 +4,16 @@ import java.sql.Timestamp;
 
 public class Detection {
     private Integer id;
-    private Integer baton_id;
-    private Integer beacon_id;
+    private Integer batonId;
+    private Integer beaconId;
     private Timestamp timestamp;
 
-    public Detection() {};
+    public Detection() {
+    }
 
-    public Detection(Integer baton_id, Integer beacon_id, Timestamp timestamp) {
-        this.baton_id = baton_id;
-        this.beacon_id = beacon_id;
+    public Detection(Integer batonId, Integer beaconId, Timestamp timestamp) {
+        this.batonId = batonId;
+        this.beaconId = beaconId;
         this.timestamp = timestamp;
     }
 
@@ -24,20 +25,20 @@ public class Detection {
         this.id = id;
     }
 
-    public Integer getBaton_id() {
-        return baton_id;
+    public Integer getBatonId() {
+        return batonId;
     }
 
-    public void setBaton_id(Integer baton_id) {
-        this.baton_id = baton_id;
+    public void setBatonId(Integer batonId) {
+        this.batonId = batonId;
     }
 
-    public Integer getBeacon_id() {
-        return beacon_id;
+    public Integer getBeaconId() {
+        return beaconId;
     }
 
-    public void setBeacon_id(Integer beacon_id) {
-        this.beacon_id = beacon_id;
+    public void setBeaconId(Integer beaconId) {
+        this.beaconId = beaconId;
     }
 
     public Timestamp getTimestamp() {

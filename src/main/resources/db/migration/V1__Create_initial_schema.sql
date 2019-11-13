@@ -19,13 +19,13 @@ create table detection
 	id serial not null
 		constraint detection_pk
 			primary key,
-	beacon_id integer
+	beacon_id integer not null
 		constraint detection_beacon_id_fk
 			references beacon,
-	baton_id integer
+	baton_id integer not null
 		constraint detection_baton_id_fk
 			references baton,
-	timestamp timestamp
+	timestamp timestamp not null
 );
 
 create table team

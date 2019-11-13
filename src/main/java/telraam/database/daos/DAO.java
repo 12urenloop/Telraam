@@ -1,7 +1,5 @@
 package telraam.database.daos;
 
-import telraam.database.models.Baton;
-
 import java.util.List;
 import java.util.Optional;
 
