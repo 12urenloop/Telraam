@@ -48,6 +48,7 @@ idea {
         inheritOutputDirs = true
     }
 }
+build.finalizedBy(javadoc)
 
 dependencies {
     // Web framework stuff
@@ -131,7 +132,7 @@ task migrateDevelopmentDatabase(type: FlywayMigrateTask) {
 }
 
 def testProps = new Properties()
-file("$rootProject.projectDir/src/main/resources/telraam/testConfig.properties").withInputStream {
+file("$rootProject.projectDir/src/test/resources/telraam/testConfig.properties").withInputStream {
     testProps.load(it)
 }
 task migrateTestingDatabase(type: FlywayMigrateTask) {
