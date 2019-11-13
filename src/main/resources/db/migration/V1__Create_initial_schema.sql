@@ -11,7 +11,7 @@ create table baton
 	id serial not null
 		constraint baton_pk
 			primary key,
-	name varchar(255)
+	name varchar(255) not null
 );
 
 create table detection
