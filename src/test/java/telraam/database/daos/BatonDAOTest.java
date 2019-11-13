@@ -1,11 +1,12 @@
 package telraam.database.daos;
 
+import org.jdbi.v3.core.statement.UnableToExecuteStatementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import telraam.DatabaseTest;
 import telraam.database.models.Baton;
-import telraam.database.models.Id;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,13 +24,96 @@ class BatonDAOTest extends DatabaseTest {
     @Test
     void createBaton() {
         Baton testbaton = new Baton("testbaton");
-        final Id testId = batonDAO.insert(testbaton);
-        assertTrue(testId.getId() > 0);
+        final int testId = batonDAO.insert(testbaton);
+        assertTrue(testId > 0);
 
-        Optional<Baton> batonOptional = batonDAO.findBatonById(testId.getId());
+        Optional<Baton> batonOptional = batonDAO.getById(testId);
         assertFalse(batonOptional.isEmpty());
         Baton baton = batonOptional.get();
         assertEquals("testbaton", baton.getName());
+    }
+
+    @Test
+    void testInsertFailsWhenNoName() {
+        Baton testbaton = new Baton();
+        assertThrows(UnableToExecuteStatementException.class, () -> {
+            batonDAO.insert(testbaton);
+        });
+
+    }
+
+    @Test
+    void testListBatonsEmpty() {
+        List<Baton> batons = batonDAO.getAll();
+        assertNotNull(batons);
+        assertEquals(0, batons.size());
+    }
+
+    @Test
+    void testList2Batons() {
+        Baton b1 = new Baton("b1");
+        Baton b2 = new Baton("b2");
+        batonDAO.insert(b1);
+        batonDAO.insert(b2);
+
+        List<Baton> batons = batonDAO.getAll();
+        assertNotNull(batons);
+        assertEquals(2, batons.size());
+        assertNotNull(
+                batons.stream().filter(baton -> baton.getName().equals("b1")));
+        assertNotNull(
+                batons.stream().filter(baton -> baton.getName().equals("b2")));
+    }
+
+    @Test
+    void testFindByIdNullWhenNoBaton() {
+        Optional<Baton> batonOptional = batonDAO.getById(1);
+        assertTrue(batonOptional.isEmpty());
+    }
+
+    @Test
+    void testUpdateDoesUpdate() {
+        Baton testBaton = new Baton("preupdate");
+        int testid = batonDAO.insert(testBaton);
+        testBaton.setId(testid);
+        testBaton.setName("postupdate");
+        int updatedRows = batonDAO.update(testBaton);
+        assertEquals(1, updatedRows);
+
+        Optional<Baton> dbBaton = batonDAO.getById(testid);
+        assertFalse(dbBaton.isEmpty());
+        assertEquals("postupdate", dbBaton.get().getName());
+    }
+
+    @Test
+    void updateDoesntDoAnythingWhenNotExists() {
+        Baton testBaton = new Baton("test");
+        int updatedRows = batonDAO.update(testBaton);
+        List<Baton> batons = batonDAO.getAll();
+        assertEquals(0, updatedRows);
+        assertEquals(0, batons.size());
+    }
+
+    @Test
+    void deleteRemovesBaton() {
+        Baton testBaton = new Baton("test");
+        int id = batonDAO.insert(testBaton);
+        int updatedRows = batonDAO.deleteById(id);
+
+        List<Baton> batons = batonDAO.getAll();
+        assertEquals(1, updatedRows);
+        assertEquals(0, batons.size());
+    }
+
+    @Test
+    void deleteDoesNothingIfNotExists() {
+        Baton testBaton = new Baton("test");
+        int id = batonDAO.insert(testBaton);
+        int updatedRows = batonDAO.deleteById(id + 1);
+
+        List<Baton> batons = batonDAO.getAll();
+        assertEquals(0, updatedRows);
+        assertEquals(1, batons.size());
     }
 }
 
