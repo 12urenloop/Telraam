@@ -28,5 +28,5 @@ public interface BeaconDAO {
     Optional<Beacon> getById(@Bind("id") int id);
 
     //@SqlQuery("")
-    void deleteById(@Bind("id") int id);
+    int deleteById(@Bind("id") int id);
 }
