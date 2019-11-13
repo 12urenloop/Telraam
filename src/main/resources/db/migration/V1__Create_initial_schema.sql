@@ -44,7 +44,7 @@ create table lap
 	id serial not null
 		constraint lap_pk
 			primary key,
-	team_id integer
+	team_id integer not null
 		constraint lap_team_id_fk
 			references team,
 	timestamp timestamp
