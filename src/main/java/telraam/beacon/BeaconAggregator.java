@@ -1,6 +1,8 @@
 package telraam.beacon;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
 * BeaconAggregator is the main class to handle aggregate BeaconMessages.
@@ -11,13 +13,18 @@ import java.io.IOException;
 * @author  Arthur Vercruysse
 */
 public class BeaconAggregator extends TCPFactory<BeaconMessage> implements Callback<Void, Event<BeaconMessage>> {
+    private static Logger logger = Logger.getLogger(BeaconAggregator.class.getName());
 
     public BeaconAggregator(int port) throws IOException {
         // Does not work, java can't handle cool code
         // super((s) -> new Beacon(s, this), port);
         super(port);
         super.creator = (s) -> {
-            new Beacon(s, this);
+            try {
+                new Beacon(s, this);
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Failed to spawn beacon", e);
+            }
             return null;
         };
     }
