@@ -14,16 +14,19 @@ import java.util.Optional;
 
 public interface BeaconDAO {
 
-    // @SqlQuery("select * from baton")
-    // @RegisterBeanMapper(Baton.class)
+    @SqlQuery("SELECT * FROM beacon")
+    @RegisterBeanMapper(Beacon.class)
     List<Beacon> getAll();
 
-    // @SqlUpdate("insert into baton (name) values (:name)")
-    // @GetGeneratedKeys({"id"})
-    // @RegisterBeanMapper(Id.class)
+    @SqlUpdate("INSERT INTO beacon (name) VALUES (:name)")
+    @GetGeneratedKeys({"id"})
+    @RegisterBeanMapper(Id.class)
     Id insert(@BindBean Beacon beacon);
 
-    // @SqlQuery("select * from baton where id = :id")
-    // @RegisterBeanMapper(Baton.class)
+    @SqlQuery("select * from baton where id = :id")
+    @RegisterBeanMapper(Beacon.class)
     Optional<Beacon> getById(@Bind("id") int id);
+
+    //@SqlQuery("")
+    void deleteById(@Bind("id") int id);
 }

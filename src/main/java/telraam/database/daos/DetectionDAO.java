@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DetectionDAO {
-    // @SqlQuery("select * from baton")
-    // @RegisterBeanMapper(Baton.class)
+    @SqlQuery("select * from baton")
+    @RegisterBeanMapper(Detection.class)
     List<Detection> getAll();
 
     // @SqlUpdate("insert into baton (name) values (:name)")

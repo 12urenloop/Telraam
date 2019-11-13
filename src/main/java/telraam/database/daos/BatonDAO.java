@@ -12,7 +12,7 @@ import telraam.database.models.Id;
 import java.util.List;
 import java.util.Optional;
 
-public interface BatonDAO {
+public interface  BatonDAO {
 
     @SqlQuery("select * from baton")
     @RegisterBeanMapper(Baton.class)

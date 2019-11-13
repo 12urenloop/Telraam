@@ -13,16 +13,18 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TeamDAO {
-    // @SqlQuery("select * from baton")
-    // @RegisterBeanMapper(Baton.class)
+    @SqlQuery("SELECT * FROM team")
+    @RegisterBeanMapper(Team.class)
     List<Team> getAll();
 
-    // @SqlUpdate("insert into baton (name) values (:name)")
-    // @GetGeneratedKeys({"id"})
-    // @RegisterBeanMapper(Id.class)
+    @SqlUpdate("INSERT INTO team (name, baton_id) VALUES (:name, :baton_id)")
+    @GetGeneratedKeys({"id"})
+    @RegisterBeanMapper(Id.class)
     Id insert(@BindBean Team team);
 
-    // @SqlQuery("select * from baton where id = :id")
-    // @RegisterBeanMapper(Baton.class)
+    @SqlQuery("SELECT * FROM team WHERE id = :id")
+    @RegisterBeanMapper(Team.class)
     Optional<Team> getById(@Bind("id") int id);
+
+    void deleteById(@Bind("id") int id);
 }
