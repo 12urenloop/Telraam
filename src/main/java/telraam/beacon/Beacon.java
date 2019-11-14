@@ -2,10 +2,8 @@ package telraam.beacon;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.net.Socket;
-import java.nio.Buffer;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -19,98 +17,100 @@ import java.util.ArrayList;
  * @author Arthur Vercruysse
  */
 public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
-    private Socket s;
-    private int messageSize = BeaconMessage.MESSAGESIZE;
-    private byte[] startTag = BeaconMessage.STARTTAG;
-    private byte[] endTag = BeaconMessage.ENDTAG;
+    private static final int messageSize = BeaconMessage.MESSAGESIZE;
+    private static final byte[] startTag = BeaconMessage.STARTTAG;
+    private static final byte[] endTag = BeaconMessage.ENDTAG;
 
-    public Beacon(Socket socket, Callback<Void, Event<BeaconMessage>> h) {
+    private InputStream inputStream;
+    private boolean isReadingMessage;
+    private List<Byte> msgBuf;
+    private int startTagIndex, endTagIndex;
+
+    public Beacon(Socket socket, Callback<Void, Event<BeaconMessage>> h) throws IOException {
         super(h);
 
-        this.s = socket;
+        this.inputStream = socket.getInputStream();
+        this.isReadingMessage = false;
+        this.msgBuf = new ArrayList<>(messageSize);
+        this.startTagIndex = 0;
+        this.endTagIndex = 0;
 
         new Thread(this).start();
+    }
+
+    private void handleStartTag(byte b) {
+        if (b == startTag[startTagIndex]) {
+            startTagIndex++;
+
+            // A complete start tag is found
+            // Delete current msgBuf content and start over
+            if (startTagIndex == startTag.length) {
+                startTagIndex = 0;
+
+                if (this.isReadingMessage) {
+                    // TODO: Maybe we want to reset msgBuf idk
+                    this.error(new BeaconException.MsgStartWithNoEnd());
+                } else {
+                    msgBuf.clear();
+                    this.isReadingMessage = true;
+                }
+            }
+        } else {
+            startTagIndex = 0;
+        }
+    }
+
+    private void handleEndTag(byte b) {
+        if (b == endTag[endTagIndex]) {
+            endTagIndex++;
+
+            // A complete end tag is found
+            // Flush the msgBuffer
+            if (endTagIndex == endTag.length) {
+                endTagIndex = 0;
+
+                if (isReadingMessage) {
+
+                    // Remove end tag from message
+                    for (int k = 0; k < endTag.length; k++) {
+                        msgBuf.remove(msgBuf.size() - 1);
+                    }
+
+                    // Catch errors thrown at message decoding and propagate
+                    try {
+                        this.data(new BeaconMessage(msgBuf));
+                    } catch (Exception e) {
+                        this.error(e);
+                    }
+
+                    isReadingMessage = false;
+                } else {
+                    this.error(new BeaconException.MsgEndWithNoStart());
+                }
+            }
+        } else {
+            endTagIndex = 0;
+        }
     }
 
     public void run() {
         this.connect();
 
-        boolean readingMsg = false;
-
-        List<Byte> msgBuf = new ArrayList<>(messageSize);
-        int sTagIndex = 0;
-        int eTagIndex = 0;
         byte[] buf = new byte[1024];
-
-        BufferedInputStream is;
-
-        try {
-            is = new BufferedInputStream(s.getInputStream());
-        } catch (IOException e) {
-            error(e);
-            return;
-        }
 
         try {
             while (true) {
-                int c = is.read(buf);
+                int c = this.inputStream.read(buf);
                 if (c < 0)
                     throw new EOFException();
 
                 for (int i = 0; i < c; i++) {
                     byte b = buf[i];
-                    msgBuf.add(b);
+                    this.msgBuf.add(b);
 
-                    if (b == startTag[sTagIndex]) {
-                        sTagIndex++;
+                    this.handleStartTag(b);
 
-                        // A complete start tag is found
-                        // Delete current msgBuf content and start over
-                        if (sTagIndex == startTag.length) {
-                            sTagIndex = 0;
-
-                            if (readingMsg) {
-                                // TODO: Maybe we want to reset msgBuf idk
-                                this.error(new BeaconException.MsgStartWithNoEnd());
-                            } else {
-                                msgBuf.clear();
-                                readingMsg = true;
-                            }
-                        }
-                    } else {
-                        sTagIndex = 0;
-                    }
-
-                    if (b == endTag[eTagIndex]) {
-                        eTagIndex++;
-
-                        // A complete end tag is found
-                        // Flush the msgBuffer
-                        if (eTagIndex == endTag.length) {
-                            eTagIndex = 0;
-
-                            if (readingMsg) {
-
-                                // Remove end tag from message
-                                for (int k = 0; k < endTag.length; k++) {
-                                    msgBuf.remove(msgBuf.size() - 1);
-                                }
-
-                                // Catch errors thrown at message decoding and propagate
-                                try {
-                                    this.data(new BeaconMessage(msgBuf));
-                                } catch (Exception e) {
-                                    this.error(e);
-                                }
-
-                                readingMsg = false;
-                            } else {
-                                this.error(new BeaconException.MsgEndWithNoStart());
-                            }
-                        }
-                    } else {
-                        eTagIndex = 0;
-                    }
+                    this.handleEndTag(b);
                 }
             }
         } catch (IOException e) {
