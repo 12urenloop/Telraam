@@ -1,7 +1,7 @@
 package telraam.logic;
 
-import telraam.beacon.BeaconMessage;
+import telraam.database.models.Detection;
 
 public interface Lapper {
-    void handle(BeaconMessage msg);
+    void handle(Detection msg);
 }
