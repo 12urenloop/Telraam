@@ -30,7 +30,7 @@ public class BatonResource {
      */
     @GET
     public List<Baton> getListOfBatons() {
-        return batonDAO.listBatons();
+        return batonDAO.getAll();
     }
 
     /**
@@ -40,7 +40,7 @@ public class BatonResource {
      * @return The generated id of the baton
      */
     @POST
-    public Id createBaton(Baton baton) {
+    public int createBaton(Baton baton) {
         return batonDAO.insert(baton);
     }
 
@@ -51,7 +51,7 @@ public class BatonResource {
     @GET @Path(ENTITY_PATH)
     public Baton getBaton(@PathParam(ID_NAME) Optional<Integer> id) {
         if (id.isPresent()) {
-            Optional<Baton> optionalBaton = batonDAO.findBatonById(id.get());
+            Optional<Baton> optionalBaton = batonDAO.getById(id.get());
             if (optionalBaton.isPresent()) {
                 return optionalBaton.get();
             } else {
@@ -70,7 +70,7 @@ public class BatonResource {
     @PUT @Path(ENTITY_PATH)
     public Response updateBaton(@PathParam(ID_NAME) Optional<Integer> id) {
         if (id.isPresent()) {
-            Optional<Baton> optionalBaton = batonDAO.findBatonById(id.get());
+            Optional<Baton> optionalBaton = batonDAO.getById(id.get());
             if (optionalBaton.isPresent()) {
                 Baton baton = optionalBaton.get();
                 // TODO update the baton in the database

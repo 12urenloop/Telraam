@@ -1,20 +1,13 @@
 package telraam.database.models;
 
-public class Team {
+public class Beacon {
     private Integer id;
     private String name;
-    private Integer batonId;
 
-    public Team() {
-    }
+    public Beacon() {}
 
-    public Team(String name) {
+    public Beacon(String name) {
         this.name = name;
-    }
-
-    public Team(String name, int batonId) {
-        this.name = name;
-        this.batonId = batonId;
     }
 
     public Integer getId() {
@@ -31,13 +24,5 @@ public class Team {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Integer getBatonId() {
-        return batonId;
-    }
-
-    public void setBatonId(Integer batonId) {
-        this.batonId = batonId;
     }
 }
