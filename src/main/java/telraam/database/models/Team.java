@@ -3,12 +3,18 @@ package telraam.database.models;
 public class Team {
     private Integer id;
     private String name;
-    private Integer baton_id;
+    private Integer batonId;
 
-    public Team() {};
+    public Team() {
+    }
 
     public Team(String name) {
         this.name = name;
+    }
+
+    public Team(String name, int batonId) {
+        this.name = name;
+        this.batonId = batonId;
     }
 
     public Integer getId() {
@@ -27,11 +33,11 @@ public class Team {
         this.name = name;
     }
 
-    public Integer getBaton_id() {
-        return baton_id;
+    public Integer getBatonId() {
+        return batonId;
     }
 
-    public void setBaton_id(Integer baton_id) {
-        this.baton_id = baton_id;
+    public void setBatonId(Integer batonId) {
+        this.batonId = batonId;
     }
 }

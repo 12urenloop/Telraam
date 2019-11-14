@@ -1,7 +1,5 @@
 package telraam.database.daos;
 
-import telraam.database.models.Baton;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -14,6 +12,6 @@ public interface DAO<T> {
 
     int deleteById(int id);
 
-    int update(Baton baton);
+    int update(T modelObj);
 
 }
