@@ -8,6 +8,7 @@ package telraam.beacon;
 * @author  Arthur Vercruysse
 */
 public abstract class Event<B> {
+
     abstract void handle(EventHandler<B> h);
 
     public static class Data<B> extends Event<B> {
