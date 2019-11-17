@@ -1,5 +1,6 @@
 package telraam.api;
 
+import org.aopalliance.reflect.Class;
 import telraam.database.daos.DAO;
 
 import javax.ws.rs.WebApplicationException;
@@ -32,8 +33,7 @@ public abstract class AbstractResource<T> implements Resource<T>{
             if (optional.isPresent()) {
                 return optional.get();
             } else {
-                //todo exception string aanpassen
-                throw new WebApplicationException(String.format("Team with id: %d not found", id.get()), Response.Status.NOT_FOUND);
+                throw new WebApplicationException(String.format(Class.class.getName() + " with id: %d not found", id.get()), Response.Status.NOT_FOUND);
             }
         } else {
             throw new WebApplicationException("You did not pass an id", Response.Status.BAD_REQUEST);
@@ -48,8 +48,7 @@ public abstract class AbstractResource<T> implements Resource<T>{
                 dao.update(t);
                 return t;
             } else {
-                //todo exception string aanpassen
-                throw new WebApplicationException(String.format("Team with id: %d not found", id.get()), Response.Status.NOT_FOUND);
+                throw new WebApplicationException(String.format(Class.class.getName() + " with id: %d not found", id.get()), Response.Status.NOT_FOUND);
             }
         } else {
             throw new WebApplicationException("You did not pass an id", Response.Status.BAD_REQUEST);
