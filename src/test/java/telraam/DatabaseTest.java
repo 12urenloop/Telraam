@@ -16,7 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public abstract class DatabaseTest {
     private static final String CONFIG_PATH =
             ResourceHelpers.resourceFilePath("telraam/testConfig.yml");
-    protected static final DropwizardAppExtension<AppConfiguration> APP_EXTENSION =
+    protected static final DropwizardAppExtension<AppConfiguration>
+            APP_EXTENSION =
             new DropwizardAppExtension<>(App.class,
                     CONFIG_PATH);
     protected static Jdbi jdbi;

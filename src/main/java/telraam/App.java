@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
+import telraam.beacon.Beacon;
 import telraam.beacon.BeaconAggregator;
 import telraam.beacon.BeaconMessage;
 import telraam.database.daos.*;
@@ -67,13 +68,15 @@ public class App extends Application<AppConfiguration> {
                 new DetectionResource(database.onDemand(DetectionDAO.class)));
         jersey.register(new LapResource(database.onDemand(LapDAO.class)));
         jersey.register(new TeamResource(database.onDemand(TeamDAO.class)));
-        // Register healthcheck
-        // environment.healthChecks().register("database", new DatabaseHealthCheck(database));
         environment.healthChecks().register("template",
                 new TemplateHealthCheck(configuration.getTemplate()));
-        logger.warning("TEST LOG");
 
-        BeaconAggregator ba = new BeaconAggregator(4564);
+        BeaconAggregator ba;
+        if (configuration.getBeaconPort() < 0) {
+            ba = new BeaconAggregator();
+        } else {
+            ba = new BeaconAggregator(configuration.getBeaconPort());
+        }
         ba.onError(e -> {
             logger.warning(e.getMessage());
             return null;

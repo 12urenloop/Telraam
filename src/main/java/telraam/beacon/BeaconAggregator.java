@@ -8,15 +8,18 @@ import java.util.List;
 
 
 /**
-* BeaconAggregator is the main class to aggregate BeaconMessages.
-* Register listeners to data, errors, connects and disconnects.
-*
-* If port is negative no server is started (should only be used in tests).
-*
-* @author  Arthur Vercruysse
-*/
-public class BeaconAggregator extends TCPFactory<BeaconMessage> implements Callback<Void, Event<BeaconMessage>>, Event.EventHandler<BeaconMessage> {
-    private static Logger logger = Logger.getLogger(BeaconAggregator.class.getName());
+ * BeaconAggregator is the main class to aggregate BeaconMessages. Register
+ * listeners to data, errors, connects and disconnects.
+ * <p>
+ * If port is negative no server is started (should only be used in tests).
+ *
+ * @author Arthur Vercruysse
+ */
+public class BeaconAggregator extends TCPFactory<BeaconMessage>
+        implements Callback<Void, Event<BeaconMessage>>,
+        Event.EventHandler<BeaconMessage> {
+    private static Logger logger =
+            Logger.getLogger(BeaconAggregator.class.getName());
 
     protected List<Callback<Void, BeaconMessage>> handlers = new ArrayList<>();
     protected List<Callback<Void, Exception>> errorHandlers = new ArrayList<>();
@@ -27,6 +30,15 @@ public class BeaconAggregator extends TCPFactory<BeaconMessage> implements Callb
         // Does not work, java can't handle cool code
         // super((s) -> new Beacon(s, this), port);
         super(port);
+        initializeCreator();
+    }
+
+    public BeaconAggregator() throws IOException {
+        super();
+        initializeCreator();
+    }
+
+    private void initializeCreator() {
         super.creator = (s) -> {
             try {
                 new Beacon(s, this);
@@ -35,6 +47,7 @@ public class BeaconAggregator extends TCPFactory<BeaconMessage> implements Callb
             }
             return null;
         };
+
     }
 
     public Void handle(Event<BeaconMessage> event) {

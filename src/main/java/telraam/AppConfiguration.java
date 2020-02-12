@@ -15,6 +15,11 @@ public class AppConfiguration extends Configuration {
     @NotNull
     private String defaultName = "Stranger";
 
+    private int beaconPort;
+    @Valid
+    @NotNull
+    private DataSourceFactory database = new DataSourceFactory();
+
     @JsonProperty
     public String getTemplate() {
         return template;
@@ -39,17 +44,25 @@ public class AppConfiguration extends Configuration {
         this.defaultName = name;
     }
 
-    @Valid
-    @NotNull
-    private DataSourceFactory database = new DataSourceFactory();
+    @JsonProperty("database")
+    public DataSourceFactory getDataSourceFactory() {
+        return database;
+    }
 
     @JsonProperty("database")
     public void setDataSourceFactory(DataSourceFactory factory) {
         this.database = factory;
     }
 
-    @JsonProperty("database")
-    public DataSourceFactory getDataSourceFactory() {
-        return database;
+    @JsonProperty("beaconPort")
+    public int getBeaconPort() {
+        return beaconPort;
+
+    }
+
+    @JsonProperty("beaconPort")
+    public void setBeaconPort(int port) {
+        beaconPort = port;
+
     }
 }
