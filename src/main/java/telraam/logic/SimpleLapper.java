@@ -43,6 +43,12 @@ public class SimpleLapper implements Lapper {
 
 
         this.positionMap.put(1, 1);
+        // in this simple implementation this map is redundant, but
+        // it demonstrates a solution to the problem of assigning beacons
+        // to positions on the track
+        for (int i = 0; i < beacons.size(); i++) {
+            this.positionMap.put(beacons.get(i).getId(), i);
+        }
 
 
         for (Team team : teams) {
@@ -64,7 +70,8 @@ public class SimpleLapper implements Lapper {
             Detection detection = detections.get(i);
 
             if (positionMap.get(first.getBeaconId()).equals(
-                    positionMap.get(detection.getBeaconId()))) {
+                    positionMap.get(detection.getBeaconId())) &&
+                    detections.size() == beacons.size() + 1) {
                 this.lapDAO.insert(new Lap(detection.getBatonId(),
                         detection.getTimestamp()));
                 detections.clear();
