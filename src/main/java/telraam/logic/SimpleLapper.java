@@ -1,7 +1,10 @@
 package telraam.logic;
 
 import org.jdbi.v3.core.Jdbi;
+import telraam.database.daos.BatonDAO;
+import telraam.database.daos.BeaconDAO;
 import telraam.database.daos.LapDAO;
+import telraam.database.daos.TeamDAO;
 import telraam.database.models.*;
 
 import java.util.ArrayList;
@@ -19,26 +22,25 @@ public class SimpleLapper implements Lapper {
     private Map<Integer, List<Detection>> detections;
     private Map<Integer, Integer> positionMap;
     private Team testTeam;
+    private TeamDAO teamDAO;
+    private BatonDAO batonDAO;
+    private BeaconDAO beaconDAO;
 
 
     public SimpleLapper(Jdbi jdbi) {
         this.jdbi = jdbi;
         this.lapDAO = jdbi.onDemand(LapDAO.class);
+        this.teamDAO = jdbi.onDemand(TeamDAO.class);
+        this.batonDAO = jdbi.onDemand(BatonDAO.class);
+        this.beaconDAO = jdbi.onDemand(BeaconDAO.class);
 
-        this.teams = new ArrayList<>();
-        this.batons = new ArrayList<>();
-        this.beacons = new ArrayList<>();
+        this.teams = teamDAO.getAll();
+        this.batons = batonDAO.getAll();
+        this.beacons = beaconDAO.getAll();
+
         this.positionMap = new HashMap<>();
         this.detections = new HashMap<>();
 
-        // TODO: DELET THIS
-        testTeam = new Team("test", 1);
-        testTeam.setId(1);
-        this.teams.add(testTeam);
-        Beacon testBeacon = new Beacon("beacon A");
-        testBeacon.setId(1);
-        Baton testBaton = new Baton("baton 1");
-        testBaton.setId(1);
 
         this.positionMap.put(1, 1);
 
