@@ -28,6 +28,10 @@ public interface TeamDAO extends DAO<Team> {
     @RegisterBeanMapper(Team.class)
     Optional<Team> getById(@Bind("id") int id);
 
+    @SqlQuery("SELECT * FROM team WHERE baton_id = :id")
+    @RegisterBeanMapper(Team.class)
+    Optional<Team> getByBatonId(@Bind("id") int id);
+
     @Override
     @SqlUpdate("DELETE FROM team where id = :id")
     int deleteById(@Bind("id") int id);

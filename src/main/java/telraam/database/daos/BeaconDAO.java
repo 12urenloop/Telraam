@@ -11,7 +11,7 @@ import telraam.database.models.Beacon;
 import java.util.List;
 import java.util.Optional;
 
-public interface BeaconDAO extends DAO<Beacon>{
+public interface BeaconDAO extends DAO<Beacon> {
 
     @Override
     @SqlQuery("SELECT * FROM beacon")
@@ -19,7 +19,7 @@ public interface BeaconDAO extends DAO<Beacon>{
     List<Beacon> getAll();
 
     @Override
-    @SqlUpdate("INSERT INTO beacon (name) VALUES (:name)")
+    @SqlUpdate("INSERT INTO beacon (name, distance) VALUES (:name, :distance)")
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Beacon beacon);
 
@@ -33,7 +33,10 @@ public interface BeaconDAO extends DAO<Beacon>{
     int deleteById(@Bind("id") int id);
 
     @Override
-    @SqlUpdate("UPDATE beacon SET name = :name WHERE id = :id")
+    @SqlUpdate("UPDATE beacon SET " +
+            "name = :name , " +
+            "distance = :distance " +
+            "WHERE id = :id")
     int update(@BindBean Beacon beacon);
 
 }
