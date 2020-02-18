@@ -1,12 +1,11 @@
 package telraam.logic;
 
-import org.jdbi.v3.core.Jdbi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import telraam.database.daos.LapDAO;
-import telraam.database.daos.TeamDAO;
-import telraam.database.models.*;
+import telraam.database.models.Beacon;
+import telraam.database.models.Detection;
+import telraam.database.models.Lap;
+import telraam.database.models.Team;
 import telraam.mocks.MockJDBI;
 
 import java.sql.Timestamp;

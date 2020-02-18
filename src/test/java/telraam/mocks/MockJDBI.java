@@ -2,7 +2,6 @@ package telraam.mocks;
 
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.*;
-import telraam.database.models.Team;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -27,7 +26,6 @@ public class MockJDBI {
     }
 
     public Jdbi getMockJdbi() {
-
 
         when(mockJdbi.onDemand(BatonDAO.class)).thenReturn(mockBatonDAO);
         when(mockJdbi.onDemand(BeaconDAO.class)).thenReturn(mockBeaconDAO);
