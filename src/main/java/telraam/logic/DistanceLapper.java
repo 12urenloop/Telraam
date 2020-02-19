@@ -56,7 +56,7 @@ public class DistanceLapper implements Lapper {
         if (detections.size() >= 2) {
             Detection last = detections.removeLast();
 
-            if (track.getDistance(last.getBeaconId()) <
+            if (track.getDistance(last.getBeaconId()) <=
                     track.getDistance(detections.getLast().getBeaconId())) {
                 teamDAO.getByBatonId(last.getBatonId())
                         .ifPresent(t -> lapDAO.insert(new Lap(t.getId(),

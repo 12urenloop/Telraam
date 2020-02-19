@@ -17,6 +17,14 @@ public class Detection {
         this.timestamp = timestamp;
     }
 
+    public Detection(Integer id, Integer batonId, Integer beaconId,
+                     Timestamp timestamp) {
+        this.id = id;
+        this.batonId = batonId;
+        this.beaconId = beaconId;
+        this.timestamp = timestamp;
+    }
+
     public Integer getId() {
         return id;
     }
