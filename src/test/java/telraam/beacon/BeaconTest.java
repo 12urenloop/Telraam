@@ -10,14 +10,14 @@ import java.io.PipedOutputStream;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.BeforeAll;
-import java.util.logging.Logger;
-import java.util.logging.Level;
 
 /**
  * Beacon integration test. Spoofing ServerSocket and Socket so you can write to
@@ -27,8 +27,6 @@ import java.util.logging.Level;
  * @author Arthur Vercruysse
  */
 public class BeaconTest {
-    private static Logger logger = Logger.getLogger(BeaconTest.class.getName());
-
     private static final Semaphore barrier = new Semaphore(8);
 
     static List<OurSocket> connectedSockets = new ArrayList<>();
@@ -118,7 +116,7 @@ public class BeaconTest {
             return null;
         });
 
-        ba.onData((_e) -> {
+        ba.onData((event) -> {
             data.incrementAndGet();
             barrier.release();
             return null;
@@ -131,7 +129,6 @@ public class BeaconTest {
         });
 
         ba.onError((e) -> {
-            logger.log(Level.SEVERE, "error", e);
             errors.incrementAndGet();
             barrier.release();
             return null;
@@ -159,7 +156,13 @@ public class BeaconTest {
         // Check if no beacon messages are sent with incomplete data
         // Aka do they buffer correctly?
         for (OurSocket s : connectedSockets) {
-            s.write("<<<<fdsdtestds".getBytes(), false);
+            ByteBuffer buf = ByteBuffer.allocate(12);
+            buf.putShort(0, (byte) 0);
+            buf.putShort(2, (byte) 5);
+            buf.putLong(4, new Date().getTime());
+
+            s.write("<<<<".getBytes(), false);
+            s.write(buf.array(), false);
         }
 
         barrier.acquire(8);
@@ -214,5 +217,27 @@ public class BeaconTest {
 
         // No errors received
         assertEquals(errors.get(), 3);
+    }
+
+    @Test
+    public void testBeaconFormat() throws Exception {
+        ByteBuffer buf = ByteBuffer.allocate(BeaconMessage.MESSAGESIZE);
+        buf.putShort(0, (short) 10);
+        buf.putShort(2, (short) 13);
+        buf.putLong(4, 1583267378714L);
+
+        BeaconMessage msg = new BeaconMessage(buf);
+
+        assertEquals(10, msg.beaconTag);
+        assertEquals(13, msg.batonTag);
+        assertEquals(1583267378714L, msg.timestamp);
+    }
+
+    @Test
+    public void testBeaconMessageSize() throws Exception {
+        ByteBuffer buf = ByteBuffer.allocate(BeaconMessage.MESSAGESIZE - 2);
+        assertThrows(BeaconException.class, () -> {
+            new BeaconMessage(buf);
+        });
     }
 }

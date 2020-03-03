@@ -2,8 +2,8 @@ package telraam.beacon;
 
 import telraam.database.models.Detection;
 
+import java.nio.ByteBuffer;
 import java.sql.Timestamp;
-import java.util.List;
 
 /**
  * BeaconMessage is the representation of what is received from a beacon. This
@@ -12,27 +12,23 @@ import java.util.List;
  * @author Arthur Vercruysse
  */
 public class BeaconMessage {
-    public static final int MESSAGESIZE = Byte.BYTES + Byte.BYTES + Long.BYTES;
+    public static final int MESSAGESIZE = Short.BYTES + Short.BYTES + Long.BYTES;
 
     public static final byte[] STARTTAG = {'<', '<', '<', '<'};
     public static final byte[] ENDTAG = {'>', '>', '>', '>'};
 
-    public byte beaconTag;
-    public byte batonTag;
+    public short beaconTag;
+    public short batonTag;
     public long timestamp;
 
-    // DO NOT STORE THIS DATA, IT WILL BE OVERWRITTEN
-    public BeaconMessage(List<Byte> data) {
-        beaconTag = data.get(0);
-        batonTag = data.get(1);
-        timestamp =
-                ((long) data.get(9) << 56) | ((long) data.get(8) & 0xff) << 48 |
-                        ((long) data.get(7) & 0xff) << 40
-                        | ((long) data.get(6) & 0xff) << 32 |
-                        ((long) data.get(5) & 0xff) << 24
-                        | ((long) data.get(4) & 0xff) << 16 |
-                        ((long) data.get(3) & 0xff) << 8 |
-                        ((long) data.get(2) & 0xff);
+    public BeaconMessage(ByteBuffer buffer) throws BeaconException {
+        if (buffer.capacity() < MESSAGESIZE) {
+            throw new BeaconException.MsgToShort(MESSAGESIZE, buffer.capacity());
+        }
+
+        beaconTag = buffer.getShort(Short.BYTES * 0);
+        batonTag = buffer.getShort(Short.BYTES * 1);
+        timestamp = buffer.getLong(Short.BYTES * 2);
     }
 
     public Detection toDetection() {
@@ -42,7 +38,7 @@ public class BeaconMessage {
 
     @Override
     public String toString() {
-        return String.format("Beacon %o: runner: %o at %d", this.beaconTag,
-                this.batonTag, this.timestamp);
+        return String.format("Beacon %o: runner: %o at %s", this.beaconTag,
+                this.batonTag, new Timestamp(this.timestamp));
     }
 }

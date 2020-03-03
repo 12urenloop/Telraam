@@ -19,4 +19,11 @@ public class BeaconException extends Exception {
             super("2 message start tags detected.");
         }
     }
+
+    public static class MsgToShort extends BeaconException {
+        private static final long serialVersionUID = 3019424;
+        public MsgToShort(int expected, int actual) {
+            super("Cannot parse message with size " + actual + " expected " + expected+".");
+        }
+    }
 }

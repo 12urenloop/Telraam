@@ -3,8 +3,12 @@ package telraam.beacon;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.EOFException;
+import java.nio.ByteBuffer;
 import java.net.Socket;
 import java.util.List;
+
+import com.google.common.primitives.Bytes;
+
 import java.util.ArrayList;
 
 /**
@@ -81,7 +85,7 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
 
                     // Catch errors thrown at message decoding and propagate
                     try {
-                        this.data(new BeaconMessage(msgBuf));
+                        this.data(new BeaconMessage(ByteBuffer.wrap(Bytes.toArray(this.msgBuf))));
                     } catch (Exception e) {
                         this.error(e);
                     }
