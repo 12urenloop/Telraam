@@ -8,4 +8,6 @@ The main class in this package is the BeaconAggregator, which is basically an `E
 
 So beacons generate events, which is a nice way to hide IO exceptions etc that is wrapped in `Event<B>`. These get handled by `Event.EventHandlers` like the `TCPFactory`.
 
+The creation of events is handled by the EventGenerator. These events then are handled correctly by the `Event.EventHandler`, in this case the `BeaconAggregator`.
+
 TODO: Function scoping, eg the functions `exit` `error` and `data` should not be public, but interfaces bla bla bla.

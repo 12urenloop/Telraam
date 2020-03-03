@@ -35,9 +35,11 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
         this.startTagIndex = 0;
         this.endTagIndex = 0;
 
+        // TODO: wait what, a thread per beacon? How about async handling?
         new Thread(this).start();
     }
 
+    // Handle possible advancement in the start tag
     private void handleStartTag(byte b) {
         if (b == startTag[startTagIndex]) {
             startTagIndex++;
@@ -60,6 +62,7 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
         }
     }
 
+    // Handle possible advancement in the end tag
     private void handleEndTag(byte b) {
         if (b == endTag[endTagIndex]) {
             endTagIndex++;
