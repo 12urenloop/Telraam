@@ -62,10 +62,10 @@ dependencies {
     // Database
     implementation('com.h2database:h2:1.4.199')
     implementation('org.postgresql:postgresql:42.2.8')
+    implementation('org.flywaydb:flyway-core:6.0.8')
 
     // Testing
     testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
-    testImplementation('org.flywaydb:flyway-core:6.0.8')
     testImplementation("org.mockito:mockito-core:1.+")
     testImplementation("io.dropwizard:dropwizard-testing:" + dropwizardVersion)
 

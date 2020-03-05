@@ -27,9 +27,16 @@ public class App extends Application<AppConfiguration> {
     private AppConfiguration config;
     private Environment environment;
     private Jdbi database;
+    private Lapper lapper;
+
 
     public static void main(String[] args) throws Exception {
-        new App().run(args);
+        App app = new App();
+        app.setUp(args);
+
+        BeaconAggregator ba = app.initBeacons();
+        Thread beaconMessages = new Thread(ba);
+        beaconMessages.start();
     }
 
     @Override
@@ -45,38 +52,34 @@ public class App extends Application<AppConfiguration> {
 
 
     @Override
-    public void run(AppConfiguration configuration, Environment environment)
-            throws IOException {
+    public void run(AppConfiguration configuration, Environment environment) {
         this.config = configuration;
         this.environment = environment;
-        // Add database
-        final JdbiFactory factory = new JdbiFactory();
-        database =
-                factory.build(environment, configuration.getDataSourceFactory(),
-                        "postgresql");
-
-
+        // this has to be done inside run
+        initDb();
         // Add api resources
-        JerseyEnvironment jersey = environment.jersey();
-        jersey.register(new BatonResource(database.onDemand(BatonDAO.class)));
-        jersey.register(new BeaconResource(database.onDemand(BeaconDAO.class)));
-        jersey.register(
-                new DetectionResource(database.onDemand(DetectionDAO.class)));
-        jersey.register(new LapResource(database.onDemand(LapDAO.class)));
-        jersey.register(new TeamResource(database.onDemand(TeamDAO.class)));
+        initApi();
         environment.healthChecks().register("template",
-                new TemplateHealthCheck(configuration.getTemplate()));
+                new TemplateHealthCheck(config.getTemplate()));
+    }
 
-        Lapper lapper = new SimpleLapper(database);
+    public void setUp(String[] args) throws Exception {
 
+        run(args);
+        // Add database
+
+        lapper = new SimpleLapper(database);
+    }
+
+    private BeaconAggregator initBeacons() throws IOException {
         BeaconAggregator ba;
         DetectionDAO detectionDAO = database.onDemand(DetectionDAO.class);
         BatonDAO batonDAO = database.onDemand(BatonDAO.class);
         BeaconDAO beaconDAO = database.onDemand(BeaconDAO.class);
-        if (configuration.getBeaconPort() < 0) {
+        if (config.getBeaconPort() < 0) {
             ba = new BeaconAggregator();
         } else {
-            ba = new BeaconAggregator(configuration.getBeaconPort());
+            ba = new BeaconAggregator(config.getBeaconPort());
         }
         ba.onError(e -> {
             logger.warning(e.getMessage());
@@ -87,17 +90,24 @@ public class App extends Application<AppConfiguration> {
             Optional<Baton> baton = batonDAO.findByMac(e.battonMAC);
             Optional<Beacon> beacon = beaconDAO.findByMac(e.stationMAC);
             if (baton.isEmpty()) {
-                logger.warning(String.format("Baton passed with unregistered mac address: [%s]", e.battonMAC));
+                logger.warning(String.format(
+                        "Baton passed with unregistered mac address: [%s]",
+                        e.battonMAC));
                 return null;
             }
             if (beacon.isEmpty()) {
-                logger.warning(String.format("Beacon passed with unregistered mac address: [%s]", e.stationMAC));
+                logger.warning(String.format(
+                        "Beacon passed with unregistered mac address: [%s]",
+                        e.stationMAC));
                 return null;
             }
 
-            Detection detection = new Detection(baton.get().getId(), beacon.get().getId(), e.time);
+            Detection
+                    detection =
+                    new Detection(baton.get().getId(), beacon.get().getId(),
+                            e.time);
             detectionDAO.insert(detection);
-            lapper.handle(detection);
+            this.lapper.handle(detection);
 
             return null;
         });
@@ -109,8 +119,25 @@ public class App extends Application<AppConfiguration> {
             logger.info("Disconnected");
             return null;
         });
-        Thread beaconMessages = new Thread(ba);
-        beaconMessages.start();
+        return ba;
+    }
+
+    private void initApi() {
+        JerseyEnvironment jersey = environment.jersey();
+        jersey.register(new BatonResource(database.onDemand(BatonDAO.class)));
+        jersey.register(new BeaconResource(database.onDemand(BeaconDAO.class)));
+        jersey.register(
+                new DetectionResource(database.onDemand(DetectionDAO.class)));
+        jersey.register(new LapResource(database.onDemand(LapDAO.class)));
+        jersey.register(new TeamResource(database.onDemand(TeamDAO.class)));
+    }
+
+    private void initDb() {
+        final JdbiFactory factory = new JdbiFactory();
+        database =
+                factory.build(environment,
+                        config.getDataSourceFactory(),
+                        "postgresql");
     }
 
     public AppConfiguration getConfig() {
