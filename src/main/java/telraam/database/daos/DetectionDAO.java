@@ -6,8 +6,10 @@ import org.jdbi.v3.sqlobject.customizer.BindBean;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
+import telraam.database.models.Beacon;
 import telraam.database.models.Detection;
 import telraam.database.models.Id;
+import telraam.database.models.LastBeaconDetection;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,4 +39,8 @@ public interface DetectionDAO extends DAO<Detection> {
             "beacon_id = :beaconId, " +
             "timestamp = :timestamp")
     int update(@BindBean Detection modelObj);
+
+    @SqlQuery("select max(timestamp) as timestamp, beacon_id from detection group by beacon_id")
+    @RegisterBeanMapper(LastBeaconDetection.class)
+    List<LastBeaconDetection> lastBeaconDetections();
 }
