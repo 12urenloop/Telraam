@@ -24,13 +24,13 @@ public class BeaconAggregator extends TCPFactory<BeaconMessage>
     protected List<Callback<Void, Void>> exitHandlers = new ArrayList<>();
     protected List<Callback<Void, Void>> connectHandlers = new ArrayList<>();
 
-    // Create net Beacon Aggregtor, listening on this port.
+    // Create net Beacon Aggregator, listening on this port.
     public BeaconAggregator(int port) throws IOException {
         super(port);
         initializeCreator();
     }
 
-    // Create net Beacon Aggregtor, listening on a random port.
+    // Create net Beacon Aggregator, listening on a random port.
     public BeaconAggregator() throws IOException {
         super();
         initializeCreator();
@@ -39,7 +39,7 @@ public class BeaconAggregator extends TCPFactory<BeaconMessage>
     // Set the correct handler for connecting sockets
     // Here creating Beacons.
     private void initializeCreator() {
-        super.creator = (s) -> {
+        super.creator = s -> {
             try {
                 new Beacon(s, this);
             } catch (IOException e) {

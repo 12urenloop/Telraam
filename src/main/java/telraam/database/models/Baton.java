@@ -5,6 +5,7 @@ import java.util.Objects;
 public class Baton {
     private Integer id;
     private String name;
+    private String macAddress;
 
     // DO NOT REMOVE
     public Baton(){}
@@ -27,6 +28,14 @@ public class Baton {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getMacAddress() {
+        return macAddress;
+    }
+
+    public void setMacAddress(String macAddress) {
+        this.macAddress = macAddress;
     }
 
     @Override

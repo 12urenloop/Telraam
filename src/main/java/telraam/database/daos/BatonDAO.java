@@ -36,4 +36,8 @@ public interface BatonDAO extends DAO<Baton> {
     @Override
     @SqlUpdate("UPDATE baton SET name = :name WHERE id = :id")
     int update(@BindBean Baton baton);
+
+    @SqlQuery("SELECT * FROM baton WHERE mac_address = :mac_address")
+    @RegisterBeanMapper(Baton.class)
+    Optional<Baton> findByMac(@Bind("mac_address") String macAddress);
 }

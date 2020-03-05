@@ -6,6 +6,7 @@ import org.jdbi.v3.sqlobject.customizer.BindBean;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
+import telraam.database.models.Baton;
 import telraam.database.models.Beacon;
 
 import java.util.List;
@@ -39,4 +40,7 @@ public interface BeaconDAO extends DAO<Beacon> {
             "WHERE id = :id")
     int update(@BindBean Beacon beacon);
 
+    @SqlQuery("SELECT * FROM beacon WHERE mac_address = :mac_address")
+    @RegisterBeanMapper(Beacon.class)
+    Optional<Beacon> findByMac(@Bind("mac_address") String macAddress);
 }

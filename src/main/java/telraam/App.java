@@ -6,24 +6,20 @@ import io.dropwizard.jdbi3.bundles.JdbiExceptionsBundle;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
-import telraam.beacon.Beacon;
 import telraam.beacon.BeaconAggregator;
-import telraam.beacon.BeaconMessage;
 import telraam.database.daos.*;
 import telraam.database.models.Baton;
+import telraam.database.models.Beacon;
 import telraam.database.models.Detection;
-import telraam.database.models.Id;
 import telraam.healthchecks.TemplateHealthCheck;
+import telraam.logic.Lapper;
+import telraam.logic.SimpleLapper;
+
+import java.io.IOException;
+import java.util.Optional;
+import java.util.logging.Logger;
 
 
 public class App extends Application<AppConfiguration> {
@@ -71,7 +67,12 @@ public class App extends Application<AppConfiguration> {
         environment.healthChecks().register("template",
                 new TemplateHealthCheck(configuration.getTemplate()));
 
+        Lapper lapper = new SimpleLapper(database);
+
         BeaconAggregator ba;
+        DetectionDAO detectionDAO = database.onDemand(DetectionDAO.class);
+        BatonDAO batonDAO = database.onDemand(BatonDAO.class);
+        BeaconDAO beaconDAO = database.onDemand(BeaconDAO.class);
         if (configuration.getBeaconPort() < 0) {
             ba = new BeaconAggregator();
         } else {
@@ -83,6 +84,21 @@ public class App extends Application<AppConfiguration> {
         });
         ba.onData(e -> {
             logger.info(e.toString());
+            Optional<Baton> baton = batonDAO.findByMac(e.battonMAC);
+            Optional<Beacon> beacon = beaconDAO.findByMac(e.stationMAC);
+            if (baton.isEmpty()) {
+                logger.warning(String.format("Baton passed with unregistered mac address: [%s]", e.battonMAC));
+                return null;
+            }
+            if (beacon.isEmpty()) {
+                logger.warning(String.format("Beacon passed with unregistered mac address: [%s]", e.stationMAC));
+                return null;
+            }
+
+            Detection detection = new Detection(baton.get().getId(), beacon.get().getId(), e.time);
+            detectionDAO.insert(detection);
+            lapper.handle(detection);
+
             return null;
         });
         ba.onConnect(_e -> {

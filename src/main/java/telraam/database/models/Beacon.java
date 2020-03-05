@@ -4,6 +4,7 @@ public class Beacon {
     private Integer id;
     private String name;
     private Integer distance;
+    private String macAddress;
 
     public Beacon() {
     }
@@ -44,5 +45,13 @@ public class Beacon {
 
     public void setDistance(Integer distance) {
         this.distance = distance;
+    }
+
+    public String getMacAddress() {
+        return macAddress;
+    }
+
+    public void setMacAddress(String macAddress) {
+        this.macAddress = macAddress;
     }
 }

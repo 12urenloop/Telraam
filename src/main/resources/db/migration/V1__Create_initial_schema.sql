@@ -4,7 +4,8 @@ create table beacon
 		constraint beacon_pk
 			primary key,
 	name varchar(255) not null,
-	distance integer
+	distance integer,
+	mac_address varchar(255) unique
 );
 
 create table baton
@@ -12,7 +13,8 @@ create table baton
 	id serial not null
 		constraint baton_pk
 			primary key,
-	name varchar(255) not null
+	name varchar(255) not null,
+    mac_address varchar(255) unique
 );
 
 create table detection
