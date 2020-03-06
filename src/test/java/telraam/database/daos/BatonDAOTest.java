@@ -23,7 +23,7 @@ class BatonDAOTest extends DatabaseTest {
 
     @Test
     void createBaton() {
-        Baton testbaton = new Baton("testbaton");
+        Baton testbaton = new Baton("testbaton", "testmac");
         final int testId = batonDAO.insert(testbaton);
         assertTrue(testId > 0);
 
@@ -51,8 +51,8 @@ class BatonDAOTest extends DatabaseTest {
 
     @Test
     void testList2Batons() {
-        Baton b1 = new Baton("b1");
-        Baton b2 = new Baton("b2");
+        Baton b1 = new Baton("b1", "testmac");
+        Baton b2 = new Baton("b2", "testmac2");
         batonDAO.insert(b1);
         batonDAO.insert(b2);
 
@@ -73,7 +73,7 @@ class BatonDAOTest extends DatabaseTest {
 
     @Test
     void testUpdateDoesUpdate() {
-        Baton testBaton = new Baton("preupdate");
+        Baton testBaton = new Baton("preupdate", "testmac");
         int testid = batonDAO.insert(testBaton);
         testBaton.setId(testid);
         testBaton.setName("postupdate");
@@ -87,7 +87,7 @@ class BatonDAOTest extends DatabaseTest {
 
     @Test
     void updateDoesntDoAnythingWhenNotExists() {
-        Baton testBaton = new Baton("test");
+        Baton testBaton = new Baton("test", "testmac");
         int updatedRows = batonDAO.update(testBaton);
         List<Baton> batons = batonDAO.getAll();
         assertEquals(0, updatedRows);
@@ -96,7 +96,7 @@ class BatonDAOTest extends DatabaseTest {
 
     @Test
     void deleteRemovesBaton() {
-        Baton testBaton = new Baton("test");
+        Baton testBaton = new Baton("test", "testmac");
         int id = batonDAO.insert(testBaton);
         int updatedRows = batonDAO.deleteById(id);
 
@@ -107,7 +107,7 @@ class BatonDAOTest extends DatabaseTest {
 
     @Test
     void deleteDoesNothingIfNotExists() {
-        Baton testBaton = new Baton("test");
+        Baton testBaton = new Baton("test", "testmac");
         int id = batonDAO.insert(testBaton);
         int updatedRows = batonDAO.deleteById(id + 1);
 

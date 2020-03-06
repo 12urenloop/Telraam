@@ -19,7 +19,7 @@ public interface BatonDAO extends DAO<Baton> {
     List<Baton> getAll();
 
     @Override
-    @SqlUpdate("INSERT INTO baton (name) VALUES (:name)")
+    @SqlUpdate("INSERT INTO baton (name, mac) VALUES (:name, :mac)")
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Baton baton);
 
@@ -27,6 +27,10 @@ public interface BatonDAO extends DAO<Baton> {
     @SqlQuery("SELECT * FROM baton WHERE id = :id")
     @RegisterBeanMapper(Baton.class)
     Optional<Baton> getById(@Bind("id") int id);
+
+    @SqlQuery("SELECT * FROM baton WHERE mac = :mac")
+    @RegisterBeanMapper(Baton.class)
+    Optional<Baton> getByMac(@Bind("mac") String mac);
 
     @Override
     @SqlUpdate("DELETE FROM baton WHERE id = :id")

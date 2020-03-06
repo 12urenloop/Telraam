@@ -5,12 +5,14 @@ import java.util.Objects;
 public class Baton {
     private Integer id;
     private String name;
+    private String mac;
 
     // DO NOT REMOVE
     public Baton(){}
 
-    public Baton(String name) {
+    public Baton(String name, String mac) {
         this.name = name;
+        this.mac = mac;
     }
 
     public Integer getId() {
@@ -27,6 +29,14 @@ public class Baton {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getMac() {
+        return mac;
+    }
+
+    public void setMac(String mac) {
+        this.mac = mac;
     }
 
     @Override

@@ -19,7 +19,7 @@ public interface BeaconDAO extends DAO<Beacon>{
     List<Beacon> getAll();
 
     @Override
-    @SqlUpdate("INSERT INTO beacon (name) VALUES (:name)")
+    @SqlUpdate("INSERT INTO beacon (name, mac) VALUES (:name, :mac)")
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Beacon beacon);
 
@@ -28,6 +28,10 @@ public interface BeaconDAO extends DAO<Beacon>{
     @RegisterBeanMapper(Beacon.class)
     Optional<Beacon> getById(@Bind("id") int id);
 
+    @SqlQuery("SELECT * FROM baton WHERE mac = :mac")
+    @RegisterBeanMapper(Beacon.class)
+    Optional<Beacon> getByMac(@Bind("mac") String mac);
+
     @Override
     @SqlUpdate("DELETE FROM beacon WHERE id = :id")
     int deleteById(@Bind("id") int id);
@@ -35,5 +39,4 @@ public interface BeaconDAO extends DAO<Beacon>{
     @Override
     @SqlUpdate("UPDATE beacon SET name = :name WHERE id = :id")
     int update(@BindBean Beacon beacon);
-
 }
