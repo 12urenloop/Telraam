@@ -7,6 +7,8 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.Date;
 
+import org.jdbi.v3.core.Jdbi;
+
 /**
  * BeaconMessage is the representation of what is received from a beacon. This
  * should parse the incoming byte.get().

@@ -28,9 +28,9 @@ public interface BeaconDAO extends DAO<Beacon>{
     @RegisterBeanMapper(Beacon.class)
     Optional<Beacon> getById(@Bind("id") int id);
 
-    @SqlQuery("SELECT * FROM baton WHERE mac = :mac")
+    @SqlQuery("SELECT id FROM baton WHERE mac = :mac")
     @RegisterBeanMapper(Beacon.class)
-    Optional<Beacon> getByMac(@Bind("mac") String mac);
+    Optional<Integer> getIdByMac(@Bind("mac") String mac);
 
     @Override
     @SqlUpdate("DELETE FROM beacon WHERE id = :id")
