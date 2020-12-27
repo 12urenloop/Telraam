@@ -2,6 +2,8 @@ template: Hello xd, %s!
 
 defaultName: ${DW_DEFAULT_NAME:-Stranger}
 
+beaconPort: 4564
+
 database:
   # the name of your JDBC driver
   driverClass: org.postgresql.Driver
@@ -51,5 +53,5 @@ logging:
 
   appenders:
     - type: console
-      threshold: WARN
+      threshold: INFO
       target: stderr

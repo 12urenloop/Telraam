@@ -7,23 +7,33 @@ import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.Baton;
-import telraam.database.models.Id;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface BatonDAO {
+public interface BatonDAO extends DAO<Baton> {
 
-    @SqlQuery("select * from baton")
+    @Override
+    @SqlQuery("SELECT * FROM baton")
     @RegisterBeanMapper(Baton.class)
-    List<Baton> listBatons();
+    List<Baton> getAll();
 
-    @SqlUpdate("insert into baton (name) values (:name)")
+    @Override
+    @SqlUpdate("INSERT INTO baton (name) VALUES (:name)")
     @GetGeneratedKeys({"id"})
-    @RegisterBeanMapper(Id.class)
-    Id insert(@BindBean Baton baton);
+    int insert(@BindBean Baton baton);
 
-    @SqlQuery("select * from baton where id = :id")
+    @Override
+    @SqlQuery("SELECT * FROM baton WHERE id = :id")
     @RegisterBeanMapper(Baton.class)
-    Optional<Baton> findBatonById(@Bind("id") int id);
+    Optional<Baton> getById(@Bind("id") int id);
+
+    @Override
+    @SqlUpdate("DELETE FROM baton WHERE id = :id")
+    @RegisterBeanMapper(Baton.class)
+    int deleteById(@Bind("id") int id);
+
+    @Override
+    @SqlUpdate("UPDATE baton SET name = :name WHERE id = :id")
+    int update(@BindBean Baton baton);
 }

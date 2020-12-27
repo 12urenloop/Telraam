@@ -4,19 +4,19 @@ plugins {
     id 'java'
     id 'application'
     id 'jacoco'
-    id 'org.sonarqube' version "2.7"
+    id 'org.sonarqube' version "3.0"
     id 'idea'
-    id 'org.flywaydb.flyway' version "6.0.8"
+    id 'org.flywaydb.flyway' version "7.3.2"
 }
 
 group 'telraam'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 11
+sourceCompatibility = 14
 
 // Set our project variables
 project.ext {
-    dropwizardVersion = '1.3.9'
+    dropwizardVersion = '2.0.+'
 }
 
 repositories {
@@ -24,7 +24,7 @@ repositories {
     jcenter()
 }
 application {
-    mainClassName = 'telraam.App'
+    mainClass.set('telraam.App')
 }
 
 task runDev {
@@ -48,6 +48,7 @@ idea {
         inheritOutputDirs = true
     }
 }
+build.finalizedBy(javadoc)
 
 dependencies {
     // Web framework stuff
@@ -59,20 +60,18 @@ dependencies {
 
     )
     // Database
-    implementation('com.h2database:h2:1.4.199')
-    implementation('org.postgresql:postgresql:42.2.8')
+    implementation('com.h2database:h2:1.4.+')
+    implementation('org.postgresql:postgresql:42.2.+')
 
     // Testing
-    testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
-    testImplementation('org.flywaydb:flyway-core:6.0.8')
-    testImplementation("org.mockito:mockito-core:1.+")
+    testImplementation('org.junit.jupiter:junit-jupiter:5.7.+')
+    testImplementation('org.flywaydb:flyway-core:7.3.+')
+    testImplementation("org.mockito:mockito-core:3.6.+")
     testImplementation("io.dropwizard:dropwizard-testing:" + dropwizardVersion)
 
     // JAX-B dependencies for JDK 9+  -> https://stackoverflow.com/a/43574427
-    implementation "javax.xml.bind:jaxb-api:2.2.11"
-    implementation "com.sun.xml.bind:jaxb-core:2.2.11"
-    implementation "com.sun.xml.bind:jaxb-impl:2.2.11"
-    implementation "javax.activation:activation:1.1.1"
+    implementation "javax.xml.bind:jaxb-api"
+    implementation "org.glassfish.jaxb:jaxb-runtime"
 }
 
 test {
@@ -83,7 +82,7 @@ test {
     }
 }
 jacoco {
-    toolVersion = "0.8.4"
+    toolVersion = "0.8.6"
     reportsDir = file("$buildDir/coverage")
 }
 jacocoTestReport {
@@ -131,7 +130,7 @@ task migrateDevelopmentDatabase(type: FlywayMigrateTask) {
 }
 
 def testProps = new Properties()
-file("$rootProject.projectDir/src/main/resources/telraam/testConfig.properties").withInputStream {
+file("$rootProject.projectDir/src/test/resources/telraam/testConfig.properties").withInputStream {
     testProps.load(it)
 }
 task migrateTestingDatabase(type: FlywayMigrateTask) {

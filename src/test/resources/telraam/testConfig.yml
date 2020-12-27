@@ -2,6 +2,8 @@ template: Hello, %s!
 
 defaultName: ${DW_DEFAULT_NAME:-Stranger}
 
+beaconPort: -1
+
 database:
   driverClass: org.h2.Driver
   url: jdbc:h2:mem:telraam_test

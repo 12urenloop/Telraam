@@ -1,0 +1,129 @@
+package telraam.database.daos;
+
+import org.jdbi.v3.core.statement.UnableToExecuteStatementException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import telraam.DatabaseTest;
+import telraam.database.models.Lap;
+import telraam.database.models.Team;
+
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class LapDAOTest extends DatabaseTest {
+    private final Timestamp exampleTime = new Timestamp(123456789);
+    private LapDAO lapDAO;
+    private TeamDAO teamDAO;
+    private Team exampleTeam;
+
+    @Override
+    @BeforeEach
+    public void setUp() throws Exception {
+        super.setUp();
+        lapDAO = jdbi.onDemand(LapDAO.class);
+        teamDAO = jdbi.onDemand(TeamDAO.class);
+        exampleTeam = new Team("exampleTeam");
+        int teamId = teamDAO.insert(exampleTeam);
+        exampleTeam.setId(teamId);
+
+    }
+
+    @Test
+    void createLap() {
+
+        Lap testlap = new Lap(exampleTeam.getId(), exampleTime);
+        final int testId = lapDAO.insert(testlap);
+        assertTrue(testId > 0);
+
+        Optional<Lap> lapOptional = lapDAO.getById(testId);
+        assertFalse(lapOptional.isEmpty());
+        Lap lap = lapOptional.get();
+        assertEquals(exampleTime, lap.getTimestamp());
+    }
+
+    @Test
+    void testInsertFailsWhenNoTeam() {
+        Lap testlap = new Lap();
+        assertThrows(UnableToExecuteStatementException.class, () -> {
+            lapDAO.insert(testlap);
+        });
+
+    }
+
+    @Test
+    void testListLapsEmpty() {
+        List<Lap> laps = lapDAO.getAll();
+        assertNotNull(laps);
+        assertEquals(0, laps.size());
+    }
+
+    @Test
+    void testList2Laps() {
+        Lap b1 = new Lap(exampleTeam.getId(), exampleTime);
+        Lap b2 = new Lap(exampleTeam.getId(), exampleTime);
+        lapDAO.insert(b1);
+        lapDAO.insert(b2);
+
+        List<Lap> laps = lapDAO.getAll();
+        assertNotNull(laps);
+        assertEquals(2, laps.size());
+        assertNotNull(
+                laps.stream()
+                        .filter(lap -> lap.getTimestamp().equals(exampleTime)));
+    }
+
+    @Test
+    void testFindByIdNullWhenNoLap() {
+        Optional<Lap> lapOptional = lapDAO.getById(1);
+        assertTrue(lapOptional.isEmpty());
+    }
+
+    @Test
+    void testUpdateDoesUpdate() {
+        Lap testLap = new Lap(exampleTeam.getId(), exampleTime);
+        int testid = lapDAO.insert(testLap);
+        testLap.setId(testid);
+        Timestamp updated = new Timestamp(987654321);
+        testLap.setTimestamp(updated);
+        int updatedRows = lapDAO.update(testLap);
+        assertEquals(1, updatedRows);
+
+        Optional<Lap> dbLap = lapDAO.getById(testid);
+        assertFalse(dbLap.isEmpty());
+        assertEquals(updated, dbLap.get().getTimestamp());
+    }
+
+    @Test
+    void updateDoesntDoAnythingWhenNotExists() {
+        Lap testLap = new Lap(exampleTeam.getId(), exampleTime);
+        int updatedRows = lapDAO.update(testLap);
+        List<Lap> laps = lapDAO.getAll();
+        assertEquals(0, updatedRows);
+        assertEquals(0, laps.size());
+    }
+
+    @Test
+    void deleteRemovesLap() {
+        Lap testLap = new Lap(exampleTeam.getId(), exampleTime);
+        int id = lapDAO.insert(testLap);
+        int updatedRows = lapDAO.deleteById(id);
+
+        List<Lap> laps = lapDAO.getAll();
+        assertEquals(1, updatedRows);
+        assertEquals(0, laps.size());
+    }
+
+    @Test
+    void deleteDoesNothingIfNotExists() {
+        Lap testLap = new Lap(exampleTeam.getId(), exampleTime);
+        int id = lapDAO.insert(testLap);
+        int updatedRows = lapDAO.deleteById(id + 1);
+
+        List<Lap> laps = lapDAO.getAll();
+        assertEquals(0, updatedRows);
+        assertEquals(1, laps.size());
+    }
+}

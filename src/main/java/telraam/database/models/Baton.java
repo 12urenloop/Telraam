@@ -6,6 +6,7 @@ public class Baton {
     private Integer id;
     private String name;
 
+    // DO NOT REMOVE
     public Baton(){}
 
     public Baton(String name) {
