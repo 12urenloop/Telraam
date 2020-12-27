@@ -11,7 +11,7 @@ package telraam.beacon;
 public abstract class EventGenerator<B> {
     protected Callback<Void, Event<B>> handler;
 
-    public EventGenerator(Callback<Void, Event<B>> handler) {
+    protected EventGenerator(Callback<Void, Event<B>> handler) {
         this.handler = handler;
     }
 

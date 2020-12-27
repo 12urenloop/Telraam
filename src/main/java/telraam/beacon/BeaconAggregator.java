@@ -39,7 +39,7 @@ public class BeaconAggregator extends TCPFactory<BeaconMessage>
     // Set the correct handler for connecting sockets
     // Here creating Beacons.
     private void initializeCreator() {
-        super.creator = (s) -> {
+        super.creator = s -> {
             try {
                 new Beacon(s, this);
             } catch (IOException e) {
@@ -79,21 +79,21 @@ public class BeaconAggregator extends TCPFactory<BeaconMessage>
 
     @Override
     public void exit() {
-        this.exitHandlers.forEach((eh) -> eh.handle(null));
+        this.exitHandlers.forEach(eh -> eh.handle(null));
     }
 
     @Override
     public void connect() {
-        this.connectHandlers.forEach((th) -> th.handle(null));
+        this.connectHandlers.forEach(th -> th.handle(null));
     }
 
     @Override
     public void error(Exception e) {
-        this.errorHandlers.forEach((eh) -> eh.handle(e));
+        this.errorHandlers.forEach(eh -> eh.handle(e));
     }
 
     @Override
     public void data(BeaconMessage t) {
-        this.handlers.forEach((th) -> th.handle(t));
+        this.handlers.forEach(th -> th.handle(t));
     }
 }

@@ -1,6 +1,7 @@
 package telraam.beacon;
 
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
@@ -26,7 +27,7 @@ import org.junit.jupiter.api.BeforeAll;
  *
  * @author Arthur Vercruysse
  */
-public class BeaconTest {
+class BeaconTest {
     private static final Semaphore barrier = new Semaphore(8);
 
     static List<OurSocket> connectedSockets = new ArrayList<>();
@@ -108,7 +109,7 @@ public class BeaconTest {
     }
 
     @Test
-    public void testEverythingBeacon() throws Exception {
+    void testEverythingBeacon() throws Exception {
 
         ba.onConnect((_e) -> {
             connects.incrementAndGet();
@@ -142,7 +143,7 @@ public class BeaconTest {
 
         // Check if all beacons are connected
         assertEquals(5, connects.get());
-        assertEquals(errors.get(), 0);
+        assertEquals(0, errors.get());
 
         // Check if they can disconnect at will
         connectedSockets.remove(0).close();
@@ -150,8 +151,8 @@ public class BeaconTest {
         barrier.acquire(8);
         barrier.release(8);
 
-        assertEquals(exits.get(), 1);
-        assertEquals(errors.get(), 0);
+        assertEquals(1, exits.get());
+        assertEquals(0, errors.get());
 
         // Check if no beacon messages are sent with incomplete data
         // Aka do they buffer correctly?
@@ -168,8 +169,8 @@ public class BeaconTest {
         barrier.acquire(8);
         barrier.release(8);
 
-        assertEquals(data.get(), 0);
-        assertEquals(errors.get(), 0);
+        assertEquals(0, data.get());
+        assertEquals(0, errors.get());
 
         // But not too much either
         for (OurSocket s : connectedSockets) {
@@ -180,7 +181,7 @@ public class BeaconTest {
         barrier.release(8);
 
         assertEquals(data.get(), connectedSockets.size());
-        assertEquals(errors.get(), 0);
+        assertEquals(0, errors.get());
 
         // Test invalid msg send
 
@@ -189,21 +190,21 @@ public class BeaconTest {
 
         barrier.acquire(8);
         barrier.release(8);
-        assertEquals(errors.get(), 1);
+        assertEquals(1, errors.get());
 
         // No opening tag
         connectedSockets.get(0).write("<<<jkfd;ajk;bjkea>>>>".getBytes(), true);
 
         barrier.acquire(8);
         barrier.release(8);
-        assertEquals(errors.get(), 2);
+        assertEquals(2, errors.get());
 
         // 2 Opening tags
         connectedSockets.get(0).write("<<<<jkdfasbjkea<<<<fdsdtestds".getBytes(), true);
 
         barrier.acquire(8);
         barrier.release(8);
-        assertEquals(errors.get(), 3);
+        assertEquals(3, errors.get());
 
         // Do they all close correctly
         for (OurSocket s : connectedSockets) {
@@ -213,14 +214,14 @@ public class BeaconTest {
         barrier.acquire(8);
         barrier.release(8);
 
-        assertEquals(exits.get(), 5);
+        assertEquals(5, exits.get());
 
         // No errors received
-        assertEquals(errors.get(), 3);
+        assertEquals(3, errors.get());
     }
 
     @Test
-    public void testBeaconFormat() throws Exception {
+    void testBeaconFormat() throws Exception {
         ByteBuffer buf = ByteBuffer.allocate(BeaconMessage.MESSAGESIZE);
         buf.putShort(0, (short) 10);
         buf.putShort(2, (short) 13);
@@ -228,13 +229,13 @@ public class BeaconTest {
 
         BeaconMessage msg = new BeaconMessage(buf);
 
-        assertEquals(10, msg.beaconTag);
-        assertEquals(13, msg.batonTag);
-        assertEquals(1583267378714L, msg.timestamp);
+        assertEquals(10, msg.getBeaconTag());
+        assertEquals(13, msg.getBatonTag());
+        assertEquals(1583267378714L, msg.getTimestamp());
     }
 
     @Test
-    public void testBeaconMessageSize() throws Exception {
+    void testBeaconMessageSize() throws Exception {
         ByteBuffer buf = ByteBuffer.allocate(BeaconMessage.MESSAGESIZE - 2);
         assertThrows(BeaconException.class, () -> {
             new BeaconMessage(buf);

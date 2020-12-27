@@ -21,21 +21,22 @@ import java.util.ArrayList;
  * @author Arthur Vercruysse
  */
 public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
-    private static final int messageSize = BeaconMessage.MESSAGESIZE;
+    private static final int MESSAGESIZE = BeaconMessage.MESSAGESIZE;
     private static final byte[] startTag = BeaconMessage.STARTTAG;
     private static final byte[] endTag = BeaconMessage.ENDTAG;
 
     private InputStream inputStream;
     private boolean isReadingMessage;
     private List<Byte> msgBuf;
-    private int startTagIndex, endTagIndex;
+    private int startTagIndex;
+    private int endTagIndex;
 
     public Beacon(Socket socket, Callback<Void, Event<BeaconMessage>> h) throws IOException {
         super(h);
 
         this.inputStream = socket.getInputStream();
         this.isReadingMessage = false;
-        this.msgBuf = new ArrayList<>(messageSize);
+        this.msgBuf = new ArrayList<>(MESSAGESIZE);
         this.startTagIndex = 0;
         this.endTagIndex = 0;
 

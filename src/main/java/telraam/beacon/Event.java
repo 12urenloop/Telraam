@@ -12,26 +12,42 @@ public abstract class Event<B> {
     abstract void handle(EventHandler<B> h);
 
     public static class Data<B> extends Event<B> {
-        public B inner;
+        private B inner;
 
         public Data(B data) {
-            inner = data;
+            setInner(data);
         }
 
         void handle(EventHandler<B> h) {
-            h.data(inner);
+            h.data(getInner());
+        }
+
+        public B getInner() {
+            return inner;
+        }
+
+        public void setInner(B inner) {
+            this.inner = inner;
         }
     }
 
     public static class Error<B> extends Event<B> {
-        public Exception inner;
+        private Exception inner;
 
         public Error(Exception e) {
-            inner = e;
+            setInner(e);
         }
 
         void handle(EventHandler<B> h) {
-            h.error(inner);
+            h.error(getInner());
+        }
+
+        public Exception getInner() {
+            return inner;
+        }
+
+        public void setInner(Exception inner) {
+            this.inner = inner;
         }
     }
 

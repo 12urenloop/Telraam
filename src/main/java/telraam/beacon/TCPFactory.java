@@ -27,13 +27,12 @@ public class TCPFactory<B> implements Runnable {
     protected TCPFactory(int port) throws IOException {
         if (port > 0)
             this.socket = new ServerSocket(port);
-        logger.log(Level.INFO, "Starting tcp on port " + port);
+        logger.log(Level.INFO, "Starting tcp on port {}", port);
     }
 
     protected TCPFactory() throws IOException {
         this.socket = new ServerSocket();
-        logger.log(Level.INFO,
-                "Starting tcp on port " + this.socket.getLocalPort());
+        logger.log(Level.INFO, "Starting tcp on port {}", this.socket.getLocalPort());
     }
 
     public void run() {
