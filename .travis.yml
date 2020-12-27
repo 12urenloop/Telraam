@@ -3,6 +3,6 @@ jdk: openjdk14
 env:
   global:
   - secure: bgotyn0YlK4othcgPBMhUDhc4X7ZAisOPz8Iw5l7BRhSl7+zJtrcRs9IGDWYYWDAYiyW/DlV8LicQy9zMBOBvuzmYl+4JqBzp/FxjysMl6PMtfgR6GLsJUMQckqN4f+W7xwH4RTkAhhBzTwe61dNhkYl+x/Jf7GLnssj1PuaiHJVXeIhmj0cbPEhGelMZyHx4c2Aa19nMrPmJVLAVyGiJFsTG3lQjgkOPXWWQRiyhuGt3En4paZB6RRMQkCYKUXgT/RRsVgRGKrZ2Kl+xf+q/3YHknNQx3WbBNp1tWtJ44uEsrcSAFimVxKIasSawTh8GCKIFWf27V9tvacGYm/6mSuAyoPJDPJMq5BgAySDU9f56QZ697bP9IH0VLGGfvfVOipD+9V0He1h01EdlyXyJwk04C64sWvYMT3LQJ4ovFOxL55qdePNLmJGXKB4+irT/H7WHAWuzjYahu9qGMmyTTAd/Tg4o9UiFKld0OAsi1zMzLx6n5XYJ3KmoP2gSU3CXMx73HTmlQzViwgkvaYsnySLAr1dbi0NVW05mMp9hFCO8PbZ6jPxbolM15JXBxSds/icx6jy7spcpW0VdPGAb/w+mvZAp0cR3BTCynyAruyDgiBVilPOyxl0xhgHGitm5Izlc5cFGcCf8sXnZntvx4l2HyrRvQPf1wqmVTawUMc=
-script: gradlew sonarqube -Dsonar.projectKey=Telraam \
+script: ./gradlew sonarqube -Dsonar.projectKey=Telraam \
                           -Dsonar.host.url=sonarqube.zeus.gent \
                           -Dsonar.login=$SONAR_TOKEN
