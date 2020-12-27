@@ -15,8 +15,15 @@ import java.util.logging.Logger;
  */
 public class TCPFactory<B> implements Runnable {
     private static Logger logger = Logger.getLogger(TCPFactory.class.getName());
+    private boolean stop = false;
     protected Callback<Void, Socket> creator;
     private ServerSocket socket;
+
+    private static class TCPFactoryException extends RuntimeException {
+        TCPFactoryException(IOException error) {
+            super(String.format("TCP runloop crashed %s", error.getMessage()));
+        }
+    }
 
     public TCPFactory(Callback<Void, Socket> creator, int port)
             throws IOException {
@@ -27,24 +34,34 @@ public class TCPFactory<B> implements Runnable {
     protected TCPFactory(int port) throws IOException {
         if (port > 0)
             this.socket = new ServerSocket(port);
-        logger.log(Level.INFO, "Starting tcp on port " + port);
+        logger.log(Level.INFO, "Starting tcp on port {}", port);
     }
 
     protected TCPFactory() throws IOException {
         this.socket = new ServerSocket();
-        logger.log(Level.INFO,
-                "Starting tcp on port " + this.socket.getLocalPort());
+        logger.log(Level.INFO, "Starting tcp on port {}", this.socket.getLocalPort());
     }
 
     public void run() {
         logger.log(Level.INFO, "Actually accepting connections");
-        while (true) {
-            try {
-                Socket s = socket.accept();
-                this.creator.handle(s);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            this.runLoop();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new TCPFactoryException(e);
         }
+    }
+
+    private void runLoop() throws IOException {
+        while (!this.stop) {
+            Socket s = socket.accept();
+            this.creator.handle(s);
+        }
+        socket.close();
+
+    }
+
+    public void kill() {
+        this.stop = true;
     }
 }

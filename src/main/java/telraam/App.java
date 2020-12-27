@@ -6,24 +6,14 @@ import io.dropwizard.jdbi3.bundles.JdbiExceptionsBundle;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
-import telraam.beacon.Beacon;
 import telraam.beacon.BeaconAggregator;
-import telraam.beacon.BeaconMessage;
 import telraam.database.daos.*;
-import telraam.database.models.Baton;
-import telraam.database.models.Detection;
-import telraam.database.models.Id;
 import telraam.healthchecks.TemplateHealthCheck;
+
+import java.io.IOException;
+import java.util.logging.Logger;
 
 
 public class App extends Application<AppConfiguration> {
