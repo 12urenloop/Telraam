@@ -137,3 +137,10 @@ task migrateTestingDatabase(type: FlywayMigrateTask) {
     url = testProps.getProperty("DB_URL")
     baselineOnMigrate = true
 }
+sonarqube {
+    properties {
+        property "sonar.projectKey", "12urenloop_Telraam"
+        property "sonar.organization", "12urenloop"
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
+}
