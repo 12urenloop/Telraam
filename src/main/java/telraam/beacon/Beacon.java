@@ -45,6 +45,12 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
 
     // Handle possible advancement in the start tag
     private void handleStartTag(byte b) {
+        // Special case where start tag does not exsist
+        if (startTag.length == startTagIndex) {
+            this.isReadingMessage = true;
+            return;
+        }
+
         if (b == startTag[startTagIndex]) {
             startTagIndex++;
 
@@ -89,6 +95,7 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
                     } catch (Exception e) {
                         this.error(e);
                     }
+                    msgBuf.clear();
 
                     isReadingMessage = false;
                 } else {

@@ -129,6 +129,7 @@ public class BeaconTest {
         });
 
         ba.onError((e) -> {
+            e.printStackTrace();
             errors.incrementAndGet();
             barrier.release();
             return null;
@@ -156,12 +157,11 @@ public class BeaconTest {
         // Check if no beacon messages are sent with incomplete data
         // Aka do they buffer correctly?
         for (OurSocket s : connectedSockets) {
-            ByteBuffer buf = ByteBuffer.allocate(12);
-            buf.putShort(0, (byte) 0);
-            buf.putShort(2, (byte) 5);
-            buf.putLong(4, new Date().getTime());
+            String test = "10,ignore,13,14";
+            ByteBuffer buf = ByteBuffer.wrap(test.getBytes());
 
-            s.write("<<<<".getBytes(), false);
+            // There is no start tag
+            // s.write("<<<<".getBytes(), false);
             s.write(buf.array(), false);
         }
 
@@ -173,37 +173,38 @@ public class BeaconTest {
 
         // But not too much either
         for (OurSocket s : connectedSockets) {
-            s.write(">>>>".getBytes(), true);
+            s.write("\n".getBytes(), true);
         }
 
         barrier.acquire(8);
         barrier.release(8);
 
-        assertEquals(data.get(), connectedSockets.size());
-        assertEquals(errors.get(), 0);
+        assertEquals(connectedSockets.size(), data.get());
+        assertEquals(0, errors.get());
 
         // Test invalid msg send
 
         // Invalid message
-        connectedSockets.get(0).write("<<<<fsdtestds>>>>".getBytes(), true);
+        connectedSockets.get(0).write("<<<<fsdtestds>>>>\n".getBytes(), true);
 
+        
         barrier.acquire(8);
         barrier.release(8);
-        assertEquals(errors.get(), 1);
+        assertEquals(1, errors.get());
 
-        // No opening tag
-        connectedSockets.get(0).write("<<<jkfd;ajk;bjkea>>>>".getBytes(), true);
+        // // No opening tag
+        // connectedSockets.get(0).write("<<<jkfd;ajk;bjkea>>>>".getBytes(), true);
 
-        barrier.acquire(8);
-        barrier.release(8);
-        assertEquals(errors.get(), 2);
+        // barrier.acquire(8);
+        // barrier.release(8);
+        // assertEquals(errors.get(), 2);
 
-        // 2 Opening tags
-        connectedSockets.get(0).write("<<<<jkdfasbjkea<<<<fdsdtestds".getBytes(), true);
+        // // 2 Opening tags
+        // connectedSockets.get(0).write("<<<<jkdfasbjkea<<<<fdsdtestds".getBytes(), true);
 
-        barrier.acquire(8);
-        barrier.release(8);
-        assertEquals(errors.get(), 3);
+        // barrier.acquire(8);
+        // barrier.release(8);
+        // assertEquals(errors.get(), 3);
 
         // Do they all close correctly
         for (OurSocket s : connectedSockets) {
@@ -216,28 +217,18 @@ public class BeaconTest {
         assertEquals(exits.get(), 5);
 
         // No errors received
-        assertEquals(errors.get(), 3);
+        assertEquals(errors.get(), 1);
     }
 
     @Test
     public void testBeaconFormat() throws Exception {
-        ByteBuffer buf = ByteBuffer.allocate(BeaconMessage.MESSAGESIZE);
-        buf.putShort(0, (short) 10);
-        buf.putShort(2, (short) 13);
-        buf.putLong(4, 1583267378714L);
+        String test = "10,ignore,13,14";
+        ByteBuffer buf = ByteBuffer.wrap(test.getBytes());
 
         BeaconMessage msg = new BeaconMessage(buf);
 
-        assertEquals(10, msg.beaconTag);
-        assertEquals(13, msg.batonTag);
-        assertEquals(1583267378714L, msg.timestamp);
-    }
-
-    @Test
-    public void testBeaconMessageSize() throws Exception {
-        ByteBuffer buf = ByteBuffer.allocate(BeaconMessage.MESSAGESIZE - 2);
-        assertThrows(BeaconException.class, () -> {
-            new BeaconMessage(buf);
-        });
+        assertEquals("10", msg.stationMAC);
+        assertEquals("13", msg.battonMAC);
+        // assertEquals(1583267378714L, msg.timestamp);
     }
 }

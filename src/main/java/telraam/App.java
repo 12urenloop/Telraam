@@ -24,6 +24,7 @@ import telraam.database.models.Baton;
 import telraam.database.models.Detection;
 import telraam.database.models.Id;
 import telraam.healthchecks.TemplateHealthCheck;
+import telraam.logic.DetectionLogger;
 
 
 public class App extends Application<AppConfiguration> {
@@ -81,6 +82,8 @@ public class App extends Application<AppConfiguration> {
             logger.warning(e.getMessage());
             return null;
         });
+        // Init beacon message data base logger
+        ba.onData(new DetectionLogger(database));
         ba.onData(e -> {
             logger.info(e.toString());
             return null;

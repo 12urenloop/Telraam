@@ -25,7 +25,7 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void createBeacon() {
-        Beacon testBeacon = new Beacon("testbeacon");
+        Beacon testBeacon = new Beacon("testbeacon", "testmac");
         final int testId = beaconDAO.insert(testBeacon);
         assertTrue(testId > 0);
 
@@ -51,8 +51,8 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void testList2Beacons() {
-        Beacon b1 = new Beacon("b1");
-        Beacon b2 = new Beacon("b2");
+        Beacon b1 = new Beacon("b1", "testmac");
+        Beacon b2 = new Beacon("b2", "testma2c");
         beaconDAO.insert(b1);
         beaconDAO.insert(b2);
 
@@ -75,7 +75,7 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void testUpdateDoesUpdate() {
-        Beacon testBeacon = new Beacon("preupdate");
+        Beacon testBeacon = new Beacon("preupdate", "testmac");
         int testid = beaconDAO.insert(testBeacon);
         testBeacon.setId(testid);
         testBeacon.setName("postupdate");
@@ -89,7 +89,7 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void updateDoesntDoAnythingWhenNotExists() {
-        Beacon testBeacon = new Beacon("test");
+        Beacon testBeacon = new Beacon("test", "testmac");
         int updatedRows = beaconDAO.update(testBeacon);
         List<Beacon> beacons = beaconDAO.getAll();
         assertEquals(0, updatedRows);
@@ -98,7 +98,7 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void deleteRemovesBeacon() {
-        Beacon testBeacon = new Beacon("test");
+        Beacon testBeacon = new Beacon("test", "testmac");
         int id = beaconDAO.insert(testBeacon);
         int updatedRows = beaconDAO.deleteById(id);
 
@@ -109,7 +109,7 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void deleteDoesNothingIfNotExists() {
-        Beacon testBeacon = new Beacon("test");
+        Beacon testBeacon = new Beacon("test", "testmac");
         int id = beaconDAO.insert(testBeacon);
         int updatedRows = beaconDAO.deleteById(id + 1);
 

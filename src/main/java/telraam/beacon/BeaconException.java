@@ -26,4 +26,11 @@ public class BeaconException extends Exception {
             super("Cannot parse message with size " + actual + " expected " + expected+".");
         }
     }
+
+    public static class ParseError extends BeaconException {
+        private static final long serialVersionUID = 3043434;
+        public ParseError(String msg, String error) {
+            super("Cannot parse message \"" + msg + "\". Error: " + error + ".");
+        }
+    }
 }

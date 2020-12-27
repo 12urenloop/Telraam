@@ -3,7 +3,8 @@ create table beacon
 	id serial not null
 		constraint beacon_pk
 			primary key,
-	name varchar(255) not null
+	name varchar(255) not null,
+	mac varchar(255) not null
 );
 
 create table baton
@@ -11,7 +12,8 @@ create table baton
 	id serial not null
 		constraint baton_pk
 			primary key,
-	name varchar(255) not null
+	name varchar(255) not null,
+	mac varchar(255) not null
 );
 
 create table detection
