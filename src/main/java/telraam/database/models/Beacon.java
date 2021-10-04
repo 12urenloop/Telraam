@@ -4,7 +4,8 @@ public class Beacon {
     private Integer id;
     private String name;
 
-    public Beacon() {}
+    public Beacon() {
+    }
 
     public Beacon(String name) {
         this.name = name;

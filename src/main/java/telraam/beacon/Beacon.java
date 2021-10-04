@@ -14,7 +14,7 @@ import java.util.ArrayList;
 /**
  * Beacon is socket wrapper that listens to the sockets and emits BeaconMessages
  * when enough bytes are read.
- *
+ * <p>
  * Beacons are closed at the first Exception encountered. This could be changed
  * if need be.
  *

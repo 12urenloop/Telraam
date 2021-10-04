@@ -3,13 +3,13 @@
 const ArgumentParser = require('argparse').ArgumentParser;
 const net = require('net');
 
-var args;
+let args;
 
 // Standard Normal variate using Box-Muller transform.
 function randn_bm(mean, dev) {
-    var u = 0,
+    let u = 0,
         v = 0;
-    while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+    while (u === 0) u = Math.random(); // Converting [0,1) to (0,1)
     while (v === 0) v = Math.random();
     const out = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
     return out * dev + mean;
@@ -17,7 +17,7 @@ function randn_bm(mean, dev) {
 
 class Beacon {
     constructor(id) {
-        this.socket = net.Socket();
+        this.socket = new net.Socket();
         this.socket.connect(args.port, args.address);
         this.id = id;
     }
@@ -113,4 +113,5 @@ function main() {
         runners.push(new Runner(i + 1, randn_bm(args.mean, args.runner_deviation), beacons));
     }
 }
+
 main();

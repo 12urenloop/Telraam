@@ -2,6 +2,7 @@ package telraam.api;
 
 import telraam.database.daos.DAO;
 import telraam.database.models.Beacon;
+
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 

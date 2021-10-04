@@ -31,67 +31,6 @@ class BeaconTest {
     private static final Semaphore barrier = new Semaphore(8);
 
     static List<OurSocket> connectedSockets = new ArrayList<>();
-
-    public static class OurSocket extends Socket {
-        private PipedInputStream pis;
-        private PipedOutputStream pos;
-
-        public OurSocket() throws IOException {
-            super();
-            barrier.acquireUninterruptibly();
-
-            pis = new PipedInputStream();
-            pos = new PipedOutputStream(pis);
-        }
-
-        public InputStream getInputStream() throws IOException {
-            return this.pis;
-        }
-
-        public void write(byte[] buf, boolean acq) throws IOException {
-            if (acq) {
-                barrier.acquireUninterruptibly();
-            }
-
-            pos.write(buf);
-            pos.flush();
-        }
-
-        public void close() throws IOException {
-            barrier.acquireUninterruptibly();
-            pos.close();
-            pis.close();
-        }
-    }
-
-    public static class OurServerSocket extends ServerSocket {
-        private int connections;
-
-        public OurServerSocket(int connections) throws IOException {
-            super();
-            this.connections = connections;
-        }
-
-        @Override
-        public Socket accept() throws IOException {
-            // Only spawn connections amount of sockets
-            if (connections < 1) {
-                barrier.release();
-                while (true) {
-                    try {
-                        Thread.sleep(2000);
-                    } catch (Exception e) {
-                    }
-                }
-            }
-            connections--;
-            OurSocket s = new OurSocket();
-            // super.implAccept(s); // This fails, and should not be called
-            connectedSockets.add(s);
-            return s;
-        }
-    }
-
     static BeaconAggregator ba;
     static AtomicInteger data = new AtomicInteger();
     static AtomicInteger connects = new AtomicInteger();
@@ -240,5 +179,65 @@ class BeaconTest {
         assertThrows(BeaconException.class, () -> {
             new BeaconMessage(buf);
         });
+    }
+
+    public static class OurSocket extends Socket {
+        private PipedInputStream pis;
+        private PipedOutputStream pos;
+
+        public OurSocket() throws IOException {
+            super();
+            barrier.acquireUninterruptibly();
+
+            pis = new PipedInputStream();
+            pos = new PipedOutputStream(pis);
+        }
+
+        public InputStream getInputStream() throws IOException {
+            return this.pis;
+        }
+
+        public void write(byte[] buf, boolean acq) throws IOException {
+            if (acq) {
+                barrier.acquireUninterruptibly();
+            }
+
+            pos.write(buf);
+            pos.flush();
+        }
+
+        public void close() throws IOException {
+            barrier.acquireUninterruptibly();
+            pos.close();
+            pis.close();
+        }
+    }
+
+    public static class OurServerSocket extends ServerSocket {
+        private int connections;
+
+        public OurServerSocket(int connections) throws IOException {
+            super();
+            this.connections = connections;
+        }
+
+        @Override
+        public Socket accept() throws IOException {
+            // Only spawn connections amount of sockets
+            if (connections < 1) {
+                barrier.release();
+                while (true) {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (Exception e) {
+                    }
+                }
+            }
+            connections--;
+            OurSocket s = new OurSocket();
+            // super.implAccept(s); // This fails, and should not be called
+            connectedSockets.add(s);
+            return s;
+        }
     }
 }

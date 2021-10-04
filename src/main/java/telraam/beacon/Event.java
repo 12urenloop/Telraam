@@ -1,15 +1,25 @@
 package telraam.beacon;
 
 /**
-* Event is an 'enum' class with data attached.
-* An events can be handled with an EventHandler like a TCPFactory.
-* `event.handle(this);`
-*
-* @author  Arthur Vercruysse
-*/
+ * Event is an 'enum' class with data attached.
+ * An events can be handled with an EventHandler like a TCPFactory.
+ * `event.handle(this);`
+ *
+ * @author Arthur Vercruysse
+ */
 public abstract class Event<B> {
 
     abstract void handle(EventHandler<B> h);
+
+    public interface EventHandler<B> {
+        void exit();
+
+        void connect();
+
+        void error(Exception e);
+
+        void data(B b);
+    }
 
     public static class Data<B> extends Event<B> {
         private B inner;
@@ -67,14 +77,5 @@ public abstract class Event<B> {
         void handle(EventHandler<B> h) {
             h.exit();
         }
-    }
-
-    public interface EventHandler<B> {
-        void exit();
-        void connect();
-
-        void error(Exception e);
-
-        void data(B b);
     }
 }

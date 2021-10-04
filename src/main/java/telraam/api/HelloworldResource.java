@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Warning
- *
+ * <p>
  * Resource classes are used by multiple threads concurrently. In general, we recommend that resources be stateless/immutable, but it’s important to keep the context in mind.
  */
 

@@ -11,7 +11,7 @@ import telraam.database.models.Beacon;
 import java.util.List;
 import java.util.Optional;
 
-public interface BeaconDAO extends DAO<Beacon>{
+public interface BeaconDAO extends DAO<Beacon> {
 
     @Override
     @SqlQuery("SELECT * FROM beacon")
