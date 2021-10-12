@@ -1,13 +1,13 @@
 package telraam.beacon;
 
 /**
-* {@link Callback Callback&lt;Void, Event&lt;B&gt;&gt;} wrapper in disguise.
-* Exposing simpler methods to wrap in the right {@link Event Event&lt;B&gt;}
-*
-* This can be seen as a generic {@link Event Event&lt;B&gt;} sink.
-*
-* @author  Arthur Vercruysse
-*/
+ * {@link Callback Callback&lt;Void, Event&lt;B&gt;&gt;} wrapper in disguise.
+ * Exposing simpler methods to wrap in the right {@link Event Event&lt;B&gt;}
+ * <p>
+ * This can be seen as a generic {@link Event Event&lt;B&gt;} sink.
+ *
+ * @author Arthur Vercruysse
+ */
 public abstract class EventGenerator<B> {
     protected Callback<Void, Event<B>> handler;
 

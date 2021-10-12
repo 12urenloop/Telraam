@@ -15,15 +15,9 @@ import java.util.logging.Logger;
  */
 public class TCPFactory<B> implements Runnable {
     private static Logger logger = Logger.getLogger(TCPFactory.class.getName());
-    private boolean stop = false;
     protected Callback<Void, Socket> creator;
+    private boolean stop = false;
     private ServerSocket socket;
-
-    private static class TCPFactoryException extends RuntimeException {
-        TCPFactoryException(IOException error) {
-            super(String.format("TCP runloop crashed %s", error.getMessage()));
-        }
-    }
 
     public TCPFactory(Callback<Void, Socket> creator, int port)
             throws IOException {
@@ -63,5 +57,11 @@ public class TCPFactory<B> implements Runnable {
 
     public void kill() {
         this.stop = true;
+    }
+
+    private static class TCPFactoryException extends RuntimeException {
+        TCPFactoryException(IOException error) {
+            super(String.format("TCP runloop crashed %s", error.getMessage()));
+        }
     }
 }

@@ -13,7 +13,7 @@ database:
 
   # the password
   password: iAMs00perSecrEET
-  
+
   # the JDBC URL
   url: jdbc:postgresql://localhost:5432/telraam_dev
 

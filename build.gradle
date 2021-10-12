@@ -21,7 +21,6 @@ project.ext {
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 application {
     mainClass.set('telraam.App')

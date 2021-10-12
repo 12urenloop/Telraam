@@ -7,7 +7,8 @@ public class Baton {
     private String name;
 
     // DO NOT REMOVE
-    public Baton(){}
+    public Baton() {
+    }
 
     public Baton(String name) {
         this.name = name;

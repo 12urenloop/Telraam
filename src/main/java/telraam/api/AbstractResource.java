@@ -16,12 +16,6 @@ public abstract class AbstractResource<T> implements Resource<T> {
         this.dao = dao;
     }
 
-    private static class MissingIdException extends WebApplicationException {
-        MissingIdException() {
-            super("You did not pass an id", Response.Status.BAD_REQUEST);
-        }
-    }
-
     @Override
     public List<T> getListOf() {
         return dao.getAll();
@@ -67,6 +61,12 @@ public abstract class AbstractResource<T> implements Resource<T> {
             return dao.deleteById(id.get()) == 1;
         } else {
             throw new MissingIdException();
+        }
+    }
+
+    private static class MissingIdException extends WebApplicationException {
+        MissingIdException() {
+            super("You did not pass an id", Response.Status.BAD_REQUEST);
         }
     }
 }
