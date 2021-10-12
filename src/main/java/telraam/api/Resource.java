@@ -11,12 +11,6 @@ public interface Resource<T> {
     String ENTITY_PATH = "/{Id: [0-9]*}";
 
     /**
-     * @return a list of all the specified items
-     */
-    @GET
-    List<T> getListOf();
-
-    /**
      * @param t the item to create in the database
      * @return whether or not the item was created
      */

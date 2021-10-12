@@ -5,13 +5,15 @@ import java.sql.Timestamp;
 public class Lap {
     private Integer id;
     private Integer teamId;
+    private Integer lapSourceId;
     private Timestamp timestamp;
 
     public Lap() {
     }
 
-    public Lap(Integer teamId, Timestamp timestamp) {
+    public Lap(Integer teamId, Integer lapSourceId, Timestamp timestamp) {
         this.teamId = teamId;
+        this.lapSourceId = lapSourceId;
         this.timestamp = timestamp;
     }
 
@@ -29,6 +31,14 @@ public class Lap {
 
     public void setTeamId(Integer teamId) {
         this.teamId = teamId;
+    }
+
+    public Integer getLapSourceId() {
+        return lapSourceId;
+    }
+
+    public void setLapSourceId(Integer lapSourceId) {
+        this.lapSourceId = lapSourceId;
     }
 
     public Timestamp getTimestamp() {

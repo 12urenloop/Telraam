@@ -8,7 +8,7 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/detection")
 @Produces(MediaType.APPLICATION_JSON)
-public class DetectionResource extends AbstractResource<Detection> {
+public class DetectionResource extends AbstractListableResource<Detection> {
 
     public DetectionResource(DAO<Detection> dao) {
         super(dao);

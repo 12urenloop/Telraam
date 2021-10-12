@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import telraam.DatabaseTest;
 import telraam.database.models.Lap;
+import telraam.database.models.LapSource;
 import telraam.database.models.Team;
 
 import java.sql.Timestamp;
@@ -18,6 +19,8 @@ class LapDAOTest extends DatabaseTest {
     private LapDAO lapDAO;
     private TeamDAO teamDAO;
     private Team exampleTeam;
+    private LapSourceDAO lapSourceDAO;
+    private LapSource exampleSource;
 
     @Override
     @BeforeEach
@@ -25,16 +28,19 @@ class LapDAOTest extends DatabaseTest {
         super.setUp();
         lapDAO = jdbi.onDemand(LapDAO.class);
         teamDAO = jdbi.onDemand(TeamDAO.class);
+        lapSourceDAO = jdbi.onDemand(LapSourceDAO.class);
         exampleTeam = new Team("exampleTeam");
         int teamId = teamDAO.insert(exampleTeam);
         exampleTeam.setId(teamId);
-
+        exampleSource = new LapSource("example");
+        int sourceId = lapSourceDAO.insert(exampleSource);
+        exampleSource.setId(sourceId);
     }
 
     @Test
     void createLap() {
 
-        Lap testlap = new Lap(exampleTeam.getId(), exampleTime);
+        Lap testlap = new Lap(exampleTeam.getId(), exampleSource.getId(), exampleTime);
         final int testId = lapDAO.insert(testlap);
         assertTrue(testId > 0);
 
@@ -62,8 +68,8 @@ class LapDAOTest extends DatabaseTest {
 
     @Test
     void testList2Laps() {
-        Lap b1 = new Lap(exampleTeam.getId(), exampleTime);
-        Lap b2 = new Lap(exampleTeam.getId(), exampleTime);
+        Lap b1 = new Lap(exampleTeam.getId(), exampleSource.getId(), exampleTime);
+        Lap b2 = new Lap(exampleTeam.getId(), exampleSource.getId(), exampleTime);
         lapDAO.insert(b1);
         lapDAO.insert(b2);
 
@@ -83,7 +89,7 @@ class LapDAOTest extends DatabaseTest {
 
     @Test
     void testUpdateDoesUpdate() {
-        Lap testLap = new Lap(exampleTeam.getId(), exampleTime);
+        Lap testLap = new Lap(exampleTeam.getId(), exampleSource.getId(), exampleTime);
         int testid = lapDAO.insert(testLap);
         testLap.setId(testid);
         Timestamp updated = new Timestamp(987654321);
@@ -98,7 +104,7 @@ class LapDAOTest extends DatabaseTest {
 
     @Test
     void updateDoesntDoAnythingWhenNotExists() {
-        Lap testLap = new Lap(exampleTeam.getId(), exampleTime);
+        Lap testLap = new Lap(exampleTeam.getId(), exampleSource.getId(), exampleTime);
         int updatedRows = lapDAO.update(testLap);
         List<Lap> laps = lapDAO.getAll();
         assertEquals(0, updatedRows);
@@ -107,7 +113,7 @@ class LapDAOTest extends DatabaseTest {
 
     @Test
     void deleteRemovesLap() {
-        Lap testLap = new Lap(exampleTeam.getId(), exampleTime);
+        Lap testLap = new Lap(exampleTeam.getId(), exampleSource.getId(), exampleTime);
         int id = lapDAO.insert(testLap);
         int updatedRows = lapDAO.deleteById(id);
 
@@ -118,7 +124,7 @@ class LapDAOTest extends DatabaseTest {
 
     @Test
     void deleteDoesNothingIfNotExists() {
-        Lap testLap = new Lap(exampleTeam.getId(), exampleTime);
+        Lap testLap = new Lap(exampleTeam.getId(), exampleSource.getId(), exampleTime);
         int id = lapDAO.insert(testLap);
         int updatedRows = lapDAO.deleteById(id + 1);
 

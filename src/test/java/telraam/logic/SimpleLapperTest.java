@@ -4,22 +4,30 @@ import org.jdbi.v3.core.Jdbi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import telraam.database.daos.LapDAO;
+import telraam.database.daos.LapSourceDAO;
 import telraam.database.models.Detection;
 import telraam.database.models.Lap;
+import telraam.database.models.LapSource;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
 class SimpleLapperTest {
     private Jdbi mockJdbi;
     private LapDAO mockDAO;
+    private LapSourceDAO mockSourceDAO;
 
     @BeforeEach
     void setUp() {
         mockJdbi = mock(Jdbi.class);
         mockDAO = mock(LapDAO.class);
+        mockSourceDAO = mock(LapSourceDAO.class);
         when(mockJdbi.onDemand(LapDAO.class)).thenReturn(mockDAO);
+        when(mockSourceDAO.getByName(SimpleLapper.SOURCE_NAME))
+                .thenReturn(Optional.of(new LapSource(SimpleLapper.SOURCE_NAME)));
+        when(mockJdbi.onDemand(LapSourceDAO.class)).thenReturn(mockSourceDAO);
     }
 
     @Test

@@ -2,6 +2,7 @@ package telraam.logic;
 
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.LapDAO;
+import telraam.database.daos.LapSourceDAO;
 import telraam.database.models.*;
 
 import java.util.ArrayList;
@@ -10,20 +11,26 @@ import java.util.List;
 import java.util.Map;
 
 public class SimpleLapper implements Lapper {
+    // Needs to be the same as in the lap_source database table.
+    static final String SOURCE_NAME = "simple-lapper";
     private static final int MAX_SPEED = 50;
+
+    private final LapSource source;
+
     private List<Team> teams;
     private List<Baton> batons;
     private List<Beacon> beacons;
     private Jdbi jdbi;
     private LapDAO lapDAO;
+    private LapSourceDAO lapSourceDAO;
     private Map<Integer, List<Detection>> detections;
     private Map<Integer, Integer> positionMap;
     private Team testTeam;
 
-
     public SimpleLapper(Jdbi jdbi) {
         this.jdbi = jdbi;
         this.lapDAO = jdbi.onDemand(LapDAO.class);
+        this.lapSourceDAO = jdbi.onDemand(LapSourceDAO.class);
 
         this.teams = new ArrayList<>();
         this.batons = new ArrayList<>();
@@ -39,6 +46,8 @@ public class SimpleLapper implements Lapper {
         testBeacon.setId(1);
         Baton testBaton = new Baton("baton 1");
         testBaton.setId(1);
+        // TODO get this from the database
+        this.source = lapSourceDAO.getByName(SOURCE_NAME).orElseThrow();
 
         this.positionMap.put(1, 1);
 
@@ -63,7 +72,7 @@ public class SimpleLapper implements Lapper {
 
             if (positionMap.get(first.getBeaconId()).equals(
                     positionMap.get(detection.getBeaconId()))) {
-                this.lapDAO.insert(new Lap(detection.getBatonId(),
+                this.lapDAO.insert(new Lap(detection.getBatonId(), this.source.getId(),
                         detection.getTimestamp()));
                 detections.clear();
                 detections.add(detection);
