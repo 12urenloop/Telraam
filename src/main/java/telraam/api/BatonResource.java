@@ -8,7 +8,7 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/baton")
 @Produces(MediaType.APPLICATION_JSON)
-public class BatonResource extends AbstractResource<Baton> {
+public class BatonResource extends AbstractListableResource<Baton> {
     public BatonResource(BatonDAO dao) {
         super(dao);
     }
