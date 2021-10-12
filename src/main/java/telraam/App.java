@@ -6,13 +6,17 @@ import io.dropwizard.jdbi3.bundles.JdbiExceptionsBundle;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
 import telraam.beacon.BeaconAggregator;
 import telraam.database.daos.*;
 import telraam.healthchecks.TemplateHealthCheck;
 
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.logging.Logger;
 
 
@@ -61,6 +65,18 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new LapSourceResource(database.onDemand(LapSourceDAO.class)));
         environment.healthChecks().register("template",
                 new TemplateHealthCheck(configuration.getTemplate()));
+
+        // Enable CORS
+        final FilterRegistration.Dynamic cors =
+                environment.servlets().addFilter("CORS", CrossOriginFilter.class);
+
+        // Configure CORS parameters
+        cors.setInitParameter("allowedOrigins", "*");
+        cors.setInitParameter("allowedHeaders", "X-Requested-With,Content-Type,Accept,Origin");
+        cors.setInitParameter("allowedMethods", "OPTIONS,GET,PUT,POST,DELETE,HEAD");
+
+        // Add URL mapping
+        cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
         BeaconAggregator ba;
         if (configuration.getBeaconPort() < 0) {
