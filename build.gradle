@@ -6,17 +6,17 @@ plugins {
     id 'jacoco'
     id 'org.sonarqube' version "3.0"
     id 'idea'
-    id 'org.flywaydb.flyway' version "7.3.2"
+    id 'org.flywaydb.flyway' version "8.0.0"
 }
 
 group 'telraam'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 14
+sourceCompatibility = 16
 
 // Set our project variables
 project.ext {
-    dropwizardVersion = '2.0.+'
+    dropwizardVersion = '2.0.25'
 }
 
 repositories {
