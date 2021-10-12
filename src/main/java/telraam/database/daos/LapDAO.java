@@ -18,8 +18,8 @@ public interface LapDAO extends DAO<Lap> {
     List<Lap> getAll();
 
 
-    @SqlUpdate("INSERT INTO lap (team_id, timestamp) " +
-            "VALUES (:teamId, :timestamp)")
+    @SqlUpdate("INSERT INTO lap (team_id, lap_source_id, timestamp) " +
+            "VALUES (:teamId, :lapSourceId, :timestamp)")
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Lap lap);
 
@@ -34,6 +34,7 @@ public interface LapDAO extends DAO<Lap> {
     @Override
     @SqlUpdate("UPDATE lap SET " +
             "team_id = :teamId, " +
+            "lap_source_id = :lapSourceId, " +
             "timestamp = :timestamp " +
             "WHERE id = :id")
     int update(@BindBean Lap modelObj);
