@@ -5,20 +5,14 @@ import telraam.database.daos.DAO;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractResource<T> implements Resource<T> {
 
-    private final DAO<T> dao;
+    protected final DAO<T> dao;
 
     protected AbstractResource(DAO<T> dao) {
         this.dao = dao;
-    }
-
-    @Override
-    public List<T> getListOf() {
-        return dao.getAll();
     }
 
     @Override

@@ -8,7 +8,7 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/beacon")
 @Produces(MediaType.APPLICATION_JSON)
-public class BeaconResource extends AbstractResource<Beacon> {
+public class BeaconResource extends AbstractListableResource<Beacon> {
     public BeaconResource(DAO<Beacon> dao) {
         super(dao);
     }

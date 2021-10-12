@@ -9,7 +9,7 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/lap-source")
 @Produces(MediaType.APPLICATION_JSON)
-public class LapSourceResource extends AbstractResource<LapSource> {
+public class LapSourceResource extends AbstractListableResource<LapSource> {
     public LapSourceResource(DAO<LapSource> dao) {
         super(dao);
     }

@@ -17,6 +17,9 @@ public interface LapDAO extends DAO<Lap> {
     @RegisterBeanMapper(Lap.class)
     List<Lap> getAll();
 
+    @SqlQuery("SELECT * FROM lap WHERE lap_source_id = :lapSourceId")
+    @RegisterBeanMapper(Lap.class)
+    List<Lap> getAllBySource(@Bind("lapSourceId") Integer lapSourceId);
 
     @SqlUpdate("INSERT INTO lap (team_id, lap_source_id, timestamp) " +
             "VALUES (:teamId, :lapSourceId, :timestamp)")
