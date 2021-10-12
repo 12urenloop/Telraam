@@ -92,7 +92,7 @@ jacocoTestReport {
         test
     }
     reports {
-        xml.enabled true
+        xml.required = true
     }
     afterEvaluate {
         classDirectories.setFrom files(classDirectories.files.collect {
