@@ -1,22 +1,28 @@
 package telraam;
 
 import io.dropwizard.Application;
+import io.dropwizard.auth.AuthDynamicFeature;
+import io.dropwizard.auth.AuthValueFactoryProvider;
+import io.dropwizard.auth.basic.BasicCredentialAuthFilter;
 import io.dropwizard.jdbi3.JdbiFactory;
 import io.dropwizard.jdbi3.bundles.JdbiExceptionsBundle;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
 import telraam.beacon.BeaconAggregator;
 import telraam.database.daos.*;
+import telraam.database.models.User;
 import telraam.healthchecks.TemplateHealthCheck;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 
@@ -63,6 +69,7 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new LapResource(database.onDemand(LapDAO.class)));
         jersey.register(new TeamResource(database.onDemand(TeamDAO.class)));
         jersey.register(new LapSourceResource(database.onDemand(LapSourceDAO.class)));
+        jersey.register(new HelloworldResource("Hello %s", "Anonymous"));
         environment.healthChecks().register("template",
                 new TemplateHealthCheck(configuration.getTemplate()));
 
@@ -78,6 +85,28 @@ public class App extends Application<AppConfiguration> {
         // Add URL mapping
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
+        // Add basic authentication
+        environment.jersey().register(new AuthDynamicFeature(
+                new BasicCredentialAuthFilter.Builder<User>()
+                        .setAuthenticator(credentials -> {
+                            // If the password is 'secret' then create a user with the specified username
+                            if ("secret".equals(credentials.getPassword())) {
+                                return Optional.of(new User(credentials.getUsername()));
+                            }
+                            return Optional.empty();
+                        })
+                        .setAuthorizer((principal, role) -> {
+                            // All users that can specify a valid key are atm authorized.
+                            // In the feature this could check user and/or role parameters
+                            return true;
+                        })
+                        .setRealm("SUPER SECRET STUFF")
+                        .buildAuthFilter()));
+        environment.jersey().register(RolesAllowedDynamicFeature.class);
+        //If you want to use @Auth to inject a custom Principal type into your resource
+        environment.jersey().register(new AuthValueFactoryProvider.Binder<>(User.class));
+
+        // Add beacon aggregator / listener
         BeaconAggregator ba;
         if (configuration.getBeaconPort() < 0) {
             ba = new BeaconAggregator();

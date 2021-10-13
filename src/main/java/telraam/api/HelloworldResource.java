@@ -1,7 +1,10 @@
 package telraam.api;
 
 import com.codahale.metrics.annotation.Timed;
+import io.dropwizard.auth.Auth;
+import org.javatuples.Unit;
 import telraam.api.responses.Saying;
+import telraam.database.models.User;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -35,5 +38,11 @@ public class HelloworldResource {
     public Saying sayHello(@QueryParam("name") Optional<String> name) {
         final String value = String.format(template, name.orElse(defaultName));
         return new Saying(counter.incrementAndGet(), value);
+    }
+
+    @GET
+    @Path("/auth")
+    public Unit<Optional<User>> sayHelloAuth(@Auth Optional<User> userOpt) {
+        return Unit.with(userOpt);
     }
 }
