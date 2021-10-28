@@ -41,4 +41,10 @@ public interface LapDAO extends DAO<Lap> {
             "timestamp = :timestamp " +
             "WHERE id = :id")
     int update(@BindBean Lap modelObj);
+
+    @SqlQuery("SELECT * FROM lap " +
+            "WHERE team_id = :teamId " +
+            "ORDER BY timestamp DESC ")
+    @RegisterBeanMapper(Lap.class)
+    List<Lap> getLapsForTeam(@Bind("teamId") int teamId);
 }
