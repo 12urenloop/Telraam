@@ -56,7 +56,6 @@ dependencies {
             'io.dropwizard:dropwizard-hibernate:' + dropwizardVersion,
             'io.dropwizard:dropwizard-auth:' + dropwizardVersion,
             'io.dropwizard:dropwizard-jdbi3:' + dropwizardVersion,
-
     )
     // Database
     implementation('com.h2database:h2:1.4.200')
@@ -71,6 +70,9 @@ dependencies {
     // JAX-B dependencies for JDK 9+  -> https://stackoverflow.com/a/43574427
     implementation 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
     implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.1'
+
+    // Swagger-UI
+    implementation 'com.smoketurner:dropwizard-swagger:2.0.0-1'
 }
 
 test {

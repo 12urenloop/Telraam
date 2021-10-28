@@ -4,6 +4,9 @@ defaultName: ${DW_DEFAULT_NAME:-Stranger}
 
 beaconPort: 4564
 
+swagger:
+  resourcePackage: 'telraam.api'
+
 database:
   # the name of your JDBC driver
   driverClass: org.postgresql.Driver
