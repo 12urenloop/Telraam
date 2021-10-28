@@ -4,6 +4,10 @@ defaultName: ${DW_DEFAULT_NAME:-Stranger}
 
 beaconPort: 4564
 
+applicationCredentials:
+  - username: "possibleUserWithSomeAccess"
+    password: "aSecretForThisUser"
+
 database:
   driverClass: org.h2.Driver
   url: jdbc:h2:mem:telraam_test

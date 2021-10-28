@@ -22,8 +22,10 @@ import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 public class App extends Application<AppConfiguration> {
@@ -86,11 +88,17 @@ public class App extends Application<AppConfiguration> {
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
         // Add basic authentication
+        Map<String, String> validCredentials = config.getApplicationCredentials().stream()
+                .collect(Collectors.toMap(
+                        AppConfiguration.ApplicationCredentialFactory::getUsername,
+                        AppConfiguration.ApplicationCredentialFactory::getPassword));
         environment.jersey().register(new AuthDynamicFeature(
                 new BasicCredentialAuthFilter.Builder<User>()
                         .setAuthenticator(credentials -> {
                             // If the password is 'secret' then create a user with the specified username
-                            if ("secret".equals(credentials.getPassword())) {
+                            if (validCredentials.containsKey(credentials.getUsername()) &&
+                                    validCredentials.get(credentials.getUsername()).equals(credentials.getPassword())
+                            ) {
                                 return Optional.of(new User(credentials.getUsername()));
                             }
                             return Optional.empty();

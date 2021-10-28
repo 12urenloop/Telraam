@@ -7,6 +7,7 @@ import telraam.api.responses.Template;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 public class AppConfiguration extends Configuration {
     @NotNull
@@ -16,6 +17,10 @@ public class AppConfiguration extends Configuration {
     private String defaultName = "Stranger";
 
     private int beaconPort;
+
+    @Valid
+    private List<ApplicationCredentialFactory> applicationCredentials;
+
     @Valid
     @NotNull
     private DataSourceFactory database = new DataSourceFactory();
@@ -57,12 +62,53 @@ public class AppConfiguration extends Configuration {
     @JsonProperty("beaconPort")
     public int getBeaconPort() {
         return beaconPort;
-
     }
 
     @JsonProperty("beaconPort")
     public void setBeaconPort(int port) {
         beaconPort = port;
+    }
 
+    @JsonProperty("applicationCredentials")
+    public List<ApplicationCredentialFactory> getApplicationCredentials() {
+        return applicationCredentials;
+    }
+
+    @JsonProperty("applicationCredentials")
+    public void setApplicationCredentials(List<ApplicationCredentialFactory> applicationCredentials) {
+        this.applicationCredentials = applicationCredentials;
+    }
+
+    static class ApplicationCredentialFactory extends Configuration {
+        String username;
+        String password;
+
+        @JsonProperty("username")
+        public String getUsername() {
+            return username;
+        }
+
+        @JsonProperty("username")
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        @JsonProperty("password")
+        public String getPassword() {
+            return password;
+        }
+
+        @JsonProperty("password")
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        @Override
+        public String toString() {
+            return "ApplicationCredentialFactory{" +
+                    "username='" + username + '\'' +
+                    ", password='" + password + '\'' +
+                    '}';
+        }
     }
 }

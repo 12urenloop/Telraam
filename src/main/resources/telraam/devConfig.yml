@@ -4,6 +4,10 @@ defaultName: ${DW_DEFAULT_NAME:-Stranger}
 
 beaconPort: 4564
 
+applicationCredentials:
+  - username: "trustedCrudUser"
+    password: "epicSecret"
+
 database:
   # the name of your JDBC driver
   driverClass: org.postgresql.Driver
@@ -24,7 +28,7 @@ database:
   # the maximum amount of time to wait on an empty pool before throwing an exception
   maxWaitForConnection: 1s
 
-  # the SQL query to run when validating a connection's liveness
+  # the SQL query to run when validating a connection's liveliness
   validationQuery: "SELECT 1"
 
   # the timeout before a connection validation queries fail
