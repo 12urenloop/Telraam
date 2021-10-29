@@ -3,6 +3,7 @@ package telraam;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
+import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import telraam.api.responses.Template;
 
 import javax.validation.Valid;
@@ -68,6 +69,9 @@ public class AppConfiguration extends Configuration {
     public void setBeaconPort(int port) {
         beaconPort = port;
     }
+  
+  @JsonProperty("swagger")
+    public SwaggerBundleConfiguration swaggerBundleConfiguration;
 
     @JsonProperty("applicationCredentials")
     public List<ApplicationCredentialFactory> getApplicationCredentials() {

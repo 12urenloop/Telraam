@@ -8,6 +8,9 @@ applicationCredentials:
   - username: "trustedCrudUser"
     password: "epicSecret"
 
+swagger:
+  resourcePackage: 'telraam.api'
+
 database:
   # the name of your JDBC driver
   driverClass: org.postgresql.Driver
