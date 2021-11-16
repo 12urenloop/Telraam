@@ -35,5 +35,5 @@ public interface BatonDAO extends DAO<Baton> {
 
     @Override
     @SqlUpdate("UPDATE baton SET name = :name WHERE id = :id")
-    int update(@BindBean Baton baton);
+    int update(@Bind("id") int id, @BindBean Baton baton);
 }

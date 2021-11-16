@@ -103,7 +103,7 @@ class TeamDAOTest extends DatabaseTest {
         int testid = teamDAO.insert(testTeam);
         testTeam.setId(testid);
         testTeam.setName("postupdate");
-        int updatedRows = teamDAO.update(testTeam);
+        int updatedRows = teamDAO.update(testid, testTeam);
         assertEquals(1, updatedRows);
 
         Optional<Team> dbTeam = teamDAO.getById(testid);
@@ -124,16 +124,34 @@ class TeamDAOTest extends DatabaseTest {
 
         testTeam.setBatonId(batonId + 1);
         assertThrows(UnableToExecuteStatementException.class,
-                () -> teamDAO.update(testTeam));
+                () -> teamDAO.update(teamId, testTeam));
     }
 
     @Test
     void updateDoesntDoAnythingWhenNotExists() {
         Team testTeam = new Team("test");
-        int updatedRows = teamDAO.update(testTeam);
+        int id = teamDAO.insert(testTeam);
+        int updatedRows = teamDAO.update(id + 1, testTeam);
         List<Team> teams = teamDAO.getAll();
         assertEquals(0, updatedRows);
-        assertEquals(0, teams.size());
+        assertEquals(1, teams.size());
+    }
+
+    @Test
+    void updateOnlyUpdatesRelevantModel() {
+        Baton testBaton = new Baton("testbaton");
+        int batonId = batonDAO.insert(testBaton);
+        Team testTeam = new Team("testteam", batonId);
+        int teamId = teamDAO.insert(testTeam);
+
+        Baton testBaton2= new Baton("testbaton2");
+        int batonId2 = batonDAO.insert(testBaton2);
+        Team testTeam2 = new Team("testteam2", batonId2);
+        int teamId2 = teamDAO.insert(testTeam2);
+
+        int updatedRows = teamDAO.update(teamId, new Team("testteam3", batonId2));
+        assertEquals(1, updatedRows);
+        assertEquals(testTeam2.getName(), teamDAO.getById(teamId2).get().getName());
     }
 
     @Test

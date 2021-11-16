@@ -94,7 +94,7 @@ class LapSourceDAOTest extends DatabaseTest {
         int testId = lapSourceDAO.insert(lapSource);
         lapSource.setId(testId);
         lapSource.setName("postupdate");
-        int updatedRows = lapSourceDAO.update(lapSource);
+        int updatedRows = lapSourceDAO.update(testId, lapSource);
         assertEquals(1, updatedRows);
 
         Optional<LapSource> dbLapSource = lapSourceDAO.getById(testId);
@@ -105,10 +105,25 @@ class LapSourceDAOTest extends DatabaseTest {
     @Test
     void updateDoesntDoAnythingWhenNotExists() {
         LapSource testLapSource = new LapSource("test");
-        int updatedRows = lapSourceDAO.update(testLapSource);
+        int id = lapSourceDAO.insert(testLapSource);
+        int updatedRows = lapSourceDAO.update(id + 1, testLapSource);
         List<LapSource> lapSources = lapSourceDAO.getAll();
         assertEquals(0, updatedRows);
-        assertEquals(existing, lapSources.size());
+        assertEquals(existing + 1, lapSources.size());
+    }
+
+    @Test
+    void updateOnlyUpdatesRelevantModel() {
+        LapSource testLapSource = new LapSource("test");
+        int id = lapSourceDAO.insert(testLapSource);
+        LapSource testLapSource2 = new LapSource("test2");
+        int id2 = lapSourceDAO.insert(testLapSource2);
+        LapSource updateSource = new LapSource("updated");
+        int updatedRows = lapSourceDAO.update(id, updateSource);
+        List<LapSource> lapSources = lapSourceDAO.getAll();
+        assertEquals(1, updatedRows);
+        assertEquals(testLapSource2.getName(), lapSourceDAO.getById(id2).get().getName());
+        assertEquals(existing + 2, lapSources.size());
     }
 
     @Test

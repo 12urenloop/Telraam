@@ -79,7 +79,7 @@ class BeaconDAOTest extends DatabaseTest {
         int testid = beaconDAO.insert(testBeacon);
         testBeacon.setId(testid);
         testBeacon.setName("postupdate");
-        int updatedRows = beaconDAO.update(testBeacon);
+        int updatedRows = beaconDAO.update(testid, testBeacon);
         assertEquals(1, updatedRows);
 
         Optional<Beacon> dbBeacon = beaconDAO.getById(testid);
@@ -90,10 +90,24 @@ class BeaconDAOTest extends DatabaseTest {
     @Test
     void updateDoesntDoAnythingWhenNotExists() {
         Beacon testBeacon = new Beacon("test");
-        int updatedRows = beaconDAO.update(testBeacon);
+        int id = beaconDAO.insert(testBeacon);
+        int updatedRows = beaconDAO.update(id + 1, new Beacon("test2"));
         List<Beacon> beacons = beaconDAO.getAll();
         assertEquals(0, updatedRows);
-        assertEquals(0, beacons.size());
+        assertEquals(1, beacons.size());
+        assertEquals(testBeacon.getName(), beaconDAO.getById(id).get().getName());
+    }
+
+    @Test
+    void updateOnlyUpdatesRelevantModel() {
+        Beacon testBeacon = new Beacon("test");
+        int id = beaconDAO.insert(testBeacon);
+        Beacon testBeacon2 = new Beacon("test2");
+        int id2 = beaconDAO.insert(testBeacon2);
+        int updatedRows = beaconDAO.update(id, new Beacon("test3"));
+        List<Beacon> beacons = beaconDAO.getAll();
+        assertEquals(1, updatedRows);
+        assertEquals(testBeacon2.getName(), beaconDAO.getById(id2).get().getName());
     }
 
     @Test

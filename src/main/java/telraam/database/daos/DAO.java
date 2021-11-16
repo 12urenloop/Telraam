@@ -12,6 +12,6 @@ public interface DAO<T> {
 
     int deleteById(int id);
 
-    int update(T modelObj);
+    int update(int id, T modelObj);
 
 }
