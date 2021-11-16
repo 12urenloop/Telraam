@@ -104,7 +104,6 @@ public class App extends Application<AppConfiguration> {
         environment.jersey().register(new AuthDynamicFeature(
                 new BasicCredentialAuthFilter.Builder<User>()
                         .setAuthenticator(credentials -> {
-                            // If the password is 'secret' then create a user with the specified username
                             if (validCredentials.containsKey(credentials.getUsername()) &&
                                     validCredentials.get(credentials.getUsername()).equals(credentials.getPassword())
                             ) {
