@@ -37,5 +37,5 @@ public interface TeamDAO extends DAO<Team> {
             "name = :name," +
             "baton_id = :batonId " +
             "WHERE id = :id")
-    int update(@BindBean Team modelObj);
+    int update(@Bind("id") int id, @BindBean Team modelObj);
 }

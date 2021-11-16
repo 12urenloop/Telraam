@@ -34,6 +34,6 @@ public interface BeaconDAO extends DAO<Beacon> {
 
     @Override
     @SqlUpdate("UPDATE beacon SET name = :name WHERE id = :id")
-    int update(@BindBean Beacon beacon);
+    int update(@Bind("id") int id, @BindBean Beacon beacon);
 
 }

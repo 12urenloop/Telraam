@@ -51,10 +51,10 @@ public abstract class AbstractResource<T> implements Resource<T> {
         if (id.isPresent()) {
             Optional<T> optionalBaton = dao.getById(id.get());
             if (optionalBaton.isPresent()) {
-                dao.update(t);
+                dao.update(id.get(), t);
                 return t;
             } else {
-                throw new WebApplicationException(String.format("%s with id: %d not found", Class.class.getName(), id.get()), Response.Status.NOT_FOUND);
+                throw new WebApplicationException(String.format("%s with id: %d not found", t.getClass().getName(), id.get()), Response.Status.NOT_FOUND);
             }
         } else {
             throw new MissingIdException();
@@ -66,7 +66,7 @@ public abstract class AbstractResource<T> implements Resource<T> {
             @ApiResponse(code = 400, message = "Invalid or no ID supplied"), // TODO validate ID, return 400 on wrong ID format
     })
     public boolean delete(
-            @ApiParam(value = "ID of entity that needs to be fetched", required = true) Optional<Integer> id) {
+            @ApiParam(value = "ID of entity that needs to be deleted", required = true) Optional<Integer> id) {
         if (id.isPresent()) {
             return dao.deleteById(id.get()) == 1;
         } else {
