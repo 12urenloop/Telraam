@@ -28,7 +28,7 @@ class Beacon {
         // This is so ugly
         const start_tag = [60, 60, 60, 60];
         const end_tag = [62, 62, 62, 62];
-        const actual_message_size = 10;
+        const actual_message_size = 12;
 
         const buffer = Buffer.alloc(actual_message_size + start_tag.length + end_tag.length);
 
@@ -38,17 +38,17 @@ class Beacon {
             offset += 1; // '<'
         }
 
-        buffer.writeInt8(this.id, offset);
-        offset += 1;
-        buffer.writeInt8(id, offset);
-        offset += 1;
+        buffer.writeInt16LE(this.id, offset);
+        offset += 2;
+        buffer.writeInt16LE(id, offset);
+        offset += 2;
 
         buffer.writeBigInt64LE(BigInt(Date.now()), offset);
         offset += 8;
 
         for (let tag of end_tag) {
             buffer.writeInt8(tag, offset);
-            offset += 1; // '<'
+            offset += 1; // '>'
         }
         this.socket.write(buffer);
     }
