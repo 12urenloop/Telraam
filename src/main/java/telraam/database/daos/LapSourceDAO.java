@@ -37,7 +37,7 @@ public interface LapSourceDAO extends DAO<LapSource> {
 
     @Override
     @SqlUpdate("UPDATE lap_source SET name = :name WHERE id = :id")
-    int update(@BindBean LapSource modelObj);
+    int update(@Bind("id") int id, @BindBean LapSource modelObj);
 
     @SqlQuery("SELECT COUNT(id) FROM lap_source")
     long count();

@@ -40,5 +40,5 @@ public interface LapDAO extends DAO<Lap> {
             "lap_source_id = :lapSourceId, " +
             "timestamp = :timestamp " +
             "WHERE id = :id")
-    int update(@BindBean Lap modelObj);
+    int update(@Bind("id") int id, @BindBean Lap modelObj);
 }

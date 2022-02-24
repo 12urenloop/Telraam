@@ -94,7 +94,7 @@ class LapDAOTest extends DatabaseTest {
         testLap.setId(testid);
         Timestamp updated = new Timestamp(987654321);
         testLap.setTimestamp(updated);
-        int updatedRows = lapDAO.update(testLap);
+        int updatedRows = lapDAO.update(testid, testLap);
         assertEquals(1, updatedRows);
 
         Optional<Lap> dbLap = lapDAO.getById(testid);
@@ -105,10 +105,22 @@ class LapDAOTest extends DatabaseTest {
     @Test
     void updateDoesntDoAnythingWhenNotExists() {
         Lap testLap = new Lap(exampleTeam.getId(), exampleSource.getId(), exampleTime);
-        int updatedRows = lapDAO.update(testLap);
+        int id = lapDAO.insert(testLap);
+        int updatedRows = lapDAO.update(id + 1, testLap);
         List<Lap> laps = lapDAO.getAll();
         assertEquals(0, updatedRows);
-        assertEquals(0, laps.size());
+        assertEquals(1, laps.size());
+    }
+
+    @Test
+    void updateOnlyUpdatesRelevantModel() {
+        Lap testLap = new Lap(exampleTeam.getId(), exampleSource.getId(), exampleTime);
+        int id = lapDAO.insert(testLap);
+        Lap testLap2 = new Lap(exampleTeam.getId(), exampleSource.getId(), new Timestamp(123456790));
+        int id2 = lapDAO.insert(testLap2);
+        int updatedRows = lapDAO.update(id, new Lap(exampleTeam.getId(), exampleSource.getId(), new Timestamp(123456791)));
+        assertEquals(1, updatedRows);
+        assertEquals(testLap2.getTimestamp(), lapDAO.getById(id2).get().getTimestamp());
     }
 
     @Test

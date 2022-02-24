@@ -34,6 +34,6 @@ public interface DetectionDAO extends DAO<Detection> {
     @SqlUpdate("UPDATE detection SET " +
             "baton_id = :batonId, " +
             "beacon_id = :beaconId, " +
-            "timestamp = :timestamp")
-    int update(@BindBean Detection modelObj);
+            "timestamp = :timestamp WHERE id = :id")
+    int update(@Bind("id") int id, @BindBean Detection modelObj);
 }

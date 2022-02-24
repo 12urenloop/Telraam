@@ -77,7 +77,7 @@ class BatonDAOTest extends DatabaseTest {
         int testid = batonDAO.insert(testBaton);
         testBaton.setId(testid);
         testBaton.setName("postupdate");
-        int updatedRows = batonDAO.update(testBaton);
+        int updatedRows = batonDAO.update(testid, testBaton);
         assertEquals(1, updatedRows);
 
         Optional<Baton> dbBaton = batonDAO.getById(testid);
@@ -88,10 +88,13 @@ class BatonDAOTest extends DatabaseTest {
     @Test
     void updateDoesntDoAnythingWhenNotExists() {
         Baton testBaton = new Baton("test");
-        int updatedRows = batonDAO.update(testBaton);
+        int id = batonDAO.insert(testBaton);
+        testBaton.setId(id);
+        int updatedRows = batonDAO.update(id + 1, new Baton("test2"));
         List<Baton> batons = batonDAO.getAll();
         assertEquals(0, updatedRows);
-        assertEquals(0, batons.size());
+        assertEquals(1, batons.size());
+        assertEquals(testBaton, batonDAO.getById(id).get());
     }
 
     @Test
