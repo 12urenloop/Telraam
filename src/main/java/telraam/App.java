@@ -15,7 +15,7 @@ import telraam.beacon.BeaconAggregator;
 import telraam.database.daos.*;
 import telraam.healthchecks.TemplateHealthCheck;
 import telraam.logic.Lapper;
-import telraam.logic.ViterbiLapper;
+import telraam.logic.viterbi.ViterbiLapper;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
@@ -95,6 +95,11 @@ public class App extends Application<AppConfiguration> {
         Set<Lapper> lappers = new HashSet<Lapper>();
 
         lappers.add(new ViterbiLapper(this.database));
+
+        // Enable lapper APIs
+        for (Lapper lapper : lappers) {
+            lapper.registerAPI(jersey);
+        }
 
         // Set up beacon communications
         BeaconAggregator ba;

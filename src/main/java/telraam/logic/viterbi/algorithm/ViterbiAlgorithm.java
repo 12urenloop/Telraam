@@ -1,4 +1,4 @@
-package telraam.logic.viterbi;
+package telraam.logic.viterbi.algorithm;
 
 import java.util.*;
 

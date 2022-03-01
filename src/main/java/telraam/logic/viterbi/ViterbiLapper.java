@@ -1,5 +1,7 @@
-package telraam.logic;
+package telraam.logic.viterbi;
 
+import io.dropwizard.jersey.setup.JerseyEnvironment;
+import io.swagger.models.auth.In;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.BatonDAO;
@@ -7,7 +9,8 @@ import telraam.database.daos.BeaconDAO;
 import telraam.database.models.Baton;
 import telraam.database.models.Beacon;
 import telraam.database.models.Detection;
-import telraam.logic.viterbi.ViterbiAlgorithm;
+import telraam.logic.Lapper;
+import telraam.logic.viterbi.algorithm.ViterbiAlgorithm;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,24 +22,22 @@ import java.util.stream.IntStream;
 public class ViterbiLapper implements Lapper {
     static final String SOURCE_NAME = "viterbi-lapper";
 
-    // ----- CONFIGURATION PARAMETERS -----
-    private static final int TRACK_LENGTH = 500; // In meters
-    private static final int[] SECTOR_STARTS = {0, 100, 150, 250, 350}; // In meters, the final sector ends at TRACK_LENGTH
-    private static final double AVERAGE_RUNNER_SPEED = 3; // In meters per second
-    private static final double DETECTIONS_PER_SECOND = 8; // The number of detections per station, per second
-    private static final double STATION_RANGE_SIGMA = 50; // The sigma parameter of the detection probability of the stations
-    private static final double RESTART_PROBABILITY = 0.001; // The probability that the runners wil start the race in a different spot than the start/finish line (should only happen on complete restarts)
-
     private final Map<Integer, ViterbiAlgorithm<Integer, Integer>> viterbis;
+    private final ViterbiLapperConfiguration config;
 
     public ViterbiLapper(Jdbi jdbi) {
+        this(jdbi, new ViterbiLapperConfiguration());
+    }
+
+    public ViterbiLapper(Jdbi jdbi, ViterbiLapperConfiguration configuration) {
         this.viterbis = new HashMap<>();
+        this.config = configuration;
 
         BatonDAO batonDAO = jdbi.onDemand(BatonDAO.class);
         BeaconDAO beaconDAO = jdbi.onDemand(BeaconDAO.class);
 
         Set<Integer> observations = beaconDAO.getAll().stream().map(Beacon::getId).collect(Collectors.toSet());
-        Set<Integer> hiddenStates = IntStream.range(0, SECTOR_STARTS.length).boxed().collect(Collectors.toSet());
+        Set<Integer> hiddenStates = IntStream.range(0, this.config.SECTOR_STARTS.length).boxed().collect(Collectors.toSet());
 
         for (Baton baton : batonDAO.getAll()) {
             ViterbiAlgorithm<Integer, Integer> viterbi = new ViterbiAlgorithm<>(
@@ -50,12 +51,20 @@ public class ViterbiLapper implements Lapper {
         }
     }
 
+    public Map<Integer, Map<Integer, Double>> getProbabilities() {
+        Map<Integer, Map<Integer, Double>> ret = new HashMap<>();
+        for (Map.Entry<Integer, ViterbiAlgorithm<Integer, Integer>> entry : this.viterbis.entrySet()) {
+            ret.put(entry.getKey(), entry.getValue().getResult().getProbabilities());
+        }
+        return ret;
+    }
+
     private Map<Integer, Double> calculateStartProbabilities() {
         Map<Integer, Double> ret = new HashMap<>();
 
-        ret.put(0, 1.0 - (SECTOR_STARTS.length - 1) * RESTART_PROBABILITY);
-        for (int i = 1; i < SECTOR_STARTS.length; i++) {
-            ret.put(i, RESTART_PROBABILITY);
+        ret.put(0, 1.0 - (this.config.SECTOR_STARTS.length - 1) * this.config.RESTART_PROBABILITY);
+        for (int i = 1; i < this.config.SECTOR_STARTS.length; i++) {
+            ret.put(i, this.config.RESTART_PROBABILITY);
         }
 
         return ret;
@@ -63,10 +72,10 @@ public class ViterbiLapper implements Lapper {
 
     private Map<Integer, Map<Integer, Double>> calculateEmissionProbabilities(List<Beacon> stations) {
         Map<Integer, Map<Integer, Double>> ret = new HashMap<>();
-        for (int sectorIndex = 0; sectorIndex < SECTOR_STARTS.length - 1; sectorIndex++) {
-            ret.put(sectorIndex, calculateSectorProbabilities(SECTOR_STARTS[sectorIndex], SECTOR_STARTS[sectorIndex+1], stations));
+        for (int sectorIndex = 0; sectorIndex < this.config.SECTOR_STARTS.length - 1; sectorIndex++) {
+            ret.put(sectorIndex, calculateSectorProbabilities(this.config.SECTOR_STARTS[sectorIndex], this.config.SECTOR_STARTS[sectorIndex+1], stations));
         }
-        ret.put(SECTOR_STARTS.length-1, calculateSectorProbabilities(SECTOR_STARTS[SECTOR_STARTS.length-1], TRACK_LENGTH, stations));
+        ret.put(this.config.SECTOR_STARTS.length-1, calculateSectorProbabilities(this.config.SECTOR_STARTS[this.config.SECTOR_STARTS.length-1], this.config.TRACK_LENGTH, stations));
 
         return ret;
     }
@@ -77,15 +86,15 @@ public class ViterbiLapper implements Lapper {
             double probability = 0.0;
 
             // Detecting next lap
-            NormalDistribution stationDistribution = new NormalDistribution(station.getDistanceFromStart() - TRACK_LENGTH, STATION_RANGE_SIGMA);
+            NormalDistribution stationDistribution = new NormalDistribution(station.getDistanceFromStart() - this.config.TRACK_LENGTH, this.config.STATION_RANGE_SIGMA);
             probability += stationDistribution.cumulativeProbability(start, end);
 
             // Detecting current lap
-            stationDistribution = new NormalDistribution(station.getDistanceFromStart(), STATION_RANGE_SIGMA);
+            stationDistribution = new NormalDistribution(station.getDistanceFromStart(), this.config.STATION_RANGE_SIGMA);
             probability += stationDistribution.cumulativeProbability(start, end);
 
             // Detecting previous lap
-            stationDistribution = new NormalDistribution(station.getDistanceFromStart() + TRACK_LENGTH, STATION_RANGE_SIGMA);
+            stationDistribution = new NormalDistribution(station.getDistanceFromStart() + this.config.TRACK_LENGTH, this.config.STATION_RANGE_SIGMA);
             probability += stationDistribution.cumulativeProbability(start, end);
 
             sectorProbabilities.put(station.getId(), probability);
@@ -105,15 +114,15 @@ public class ViterbiLapper implements Lapper {
 
             transitionProbabilities.put(i, probabilities);
         }
-        for (int i = 0; i < SECTOR_STARTS.length - 1; i++) {
-            double expectedDetections = ((SECTOR_STARTS[i+1] - SECTOR_STARTS[i]) / AVERAGE_RUNNER_SPEED) * DETECTIONS_PER_SECOND;
+        for (int i = 0; i < this.config.SECTOR_STARTS.length - 1; i++) {
+            double expectedDetections = ((this.config.SECTOR_STARTS[i+1] - this.config.SECTOR_STARTS[i]) / this.config.AVERAGE_RUNNER_SPEED) * this.config.DETECTIONS_PER_SECOND;
             transitionProbabilities.get(i).put(i, expectedDetections / (expectedDetections + 1));
             transitionProbabilities.get(i).put(i + 1, 1 / (expectedDetections + 1));
         }
 
-        double expectedDetections = ((TRACK_LENGTH - SECTOR_STARTS[SECTOR_STARTS.length - 1]) / AVERAGE_RUNNER_SPEED) * DETECTIONS_PER_SECOND;
-        transitionProbabilities.get(SECTOR_STARTS.length - 1).put(SECTOR_STARTS.length - 1, expectedDetections / (expectedDetections + 1));
-        transitionProbabilities.get(SECTOR_STARTS.length - 1).put(0, 1 / (expectedDetections + 1));
+        double expectedDetections = ((this.config.TRACK_LENGTH - this.config.SECTOR_STARTS[this.config.SECTOR_STARTS.length - 1]) / this.config.AVERAGE_RUNNER_SPEED) * this.config.DETECTIONS_PER_SECOND;
+        transitionProbabilities.get(this.config.SECTOR_STARTS.length - 1).put(this.config.SECTOR_STARTS.length - 1, expectedDetections / (expectedDetections + 1));
+        transitionProbabilities.get(this.config.SECTOR_STARTS.length - 1).put(0, 1 / (expectedDetections + 1));
 
         return transitionProbabilities;
     }
@@ -123,5 +132,14 @@ public class ViterbiLapper implements Lapper {
         ViterbiAlgorithm<Integer, Integer> viterbiAlgorithm = this.viterbis.get(msg.getBatonId());
         viterbiAlgorithm.observe(msg.getBeaconId());
         System.out.println("Baton " + msg.getBatonId() + " is now probably at " + viterbiAlgorithm.getResult().mostLikelyState());
+    }
+
+    @Override
+    public void registerAPI(JerseyEnvironment jersey) {
+        jersey.register(new ViterbiLapperResource(this));
+    }
+
+    public ViterbiLapperConfiguration getConfig() {
+        return this.config;
     }
 }

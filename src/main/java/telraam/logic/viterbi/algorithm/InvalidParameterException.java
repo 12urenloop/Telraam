@@ -1,4 +1,4 @@
-package telraam.logic.viterbi;
+package telraam.logic.viterbi.algorithm;
 
 public class InvalidParameterException extends RuntimeException {
     public InvalidParameterException(String s) {

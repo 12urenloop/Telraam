@@ -1,4 +1,4 @@
-package telraam.logic.viterbi;
+package telraam.logic.viterbi.algorithm;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -45,6 +45,14 @@ public class Result<H> {
      */
     public double getProbability(H state) {
         return this.probabilities.get(state);
+    }
+
+    /**
+     * Get the probabilities for each hidden state.
+     * @return The probabilities.
+     */
+    public Map<H, Double> getProbabilities() {
+        return this.probabilities;
     }
 
     /**
