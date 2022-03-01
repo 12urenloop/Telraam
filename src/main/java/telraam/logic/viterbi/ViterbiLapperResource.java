@@ -2,6 +2,7 @@ package telraam.logic.viterbi;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import telraam.logic.viterbi.algorithm.ViterbiModel;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -31,5 +32,12 @@ public class ViterbiLapperResource {
     @ApiOperation(value = "Get lapper configuration")
     public ViterbiLapperConfiguration getConfiguration() {
         return this.lapper.getConfig();
+    }
+
+    @GET
+    @Path("/model")
+    @ApiOperation(value = "Get Viterbi model")
+    public ViterbiModel<Integer, Integer> getModel() {
+        return this.lapper.getModel();
     }
 }

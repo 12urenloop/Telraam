@@ -11,6 +11,7 @@ import telraam.database.models.Beacon;
 import telraam.database.models.Detection;
 import telraam.logic.Lapper;
 import telraam.logic.viterbi.algorithm.ViterbiAlgorithm;
+import telraam.logic.viterbi.algorithm.ViterbiModel;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,7 @@ public class ViterbiLapper implements Lapper {
 
     private final Map<Integer, ViterbiAlgorithm<Integer, Integer>> viterbis;
     private final ViterbiLapperConfiguration config;
+    private final ViterbiModel<Integer, Integer> viterbiModel;
 
     public ViterbiLapper(Jdbi jdbi) {
         this(jdbi, new ViterbiLapperConfiguration());
@@ -39,14 +41,17 @@ public class ViterbiLapper implements Lapper {
         Set<Integer> observations = beaconDAO.getAll().stream().map(Beacon::getId).collect(Collectors.toSet());
         Set<Integer> hiddenStates = IntStream.range(0, this.config.SECTOR_STARTS.length).boxed().collect(Collectors.toSet());
 
-        for (Baton baton : batonDAO.getAll()) {
-            ViterbiAlgorithm<Integer, Integer> viterbi = new ViterbiAlgorithm<>(
+        this.viterbiModel = new ViterbiModel<>(
                 observations,
                 hiddenStates,
                 calculateTransitionProbabilities(hiddenStates),
                 calculateEmissionProbabilities(beaconDAO.getAll()),
                 calculateStartProbabilities()
-            );
+        );
+
+
+        for (Baton baton : batonDAO.getAll()) {
+            ViterbiAlgorithm<Integer, Integer> viterbi = new ViterbiAlgorithm<Integer, Integer>(this.viterbiModel);
             this.viterbis.put(baton.getId(), viterbi);
         }
     }
@@ -141,5 +146,9 @@ public class ViterbiLapper implements Lapper {
 
     public ViterbiLapperConfiguration getConfig() {
         return this.config;
+    }
+
+    public ViterbiModel<Integer, Integer> getModel() {
+        return this.viterbiModel;
     }
 }
