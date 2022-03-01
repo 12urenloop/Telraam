@@ -23,7 +23,7 @@ class Beacon {
     }
 
     send(id) {
-        console.log("Beacon", id, "Runner", this.id);
+        console.log("Beacon", this.id, "Runner", id);
 
         // This is so ugly
         const start_tag = [60, 60, 60, 60];
@@ -38,12 +38,12 @@ class Beacon {
             offset += 1; // '<'
         }
 
-        buffer.writeInt16LE(this.id, offset);
+        buffer.writeInt16BE(this.id, offset);
         offset += 2;
-        buffer.writeInt16LE(id, offset);
+        buffer.writeInt16BE(id, offset);
         offset += 2;
 
-        buffer.writeBigInt64LE(BigInt(Date.now()), offset);
+        buffer.writeBigInt64BE(BigInt(Date.now()), offset);
         offset += 8;
 
         for (let tag of end_tag) {
