@@ -33,7 +33,7 @@ public interface BeaconDAO extends DAO<Beacon> {
     int deleteById(@Bind("id") int id);
 
     @Override
-    @SqlUpdate("UPDATE beacon SET name = :name WHERE id = :id")
+    @SqlUpdate("UPDATE beacon SET name = :name, broken = :isBroken WHERE id = :id")
     int update(@Bind("id") int id, @BindBean Beacon beacon);
 
 }
