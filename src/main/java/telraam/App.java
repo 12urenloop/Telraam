@@ -14,11 +14,15 @@ import telraam.api.*;
 import telraam.beacon.BeaconAggregator;
 import telraam.database.daos.*;
 import telraam.healthchecks.TemplateHealthCheck;
+import telraam.logic.Lapper;
+import telraam.logic.ViterbiLapper;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
 
@@ -58,7 +62,7 @@ public class App extends Application<AppConfiguration> {
         this.environment = environment;
         // Add database
         final JdbiFactory factory = new JdbiFactory();
-        database =
+        this.database =
                 factory.build(environment, configuration.getDataSourceFactory(),
                         "postgresql");
 
@@ -87,6 +91,12 @@ public class App extends Application<AppConfiguration> {
         // Add URL mapping
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
+        // Set up lapper algorithm
+        Set<Lapper> lappers = new HashSet<Lapper>();
+
+        lappers.add(new ViterbiLapper(this.database));
+
+        // Set up beacon communications
         BeaconAggregator ba;
         if (configuration.getBeaconPort() < 0) {
             ba = new BeaconAggregator();
@@ -99,6 +109,9 @@ public class App extends Application<AppConfiguration> {
         });
         ba.onData(e -> {
             logger.info(e.toString());
+            for (Lapper lapper : lappers) {
+                lapper.handle(e.toDetection());
+            }
             return null;
         });
         ba.onConnect(_e -> {

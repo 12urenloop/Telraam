@@ -19,7 +19,7 @@ public interface BeaconDAO extends DAO<Beacon> {
     List<Beacon> getAll();
 
     @Override
-    @SqlUpdate("INSERT INTO beacon (name) VALUES (:name)")
+    @SqlUpdate("INSERT INTO beacon (name, distance_from_start) VALUES (:name, :distanceFromStart)")
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Beacon beacon);
 
@@ -32,6 +32,7 @@ public interface BeaconDAO extends DAO<Beacon> {
     @SqlUpdate("DELETE FROM beacon WHERE id = :id")
     int deleteById(@Bind("id") int id);
 
+    // TODO: add distance_from_start here too
     @Override
     @SqlUpdate("UPDATE beacon SET name = :name WHERE id = :id")
     int update(@Bind("id") int id, @BindBean Beacon beacon);

@@ -27,6 +27,8 @@ public class ViterbiAlgorithm<H, O> {
         this.transitionProbabilities = transitionProbabilities;
         this.emitProbabilities = emitProbabilities;
 
+        System.out.println("Starting Viterbi algorithm with observations " + observations + " and hidden states " + hiddenStates);
+
         this.verifyProbabilities();
 
         // Set up the initial probabilities
@@ -53,12 +55,12 @@ public class ViterbiAlgorithm<H, O> {
         }
 
         if (!emitProbabilities.keySet().equals(this.hiddenStates)) {
-            throw new InvalidParameterException("Invalid key set for emission probabilities");
+            throw new InvalidParameterException("Invalid key set for emission probabilities: " + emitProbabilities.keySet() + " != " + this.hiddenStates);
         }
 
         for (H state : this.hiddenStates) {
-            if (!transitionProbabilities.get(state).keySet().equals(this.observations)) {
-                throw new InvalidParameterException("Invalid key set for emission probabilities for state " + state);
+            if (!transitionProbabilities.get(state).keySet().equals(this.hiddenStates)) {
+                throw new InvalidParameterException("Invalid key set for emission probabilities for state " + state + ": " + transitionProbabilities.get(state).keySet() + " != " + this.observations);
             }
         }
     }

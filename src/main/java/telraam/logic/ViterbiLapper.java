@@ -66,7 +66,7 @@ public class ViterbiLapper implements Lapper {
         for (int sectorIndex = 0; sectorIndex < SECTOR_STARTS.length - 1; sectorIndex++) {
             ret.put(sectorIndex, calculateSectorProbabilities(SECTOR_STARTS[sectorIndex], SECTOR_STARTS[sectorIndex+1], stations));
         }
-        ret.put(SECTOR_STARTS.length, calculateSectorProbabilities(SECTOR_STARTS[SECTOR_STARTS.length-1], TRACK_LENGTH, stations));
+        ret.put(SECTOR_STARTS.length-1, calculateSectorProbabilities(SECTOR_STARTS[SECTOR_STARTS.length-1], TRACK_LENGTH, stations));
 
         return ret;
     }
@@ -77,7 +77,7 @@ public class ViterbiLapper implements Lapper {
             double probability = 0.0;
 
             // Detecting next lap
-            NormalDistribution stationDistribution = new NormalDistribution(station.getDistanceFromStart(), STATION_RANGE_SIGMA - TRACK_LENGTH);
+            NormalDistribution stationDistribution = new NormalDistribution(station.getDistanceFromStart() - TRACK_LENGTH, STATION_RANGE_SIGMA);
             probability += stationDistribution.cumulativeProbability(start, end);
 
             // Detecting current lap
@@ -85,7 +85,7 @@ public class ViterbiLapper implements Lapper {
             probability += stationDistribution.cumulativeProbability(start, end);
 
             // Detecting previous lap
-            stationDistribution = new NormalDistribution(station.getDistanceFromStart(), STATION_RANGE_SIGMA + TRACK_LENGTH);
+            stationDistribution = new NormalDistribution(station.getDistanceFromStart() + TRACK_LENGTH, STATION_RANGE_SIGMA);
             probability += stationDistribution.cumulativeProbability(start, end);
 
             sectorProbabilities.put(station.getId(), probability);
@@ -120,6 +120,8 @@ public class ViterbiLapper implements Lapper {
 
     @Override
     public void handle(Detection msg) {
-        this.viterbis.get(msg.getBatonId()).observe(msg.getBeaconId());
+        ViterbiAlgorithm<Integer, Integer> viterbiAlgorithm = this.viterbis.get(msg.getBatonId());
+        viterbiAlgorithm.observe(msg.getBeaconId());
+        System.out.println("Baton " + msg.getBatonId() + " is now probably at " + viterbiAlgorithm.getResult().mostLikelyState());
     }
 }
