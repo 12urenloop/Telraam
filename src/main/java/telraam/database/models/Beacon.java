@@ -11,6 +11,11 @@ public class Beacon {
 
     public Beacon(String name) {
         this.name = name;
+        this.isBroken = false;
+    }
+    public Beacon(String name, boolean isBroken) {
+        this.name = name;
+        this.isBroken = isBroken;
     }
 
     public Integer getId() {
