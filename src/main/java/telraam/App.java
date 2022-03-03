@@ -11,16 +11,16 @@ import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
-import telraam.beacon.BeaconAggregator;
 import telraam.database.daos.*;
 import telraam.healthchecks.TemplateHealthCheck;
+import telraam.station.Fetcher;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import java.io.IOException;
+import java.net.URI;
 import java.util.EnumSet;
 import java.util.logging.Logger;
-
 
 public class App extends Application<AppConfiguration> {
     private static Logger logger = Logger.getLogger(App.class.getName());
@@ -50,7 +50,6 @@ public class App extends Application<AppConfiguration> {
         });
     }
 
-
     @Override
     public void run(AppConfiguration configuration, Environment environment)
             throws IOException {
@@ -58,10 +57,8 @@ public class App extends Application<AppConfiguration> {
         this.environment = environment;
         // Add database
         final JdbiFactory factory = new JdbiFactory();
-        database =
-                factory.build(environment, configuration.getDataSourceFactory(),
-                        "postgresql");
-
+        database = factory.build(environment, configuration.getDataSourceFactory(),
+                "postgresql");
 
         // Add api resources
         JerseyEnvironment jersey = environment.jersey();
@@ -76,8 +73,7 @@ public class App extends Application<AppConfiguration> {
                 new TemplateHealthCheck(configuration.getTemplate()));
 
         // Enable CORS
-        final FilterRegistration.Dynamic cors =
-                environment.servlets().addFilter("CORS", CrossOriginFilter.class);
+        final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
 
         // Configure CORS parameters
         cors.setInitParameter("allowedOrigins", "*");
@@ -87,30 +83,15 @@ public class App extends Application<AppConfiguration> {
         // Add URL mapping
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
-        BeaconAggregator ba;
-        if (configuration.getBeaconPort() < 0) {
-            ba = new BeaconAggregator();
-        } else {
-            ba = new BeaconAggregator(configuration.getBeaconPort());
-        }
-        ba.onError(e -> {
-            logger.warning(e.getMessage());
-            return null;
-        });
-        ba.onData(e -> {
-            logger.info(e.toString());
-            return null;
-        });
-        ba.onConnect(_e -> {
-            logger.info("Connect");
-            return null;
-        });
-        ba.onDisconnect(_e -> {
-            logger.info("Disconnected");
-            return null;
-        });
-        Thread beaconMessages = new Thread(ba);
-        beaconMessages.start();
+
+        Fetcher fetcher = new Fetcher();
+        fetcher.addStation(URI.create("localhost:8001"));
+        fetcher.addStation(URI.create("localhost:8001"));
+        fetcher.addStation(URI.create("localhost:8001"));
+        fetcher.addStation(URI.create("localhost:8001"));
+        
+        Thread thread = new Thread(fetcher.start());
+        thread.start();
     }
 
     public AppConfiguration getConfig() {

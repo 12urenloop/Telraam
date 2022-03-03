@@ -12,10 +12,6 @@ public abstract class Event<B> {
     abstract void handle(EventHandler<B> h);
 
     public interface EventHandler<B> {
-        void exit();
-
-        void connect();
-
         void error(Exception e);
 
         void data(B b);
@@ -58,24 +54,6 @@ public abstract class Event<B> {
 
         public void setInner(Exception inner) {
             this.inner = inner;
-        }
-    }
-
-    public static class Connect<B> extends Event<B> {
-        public Connect() {
-        }
-
-        void handle(EventHandler<B> h) {
-            h.connect();
-        }
-    }
-
-    public static class Exit<B> extends Event<B> {
-        public Exit() {
-        }
-
-        void handle(EventHandler<B> h) {
-            h.exit();
         }
     }
 }

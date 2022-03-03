@@ -102,8 +102,6 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
     }
 
     public void run() {
-        this.connect();
-
         byte[] buf = new byte[1024];
 
         try {
@@ -122,7 +120,6 @@ public class Beacon extends EventGenerator<BeaconMessage> implements Runnable {
                 }
             }
         } catch (IOException e) {
-            exit();
         }
     }
 }

@@ -1,8 +1,10 @@
 package telraam.beacon;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,32 +23,25 @@ public class BeaconAggregator extends TCPFactory<BeaconMessage>
 
     protected List<Callback<Void, BeaconMessage>> handlers = new ArrayList<>();
     protected List<Callback<Void, Exception>> errorHandlers = new ArrayList<>();
-    protected List<Callback<Void, Void>> exitHandlers = new ArrayList<>();
-    protected List<Callback<Void, Void>> connectHandlers = new ArrayList<>();
 
     // Create net Beacon Aggregator, listening on this port.
     public BeaconAggregator(int port) throws IOException {
         super(port);
-        initializeCreator();
     }
 
     // Create net Beacon Aggregator, listening on a random port.
     public BeaconAggregator() throws IOException {
         super();
-        initializeCreator();
     }
 
     // Set the correct handler for connecting sockets
     // Here creating Beacons.
-    private void initializeCreator() {
-        super.creator = s -> {
-            try {
-                new Beacon(s, this);
-            } catch (IOException e) {
-                logger.log(Level.WARNING, "Failed to spawn beacon", e);
-            }
-            return null;
-        };
+    protected void handleSocket(Socket s) {
+        try {
+            new Beacon(s, this);
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Failed to spawn beacon", e);
+        }
     }
 
     // This function is the core of all the event handling.
@@ -65,26 +60,6 @@ public class BeaconAggregator extends TCPFactory<BeaconMessage>
     public BeaconAggregator onData(Callback<Void, BeaconMessage> handler) {
         this.handlers.add(handler);
         return this;
-    }
-
-    public BeaconAggregator onDisconnect(Callback<Void, Void> handler) {
-        this.exitHandlers.add(handler);
-        return this;
-    }
-
-    public BeaconAggregator onConnect(Callback<Void, Void> handler) {
-        this.connectHandlers.add(handler);
-        return this;
-    }
-
-    @Override
-    public void exit() {
-        this.exitHandlers.forEach(eh -> eh.handle(null));
-    }
-
-    @Override
-    public void connect() {
-        this.connectHandlers.forEach(th -> th.handle(null));
     }
 
     @Override

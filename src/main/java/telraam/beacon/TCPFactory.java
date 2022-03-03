@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  *
  * @author Arthur Vercruysse
  */
-public class TCPFactory<B> implements Runnable {
+public abstract class TCPFactory<B> implements Runnable {
     private static Logger logger = Logger.getLogger(TCPFactory.class.getName());
     protected Callback<Void, Socket> creator;
     private boolean stop = false;
@@ -24,6 +24,8 @@ public class TCPFactory<B> implements Runnable {
         this(port);
         this.creator = creator;
     }
+
+    abstract void handleSocket(Socket socket);
 
     protected TCPFactory(int port) throws IOException {
         if (port > 0)
@@ -49,7 +51,7 @@ public class TCPFactory<B> implements Runnable {
     private void runLoop() throws IOException {
         while (!this.stop) {
             Socket s = socket.accept();
-            this.creator.handle(s);
+            this.handleSocket(s);
         }
         socket.close();
 
