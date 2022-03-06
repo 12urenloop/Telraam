@@ -19,7 +19,7 @@ public class Detection {
         return this.id;
     }
 
-    public String getMax() {
+    public String getMac() {
         return mac;
     }
 
