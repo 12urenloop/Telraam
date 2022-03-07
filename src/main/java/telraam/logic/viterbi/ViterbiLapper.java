@@ -22,7 +22,7 @@ import java.util.stream.IntStream;
 public class ViterbiLapper implements Lapper {
     static final String SOURCE_NAME = "viterbi-lapper";
 
-    private final Map<Integer, ViterbiAlgorithm<Integer, Integer>> viterbis;
+    private final Map<Integer, ViterbiAlgorithm<Integer>> viterbis;
     private final ViterbiLapperConfiguration config;
     private final ViterbiModel<Integer, Integer> viterbiModel;
 

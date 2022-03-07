@@ -11,12 +11,14 @@ import java.util.Optional;
 public class ViterbiState {
     private final double[] probabilities;
     private final int[] previousStates;
+    private final int[] lapCounts;
     private final ViterbiState previousState;
 
-    public ViterbiState(ViterbiState previousState, double[] probabilities, int[] previousStates) {
+    public ViterbiState(ViterbiState previousState, double[] probabilities, int[] previousStates, int[] lapCounts) {
         this.previousState = previousState;
         this.probabilities = probabilities;
         this.previousStates = previousStates;
+        this.lapCounts = lapCounts;
     }
 
     /**
