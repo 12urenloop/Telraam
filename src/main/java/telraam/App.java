@@ -18,7 +18,6 @@ import telraam.station.Fetcher;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import java.io.IOException;
-import java.net.URI;
 import java.util.EnumSet;
 import java.util.logging.Logger;
 
@@ -89,10 +88,11 @@ public class App extends Application<AppConfiguration> {
         fetcher.addStation("http://localhost:8003/detection/");
         fetcher.addStation("http://localhost:8004/detection/");
 
-        fetcher.addDetectionHanlder(x -> System.out.println(x.getStationId() + " " + x.getId()));
+        fetcher.addDetectionHanlder(x -> logger.info(x.getStationId() + " " + x.getId()));
 
         Thread thread = new Thread(fetcher.start());
         thread.start();
+        logger.info("Up and running!");
     }
 
     public AppConfiguration getConfig() {

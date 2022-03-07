@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import telraam.station.FetchConfig.WaitBetween;
 
@@ -31,6 +33,7 @@ public class Fetcher {
     }
 
     private static HttpClient client = HttpClient.newHttpClient();
+    private static Logger logger = Logger.getLogger(Fetcher.class.getName());
 
     private FetchConfig config;
     private List<Station> stations;
@@ -65,25 +68,16 @@ public class Fetcher {
     public void fetchAll() {
         for (int i = 0; i < this.stations.size(); i++) {
             if (!this.busy.get(i).get()) {
-                var ind = i;
-                Runnable end = () -> {
-                    this.busy.get(ind).set(false);
-                };
-
-                get(this.stations.get(ind), this::handleError, this::handleDetection, end);
+                Runnable end = this.getEnd(i);
+                get(this.stations.get(i), this::handleError, this::handleDetection, end);
             }
         }
-
     }
 
     public void fetch() {
         if (!this.stations.isEmpty()) {
             if (!this.busy.get(this.current).get()) {
-                int cur = this.current;
-                Runnable end = () -> {
-                    this.busy.get(cur).set(false);
-                };
-
+                Runnable end = this.getEnd(this.current);
                 get(this.stations.get(this.current), this::handleError, this::handleDetection, end);
             }
 
@@ -96,21 +90,25 @@ public class Fetcher {
     public Runnable start() {
         return () -> {
             while (true) {
-                switch (config.waitPolicy()) {
-                    case PER_STATION -> this.fetch();
-                    case PER_STATION_BLOCK -> this.fetchAll();
-                }
-                ;
+                if (config.waitPolicy() == WaitBetween.PER_STATION)
+                    this.fetch();
+                else if (config.waitPolicy() == WaitBetween.PER_STATION_BLOCK)
+                    this.fetchAll();
 
                 try {
                     Thread.sleep(this.config.waitMs());
                 } catch (InterruptedException ex) {
+                    return;
                 }
             }
         };
     }
 
-    private Void handleDetection(Detections detections) {
+    private Runnable getEnd(int index) {
+        return () -> this.busy.get(index).set(false);
+    }
+
+    private Void handleDetection(RonnyResponse detections) {
         for (Detection detection : detections.getDetections()) {
             detection.setStationId(detections.getStationId());
 
@@ -123,14 +121,14 @@ public class Fetcher {
     }
 
     private void handleError(Throwable err) {
-        System.err.println(err);
+        logger.log(Level.WARNING, "Error", err);
     }
 
     protected static void get(Station station, Consumer<Throwable> onError,
-            Consumer<Detections> onDetections, Runnable after) {
+            Consumer<RonnyResponse> onDetections, Runnable after) {
         // create a request
         var request = HttpRequest.newBuilder(station.getUri()).build();
-        var bodyHandler = new JsonBodyHandler<>(Detections.class);
+        var bodyHandler = new JsonBodyHandler<>(RonnyResponse.class);
 
         client.sendAsync(request, bodyHandler).thenApply(x -> {
             if (x.statusCode() == 200) {
@@ -142,7 +140,7 @@ public class Fetcher {
             }
 
             return null;
-        }).whenComplete((_void, e) -> {
+        }).whenComplete((v, e) -> {
             if (e != null)
                 onError.accept(e);
             after.run();
