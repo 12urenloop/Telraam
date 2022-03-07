@@ -32,9 +32,8 @@ public interface BeaconDAO extends DAO<Beacon> {
     @SqlUpdate("DELETE FROM beacon WHERE id = :id")
     int deleteById(@Bind("id") int id);
 
-    // TODO: add distance_from_start here too
     @Override
-    @SqlUpdate("UPDATE beacon SET name = :name WHERE id = :id")
+    @SqlUpdate("UPDATE beacon SET name = :name, distance_from_start = :distanceFromStart WHERE id = :id")
     int update(@Bind("id") int id, @BindBean Beacon beacon);
 
 }

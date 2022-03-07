@@ -4,15 +4,14 @@ import java.util.*;
 
 /**
  * The class performing the Viterbi algorithm.
- * @param <H> The type of the hidden states.
  * @param <O> The type of the observations.
  */
-public class ViterbiAlgorithm<H, O> {
-    private final ViterbiModel<H, O> model;
+public class ViterbiAlgorithm<O> {
+    private final ViterbiModel<Integer, O> model;
 
-    private Result<H> lastResult;
+    private ViterbiState lastState;
 
-    public ViterbiAlgorithm(ViterbiModel<H, O> viterbiModel) {
+    public ViterbiAlgorithm(ViterbiModel<Integer, O> viterbiModel) {
         this.model = viterbiModel;
 
         System.out.println("Starting Viterbi algorithm with observations " + viterbiModel.getObservations() + " and hidden states " + viterbiModel.getHiddenStates());
@@ -20,11 +19,16 @@ public class ViterbiAlgorithm<H, O> {
         this.verifyProbabilities();
 
         // Set up the initial probabilities
-        this.lastResult = new Result<>(null);
-        for (Map.Entry<H, Double> entry : viterbiModel.getStartProbabilities().entrySet()) {
-            this.lastResult.setProbability(entry.getKey(), entry.getValue());
-            this.lastResult.setPreviousState(entry.getKey(), null);
+        int numSegments = this.model.getHiddenStates().size();
+        double[] probabilities = new double[numSegments];
+        int[] previousSegments = new int[numSegments];
+
+        for (Map.Entry<Integer, Double> entry : viterbiModel.getStartProbabilities().entrySet()) {
+            probabilities[entry.getKey()] = entry.getValue();
+            previousSegments[entry.getKey()] = -1;
         }
+
+        this.lastState = new ViterbiState(null, probabilities, previousSegments);
     }
 
     /**
@@ -36,7 +40,7 @@ public class ViterbiAlgorithm<H, O> {
             throw new InvalidParameterException("Invalid key set for transition probabilities");
         }
 
-        for (H state : this.model.getHiddenStates()) {
+        for (Integer state : this.model.getHiddenStates()) {
             if (!this.model.getTransitionProbabilities().get(state).keySet().equals(this.model.getHiddenStates())) {
                 throw new InvalidParameterException("Invalid key set for transition probabilities for state " + state);
             }
@@ -46,7 +50,7 @@ public class ViterbiAlgorithm<H, O> {
             throw new InvalidParameterException("Invalid key set for emission probabilities: " + this.model.getEmitProbabilities().keySet() + " != " + this.model.getHiddenStates());
         }
 
-        for (H state : this.model.getHiddenStates()) {
+        for (Integer state : this.model.getHiddenStates()) {
             if (!this.model.getTransitionProbabilities().get(state).keySet().equals(this.model.getHiddenStates())) {
                 throw new InvalidParameterException(
                         "Invalid key set for emission probabilities for state " +
@@ -65,22 +69,30 @@ public class ViterbiAlgorithm<H, O> {
      * @param observation The observation to process.
      */
     public void observe(O observation) {
-        Result<H> newResult = new Result<>(this.lastResult);
-        for (H nextState : this.model.getHiddenStates()) {
-            for (H previousState : this.model.getHiddenStates()) {
-                newResult.addProbability(
-                        nextState,
-                        previousState,
-                        this.lastResult.getProbability(previousState) *
-                                this.model.getTransitionProbabilities().get(previousState).get(nextState) *
-                                this.model.getEmitProbabilities().get(nextState).get(observation)
-                );
+        int numSegments = this.model.getHiddenStates().size();
+        double[] probabilities = new double[numSegments];
+        int[] previousSegments = new int[numSegments];
+
+        for (int nextSegment = 0; nextSegment < numSegments; nextSegment++) {
+            probabilities[nextSegment] = 0;
+            for (int previousSegment = 0; previousSegment < numSegments; previousSegment++) {
+                double probability = this.lastState.getProbability(previousSegment) *
+                        this.model.getTransitionProbabilities().get(previousSegment).get(nextSegment) *
+                        this.model.getEmitProbabilities().get(nextSegment).get(observation);
+                if (probabilities[nextSegment] < probability) {
+                    probabilities[nextSegment] = probability;
+                    previousSegments[nextSegment] = previousSegment;
+                }
             }
         }
 
-        newResult.normalize();
+        // normalize probabilities
+        double sum = Arrays.stream(probabilities).sum();
+        for (int i = 0; i < numSegments; i++) {
+            probabilities[i] /= sum;
+        }
 
-        this.lastResult = newResult;
+        this.lastState = new ViterbiState(this.lastState, probabilities, previousSegments);
 
         //TODO: only keep the last X Results, as there will be a LOT of observations.
     }
@@ -89,7 +101,7 @@ public class ViterbiAlgorithm<H, O> {
      * Get the current state of the Viterbi algorithm.
      * @return The last Result.
      */
-    public Result<H> getResult() {
-        return this.lastResult;
+    public ViterbiState getState() {
+        return this.lastState;
     }
 }

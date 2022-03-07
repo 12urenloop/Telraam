@@ -1,7 +1,6 @@
 package telraam.logic.viterbi;
 
 import io.dropwizard.jersey.setup.JerseyEnvironment;
-import io.swagger.models.auth.In;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.BatonDAO;
@@ -51,15 +50,15 @@ public class ViterbiLapper implements Lapper {
 
 
         for (Baton baton : batonDAO.getAll()) {
-            ViterbiAlgorithm<Integer, Integer> viterbi = new ViterbiAlgorithm<Integer, Integer>(this.viterbiModel);
+            ViterbiAlgorithm<Integer> viterbi = new ViterbiAlgorithm<>(this.viterbiModel);
             this.viterbis.put(baton.getId(), viterbi);
         }
     }
 
-    public Map<Integer, Map<Integer, Double>> getProbabilities() {
-        Map<Integer, Map<Integer, Double>> ret = new HashMap<>();
-        for (Map.Entry<Integer, ViterbiAlgorithm<Integer, Integer>> entry : this.viterbis.entrySet()) {
-            ret.put(entry.getKey(), entry.getValue().getResult().getProbabilities());
+    public Map<Integer, double[]> getProbabilities() {
+        Map<Integer, double[]> ret = new HashMap<>();
+        for (Map.Entry<Integer, ViterbiAlgorithm<Integer>> entry : this.viterbis.entrySet()) {
+            ret.put(entry.getKey(), entry.getValue().getState().getProbabilities());
         }
         return ret;
     }
@@ -134,9 +133,9 @@ public class ViterbiLapper implements Lapper {
 
     @Override
     public void handle(Detection msg) {
-        ViterbiAlgorithm<Integer, Integer> viterbiAlgorithm = this.viterbis.get(msg.getBatonId());
+        ViterbiAlgorithm<Integer> viterbiAlgorithm = this.viterbis.get(msg.getBatonId());
         viterbiAlgorithm.observe(msg.getBeaconId());
-        System.out.println("Baton " + msg.getBatonId() + " is now probably at " + viterbiAlgorithm.getResult().mostLikelyState());
+        System.out.println("Baton " + msg.getBatonId() + " is now probably at " + viterbiAlgorithm.getState().mostLikelyState());
     }
 
     @Override
