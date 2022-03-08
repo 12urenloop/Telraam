@@ -80,7 +80,7 @@ public class ViterbiLapper implements Lapper {
             double sum = 0.0;
 
             // a station is skipped if all detections are missed
-            double skipStationProbability = Math.pow(this.config.SAME_STATION_DETECTION_CHANCE, this.config.EXPECTED_NUM_DETECTIONS);
+            double skipStationProbability = Math.pow(1 - this.config.SAME_STATION_DETECTION_CHANCE, this.config.EXPECTED_NUM_DETECTIONS);
 
             // calculate numbers this way so that backwards steps are rounded down
             // and forward steps is rounded up
@@ -94,7 +94,7 @@ public class ViterbiLapper implements Lapper {
             // transition probabilities for running forwards
             // curBaseProba is the probability mass that should still be distributed
             double curBaseProba = 1 / (sameStationWeight + 2);
-            for (int i = 1; i < numStepsForwards; i ++) {
+            for (int i = 1; i < numStepsForwards; i++) {
                 // compute next segment index
                 int nextSegment = Math.floorMod(prevSegment + i, beacons.size());
                 double proba = curBaseProba;
@@ -113,7 +113,7 @@ public class ViterbiLapper implements Lapper {
             // transition probabilities for running backwards
             // refer to above comments
             curBaseProba = 1 / (sameStationWeight + 2);
-            for (int i = 1; i < numStepsBackwards; i ++) {
+            for (int i = 1; i < numStepsBackwards; i++) {
                 int nextSegment = Math.floorMod(prevSegment - i, beacons.size());
                 double proba = curBaseProba;
                 if (i < numStepsBackwards - 1) {
@@ -168,7 +168,7 @@ public class ViterbiLapper implements Lapper {
             this.scheduler.schedule(() -> {
                 try {
                     this.calculateLaps();
-                } catch ( Exception e ) {
+                } catch (Exception e) {
                     System.err.println("Something went wrong");
                     e.printStackTrace();
                 }
