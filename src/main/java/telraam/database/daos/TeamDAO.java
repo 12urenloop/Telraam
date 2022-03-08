@@ -6,6 +6,7 @@ import org.jdbi.v3.sqlobject.customizer.BindBean;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
+import telraam.database.models.Baton;
 import telraam.database.models.Team;
 
 import java.util.List;
@@ -38,4 +39,7 @@ public interface TeamDAO extends DAO<Team> {
             "baton_id = :batonId " +
             "WHERE id = :id")
     int update(@Bind("id") int id, @BindBean Team modelObj);
+
+    @SqlQuery("SELECT batonId, MAX(timestamp) FROM baton_assignment where teamId = :id GROUP BY id")
+    Optional<Integer> getCurrentBatonId(@BindBean Team team);
 }

@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * A resource with a basic GET /resource page, without params.
  */
-public interface ListableResource<T> extends Resource<T> {
+public interface ListableResource<T> {
     /**
      * @return a list of all the specified items
      */

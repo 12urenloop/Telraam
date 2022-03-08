@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import telraam.DatabaseTest;
 import telraam.database.models.Baton;
+import telraam.database.models.BatonAssignment;
 import telraam.database.models.Team;
 
 import java.util.List;
@@ -41,15 +42,17 @@ class TeamDAOTest extends DatabaseTest {
     void testCreateTeamWithBaton() {
         Baton testBaton = new Baton("testbaton");
         int batonId = batonDAO.insert(testBaton);
-        Team testteam = new Team("testteam", batonId);
-        int testId = teamDAO.insert(testteam);
+        Team testTeam = new Team("testteam", batonId);
+        int testId = teamDAO.insert(testTeam);
+        BatonAssignment assignment = new BatonAssignment(testBaton, testTeam);
 
         assertTrue(testId > 0);
         Optional<Team> teamOptional = teamDAO.getById(testId);
         assertFalse(teamOptional.isEmpty());
         Team team = teamOptional.get();
-        assertEquals(batonId, team.getBatonId());
         assertEquals("testteam", team.getName());
+        assertEquals(testBaton.getId(), assignment.getBatonId());
+        assertEquals(testTeam.getId(), assignment.getTeamId());
     }
 
     @Test
@@ -122,7 +125,9 @@ class TeamDAOTest extends DatabaseTest {
         // and find a better way
         testTeam.setId(teamId);
 
-        testTeam.setBatonId(batonId + 1);
+        BatonAssignment assignment = new BatonAssignment(testBaton, testTeam);
+
+        assignment.setBatonId(batonId + 1);
         assertThrows(UnableToExecuteStatementException.class,
                 () -> teamDAO.update(teamId, testTeam));
     }
@@ -144,7 +149,7 @@ class TeamDAOTest extends DatabaseTest {
         Team testTeam = new Team("testteam", batonId);
         int teamId = teamDAO.insert(testTeam);
 
-        Baton testBaton2= new Baton("testbaton2");
+        Baton testBaton2 = new Baton("testbaton2");
         int batonId2 = batonDAO.insert(testBaton2);
         Team testTeam2 = new Team("testteam2", batonId2);
         int teamId2 = teamDAO.insert(testTeam2);

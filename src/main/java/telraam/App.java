@@ -66,6 +66,7 @@ public class App extends Application<AppConfiguration> {
         // Add api resources
         JerseyEnvironment jersey = environment.jersey();
         jersey.register(new BatonResource(database.onDemand(BatonDAO.class)));
+        jersey.register(new BatonAssignmentResource(database.onDemand(BatonAssignmentDAO.class)));
         jersey.register(new BeaconResource(database.onDemand(BeaconDAO.class)));
         jersey.register(
                 new DetectionResource(database.onDemand(DetectionDAO.class)));

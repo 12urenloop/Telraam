@@ -3,12 +3,10 @@ package telraam.logic;
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.LapDAO;
 import telraam.database.daos.LapSourceDAO;
+import telraam.database.daos.TeamDAO;
 import telraam.database.models.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SimpleLapper implements Lapper {
     // Needs to be the same as in the lap_source database table.
@@ -23,6 +21,7 @@ public class SimpleLapper implements Lapper {
     private Jdbi jdbi;
     private LapDAO lapDAO;
     private LapSourceDAO lapSourceDAO;
+    private TeamDAO teamDAO;
     private Map<Integer, List<Detection>> detections;
     private Map<Integer, Integer> positionMap;
     private Team testTeam;
@@ -31,6 +30,7 @@ public class SimpleLapper implements Lapper {
         this.jdbi = jdbi;
         this.lapDAO = jdbi.onDemand(LapDAO.class);
         this.lapSourceDAO = jdbi.onDemand(LapSourceDAO.class);
+        this.teamDAO = jdbi.onDemand(TeamDAO.class);
 
         this.teams = new ArrayList<>();
         this.batons = new ArrayList<>();
@@ -53,7 +53,9 @@ public class SimpleLapper implements Lapper {
 
 
         for (Team team : teams) {
-            detections.put(team.getBatonId(), new ArrayList<>());
+            Optional<Integer> batonIdOpt = teamDAO.getCurrentBatonId(team);
+            int batonId = batonIdOpt.get();
+            detections.put(batonId, new ArrayList<>());
         }
     }
 
