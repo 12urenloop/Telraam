@@ -1,41 +1,53 @@
 package telraam.logic.viterbi;
 
 import io.dropwizard.jersey.setup.JerseyEnvironment;
+import io.swagger.models.auth.In;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jdbi.v3.core.Jdbi;
-import telraam.database.daos.BatonDAO;
-import telraam.database.daos.BeaconDAO;
-import telraam.database.models.Baton;
-import telraam.database.models.Beacon;
-import telraam.database.models.Detection;
+import telraam.database.daos.*;
+import telraam.database.models.*;
 import telraam.logic.Lapper;
 import telraam.logic.viterbi.algorithm.ViterbiAlgorithm;
 import telraam.logic.viterbi.algorithm.ViterbiModel;
+import telraam.logic.viterbi.algorithm.ViterbiState;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ViterbiLapper implements Lapper {
     static final String SOURCE_NAME = "viterbi-lapper";
 
-    private final Map<Integer, ViterbiAlgorithm<Integer>> viterbis;
     private final ViterbiLapperConfiguration config;
     private final ViterbiModel<Integer, Integer> viterbiModel;
+    private Map<Integer, ViterbiState> currentStates;
+    private final Jdbi jdbi;
+    private final int lapSourceId;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private boolean debounceScheduled;
 
     public ViterbiLapper(Jdbi jdbi) {
         this(jdbi, new ViterbiLapperConfiguration());
     }
 
     public ViterbiLapper(Jdbi jdbi, ViterbiLapperConfiguration configuration) {
-        this.viterbis = new HashMap<>();
+        this.jdbi = jdbi;
         this.config = configuration;
+        this.currentStates = new HashMap<>();
+        this.debounceScheduled = false;
 
-        BatonDAO batonDAO = jdbi.onDemand(BatonDAO.class);
         BeaconDAO beaconDAO = jdbi.onDemand(BeaconDAO.class);
+        LapSourceDAO lapSourceDAO = jdbi.onDemand(LapSourceDAO.class);
+
+        lapSourceDAO.getByName(ViterbiLapper.SOURCE_NAME).orElseThrow();
+
+        this.lapSourceId = lapSourceDAO.getByName(ViterbiLapper.SOURCE_NAME).get().getId();
 
         Set<Integer> observations = beaconDAO.getAll().stream().map(Beacon::getId).collect(Collectors.toSet());
         Set<Integer> hiddenStates = IntStream.range(0, this.config.SECTOR_STARTS.length).boxed().collect(Collectors.toSet());
@@ -47,18 +59,20 @@ public class ViterbiLapper implements Lapper {
                 calculateEmissionProbabilities(beaconDAO.getAll()),
                 calculateStartProbabilities()
         );
-
-
-        for (Baton baton : batonDAO.getAll()) {
-            ViterbiAlgorithm<Integer> viterbi = new ViterbiAlgorithm<>(this.viterbiModel);
-            this.viterbis.put(baton.getId(), viterbi);
-        }
     }
 
     public Map<Integer, double[]> getProbabilities() {
         Map<Integer, double[]> ret = new HashMap<>();
-        for (Map.Entry<Integer, ViterbiAlgorithm<Integer>> entry : this.viterbis.entrySet()) {
-            ret.put(entry.getKey(), entry.getValue().getState().getProbabilities());
+        for (Map.Entry<Integer, ViterbiState> entry : this.currentStates.entrySet()) {
+            ret.put(entry.getKey(), entry.getValue().probabilities());
+        }
+        return ret;
+    }
+
+    public Map<Integer, int[]> getLapCounts() {
+        Map<Integer, int[]> ret = new HashMap<>();
+        for (Map.Entry<Integer, ViterbiState> entry : this.currentStates.entrySet()) {
+            ret.put(entry.getKey(), entry.getValue().lapCounts());
         }
         return ret;
     }
@@ -75,11 +89,16 @@ public class ViterbiLapper implements Lapper {
     }
 
     private Map<Integer, Map<Integer, Double>> calculateEmissionProbabilities(List<Beacon> stations) {
+        stations.sort(Comparator.comparing(Beacon::getDistanceFromStart));
         Map<Integer, Map<Integer, Double>> ret = new HashMap<>();
-        for (int sectorIndex = 0; sectorIndex < this.config.SECTOR_STARTS.length - 1; sectorIndex++) {
-            ret.put(sectorIndex, calculateSectorProbabilities(this.config.SECTOR_STARTS[sectorIndex], this.config.SECTOR_STARTS[sectorIndex+1], stations));
+        for (int i = 0; i < stations.size(); i++) {
+            Map<Integer, Double> m = new HashMap<>();
+            for (int j = 0; j < stations.size(); j++) {
+                m.put(stations.get(j).getId(), 0.0);
+            }
+            m.put(stations.get(i).getId(), 1.0);
+            ret.put(i, m);
         }
-        ret.put(this.config.SECTOR_STARTS.length-1, calculateSectorProbabilities(this.config.SECTOR_STARTS[this.config.SECTOR_STARTS.length-1], this.config.TRACK_LENGTH, stations));
 
         return ret;
     }
@@ -109,33 +128,93 @@ public class ViterbiLapper implements Lapper {
 
     private Map<Integer, Map<Integer, Double>> calculateTransitionProbabilities(Set<Integer> hiddenStates) {
         Map<Integer, Map<Integer, Double>> transitionProbabilities = new HashMap<>();
-        for (int i : hiddenStates) {
+        for (int i: hiddenStates) {
             Map<Integer, Double> probabilities = new HashMap<>();
-
             for (int j : hiddenStates) {
-                probabilities.put(j, 0.0); // Initialize all probabilities to 0
+                if (i == j || j == (i+1)%hiddenStates.size()) {
+                    probabilities.put(j, 0.5);
+                } else {
+                    probabilities.put(j, 0.0);
+                }
             }
-
             transitionProbabilities.put(i, probabilities);
         }
-        for (int i = 0; i < this.config.SECTOR_STARTS.length - 1; i++) {
-            double expectedDetections = ((this.config.SECTOR_STARTS[i+1] - this.config.SECTOR_STARTS[i]) / this.config.AVERAGE_RUNNER_SPEED) * this.config.DETECTIONS_PER_SECOND;
-            transitionProbabilities.get(i).put(i, expectedDetections / (expectedDetections + 1));
-            transitionProbabilities.get(i).put(i + 1, 1 / (expectedDetections + 1));
-        }
-
-        double expectedDetections = ((this.config.TRACK_LENGTH - this.config.SECTOR_STARTS[this.config.SECTOR_STARTS.length - 1]) / this.config.AVERAGE_RUNNER_SPEED) * this.config.DETECTIONS_PER_SECOND;
-        transitionProbabilities.get(this.config.SECTOR_STARTS.length - 1).put(this.config.SECTOR_STARTS.length - 1, expectedDetections / (expectedDetections + 1));
-        transitionProbabilities.get(this.config.SECTOR_STARTS.length - 1).put(0, 1 / (expectedDetections + 1));
 
         return transitionProbabilities;
     }
 
     @Override
-    public void handle(Detection msg) {
-        ViterbiAlgorithm<Integer> viterbiAlgorithm = this.viterbis.get(msg.getBatonId());
-        viterbiAlgorithm.observe(msg.getBeaconId());
-        System.out.println("Baton " + msg.getBatonId() + " is now probably at " + viterbiAlgorithm.getState().mostLikelyState());
+    public synchronized void handle(Detection msg) {
+        if (!this.debounceScheduled) {
+            // TODO: this might be better as an atomic
+            this.debounceScheduled = true;
+            this.scheduler.schedule(() -> {
+                try {
+                    this.calculateLaps();
+                } catch ( Exception e ) {
+                    System.err.println("Something went wrong");
+                    e.printStackTrace();
+                }
+                this.debounceScheduled = false;
+            }, this.config.DEBOUNCE_TIMEOUT, TimeUnit.SECONDS);
+        }
+    }
+
+    private synchronized void calculateLaps() {
+        System.out.println("Calculating laps");
+        // TODO: this implementation does not take lap timestamps into account
+
+        TeamDAO teamDAO = this.jdbi.onDemand(TeamDAO.class);
+        DetectionDAO detectionDAO = this.jdbi.onDemand(DetectionDAO.class);
+        LapDAO lapDAO = this.jdbi.onDemand(LapDAO.class);
+        List<Team> teams = teamDAO.getAll();
+
+        // TODO: stream these from the database
+        List<Detection> detections = detectionDAO.getAll();
+        detections.sort(Comparator.comparing(Detection::getTimestamp));
+
+        Map<Integer, ViterbiAlgorithm<Integer>> viterbis = teams.stream()
+                .collect(Collectors.toMap(Team::getId, _team -> new ViterbiAlgorithm<>(this.viterbiModel)));
+
+        Map<Integer, Integer> batonIdToTeamId = teams.stream()
+                .collect(Collectors.toMap(Team::getBatonId, Team::getId));
+
+        // BREAKING TODO: We need a way to find the team a baton was assigned to at the time of detection
+        // This should probably be tagged at detection ingestion time
+        for (Detection detection : detections) {
+            int teamId = batonIdToTeamId.get(detection.getBatonId());
+            viterbis.get(teamId).observe(detection.getBeaconId());
+        }
+
+        this.currentStates = viterbis.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getState()));
+
+        // We made a new estimation of the lap count, now we can update the database state to match
+
+        Map<Integer, TreeSet<Lap>> lapsByTeam = teams.stream().collect(Collectors.toMap(Team::getId, x -> new TreeSet<>(Comparator.comparing(Lap::getTimestamp))));
+
+        for (Lap lap : lapDAO.getAllBySource(this.lapSourceId)) {
+            lapsByTeam.get(lap.getTeamId()).add(lap);
+        }
+
+        for (Map.Entry<Integer, ViterbiState> entry : this.currentStates.entrySet()) {
+            int teamId = entry.getKey();
+            TreeSet<Lap> laps = lapsByTeam.get(teamId);
+
+            long previousLapCount = laps.size();
+            ViterbiState state = entry.getValue();
+            long newLapCount = state.lapCounts()[state.mostLikelySegment()];
+
+            // add laps that were not counted yet
+            for (long lapCount = previousLapCount; lapCount < newLapCount; lapCount++) {
+                lapDAO.insert(new Lap(teamId, this.lapSourceId, Timestamp.from(Instant.now())));
+            }
+            // remove laps that were an overestimation
+            for (long lapCount = previousLapCount; lapCount > newLapCount; lapCount--) {
+                Lap lapToRemove = laps.last();
+                laps.remove(lapToRemove);
+                lapDAO.deleteById(lapToRemove.getId());
+            }
+        }
     }
 
     @Override

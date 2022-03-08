@@ -28,6 +28,13 @@ public class ViterbiLapperResource {
     }
 
     @GET
+    @Path("/lapcounts")
+    @ApiOperation(value = "Get lapper estimated lap counts")
+    public Map<Integer, int[]> getLapCounts() {
+        return this.lapper.getLapCounts();
+    }
+
+    @GET
     @Path("/configuration")
     @ApiOperation(value = "Get lapper configuration")
     public ViterbiLapperConfiguration getConfiguration() {

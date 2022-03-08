@@ -13,6 +13,7 @@ import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
 import telraam.beacon.BeaconAggregator;
 import telraam.database.daos.*;
+import telraam.database.models.Detection;
 import telraam.healthchecks.TemplateHealthCheck;
 import telraam.logic.Lapper;
 import telraam.logic.viterbi.ViterbiLapper;
@@ -92,7 +93,7 @@ public class App extends Application<AppConfiguration> {
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
         // Set up lapper algorithm
-        Set<Lapper> lappers = new HashSet<Lapper>();
+        Set<Lapper> lappers = new HashSet<>();
 
         lappers.add(new ViterbiLapper(this.database));
 
@@ -114,8 +115,11 @@ public class App extends Application<AppConfiguration> {
         });
         ba.onData(e -> {
             logger.info(e.toString());
+            DetectionDAO detectionDAO = database.onDemand(DetectionDAO.class);
+            Detection detection = e.toDetection();
+            detectionDAO.insert(detection);
             for (Lapper lapper : lappers) {
-                lapper.handle(e.toDetection());
+                lapper.handle(detection);
             }
             return null;
         });

@@ -7,6 +7,7 @@ public class ViterbiLapperConfiguration {
     public double DETECTIONS_PER_SECOND;    // The number of detections per station, per second
     public double STATION_RANGE_SIGMA;      // The sigma parameter of the detection probability of the stations
     public double RESTART_PROBABILITY;      // The probability that the runners will start the race in a different spot than the start/finish line (should only happen on complete restarts)
+    public int DEBOUNCE_TIMEOUT;            // The amount of time detections are debounced for in seconds
 
     public ViterbiLapperConfiguration() {
         this.TRACK_LENGTH = 500;
@@ -15,5 +16,6 @@ public class ViterbiLapperConfiguration {
         this.DETECTIONS_PER_SECOND = 1;
         this.STATION_RANGE_SIGMA = 50;
         this.RESTART_PROBABILITY = 0.001;
+        this.DEBOUNCE_TIMEOUT = 10;
     }
 }

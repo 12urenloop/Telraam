@@ -14,8 +14,6 @@ public class ViterbiAlgorithm<O> {
     public ViterbiAlgorithm(ViterbiModel<Integer, O> viterbiModel) {
         this.model = viterbiModel;
 
-        System.out.println("Starting Viterbi algorithm with observations " + viterbiModel.getObservations() + " and hidden states " + viterbiModel.getHiddenStates());
-
         this.verifyProbabilities();
 
         // Set up the initial probabilities
@@ -26,11 +24,11 @@ public class ViterbiAlgorithm<O> {
 
         for (Map.Entry<Integer, Double> entry : viterbiModel.getStartProbabilities().entrySet()) {
             probabilities[entry.getKey()] = entry.getValue();
-            previousSegments[entry.getKey()] = -1;
+            previousSegments[entry.getKey()] = 0;
             lapCounts[entry.getKey()] = 0;
         }
 
-        this.lastState = new ViterbiState(null, probabilities, previousSegments, lapCounts);
+        this.lastState = new ViterbiState(probabilities, previousSegments, lapCounts);
     }
 
     /**
@@ -79,7 +77,7 @@ public class ViterbiAlgorithm<O> {
         for (int nextSegment = 0; nextSegment < numSegments; nextSegment++) {
             probabilities[nextSegment] = 0;
             for (int previousSegment = 0; previousSegment < numSegments; previousSegment++) {
-                double probability = this.lastState.getProbability(previousSegment) *
+                double probability = this.lastState.probabilities()[previousSegment] *
                         this.model.getTransitionProbabilities().get(previousSegment).get(nextSegment) *
                         this.model.getEmitProbabilities().get(nextSegment).get(observation);
                 if (probabilities[nextSegment] < probability) {
@@ -92,14 +90,14 @@ public class ViterbiAlgorithm<O> {
 
                     if (delta > 0 && previousSegment > nextSegment) {
                         // forward wrap-around
-                        lapCounts[nextSegment] = lapCounts[previousSegment] + 1;
+                        lapCounts[nextSegment] = this.lastState.lapCounts()[previousSegment] + 1;
 
                     } else if (delta < 0 && previousSegment < nextSegment) {
                         // backwards wrap-around
-                        lapCounts[nextSegment] = lapCounts[previousSegment] - 1;
+                        lapCounts[nextSegment] = this.lastState.lapCounts()[previousSegment] - 1;
                     } else {
                         // no wrap-around (c) robbe
-                        lapCounts[nextSegment] = lapCounts[previousSegment];
+                        lapCounts[nextSegment] = this.lastState.lapCounts()[previousSegment];
                     }
                 }
             }
@@ -111,9 +109,7 @@ public class ViterbiAlgorithm<O> {
             probabilities[i] /= sum;
         }
 
-        this.lastState = new ViterbiState(this.lastState, probabilities, previousSegments, lapCounts);
-
-        //TODO: only keep the last X Results, as there will be a LOT of observations.
+        this.lastState = new ViterbiState(probabilities, previousSegments, lapCounts);
     }
 
     /**
