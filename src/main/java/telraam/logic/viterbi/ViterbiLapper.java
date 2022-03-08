@@ -18,6 +18,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -25,7 +27,6 @@ public class ViterbiLapper implements Lapper {
     static final String SOURCE_NAME = "viterbi-lapper";
 
     private final ViterbiLapperConfiguration config;
-    private final ViterbiModel<Integer, Integer> viterbiModel;
     private Map<Integer, ViterbiState> currentStates;
     private final Jdbi jdbi;
     private final int lapSourceId;
@@ -42,21 +43,92 @@ public class ViterbiLapper implements Lapper {
         this.currentStates = new HashMap<>();
         this.debounceScheduled = false;
 
-        BeaconDAO beaconDAO = jdbi.onDemand(BeaconDAO.class);
         LapSourceDAO lapSourceDAO = jdbi.onDemand(LapSourceDAO.class);
 
         lapSourceDAO.getByName(ViterbiLapper.SOURCE_NAME).orElseThrow();
 
         this.lapSourceId = lapSourceDAO.getByName(ViterbiLapper.SOURCE_NAME).get().getId();
+    }
 
-        Set<Integer> observations = beaconDAO.getAll().stream().map(Beacon::getId).collect(Collectors.toSet());
-        Set<Integer> hiddenStates = IntStream.range(0, this.config.SECTOR_STARTS.length).boxed().collect(Collectors.toSet());
 
-        this.viterbiModel = new ViterbiModel<>(
-                observations,
-                hiddenStates,
-                calculateTransitionProbabilities(hiddenStates),
-                calculateEmissionProbabilities(beaconDAO.getAll()),
+    private ViterbiModel createViterbiModel() {
+        BeaconDAO beaconDAO = jdbi.onDemand(BeaconDAO.class);
+
+        // We will construct one segment for each beacon, which will represent its
+        // neighbourhood.
+        List<Beacon> beacons = beaconDAO.getAll();
+        beacons.sort(Comparator.comparing(Beacon::getDistanceFromStart));
+
+
+        Map<Integer, Map<Integer, Double>> emissionProbabilities = new HashMap<>();
+        for (int segmentNum = 0; segmentNum < beacons.size(); segmentNum++) {
+            Map<Integer, Double> probas = new HashMap<>();
+            for (int beaconNum = 0; beaconNum < beacons.size(); beaconNum++) {
+                int beaconId = beacons.get(beaconNum).getId();
+                if (segmentNum == beaconNum) {
+                    probas.put(beaconId, this.config.SAME_STATION_DETECTION_CHANCE);
+                } else {
+                    probas.put(beaconId, this.config.DIFFERENT_STATION_DETECTION_CHANCE);
+                }
+            }
+            emissionProbabilities.put(segmentNum, probas);
+        }
+
+        Map<Integer, Map<Integer, Double>> transitionProbabilities = new HashMap<>();
+        for (int prevSegment = 0; prevSegment < beacons.size(); prevSegment++) {
+            Map<Integer, Double> probas = new HashMap<>();
+            double sum = 0.0;
+
+            // a station is skipped if all detections are missed
+            double skipStationProbability = Math.pow(this.config.SAME_STATION_DETECTION_CHANCE, this.config.EXPECTED_NUM_DETECTIONS);
+
+            // calculate numbers this way so that backwards steps are rounded down
+            // and forward steps is rounded up
+            int numStepsBackwards = beacons.size() / 2;
+            int numStepsForwards = beacons.size() - numStepsBackwards;
+
+            double sameStationWeight = this.config.SAME_STATION_DETECTION_CHANCE * this.config.EXPECTED_NUM_DETECTIONS;
+            // add 2: one unit of weigth for running forwards, one for running backwards
+            probas.put(prevSegment, sameStationWeight / (sameStationWeight + 2));
+
+            // transition probabilities for running forwards
+            // curBaseProba is the probability mass that should still be distributed
+            double curBaseProba = 1 / (sameStationWeight + 2);
+            for (int i = 1; i < numStepsForwards; i ++) {
+                // compute next segment index
+                int nextSegment = Math.floorMod(prevSegment + i, beacons.size());
+                double proba = curBaseProba;
+                if (i < numStepsForwards - 1) {
+                    // multiply by the probability that this station was not skipped.
+                    // When this is the final step, we do not consider the possibility of skipping anymore
+                    // (so that probabilities add up to 1)
+                    proba *= (1 - skipStationProbability);
+                }
+                probas.put(nextSegment, proba);
+
+                // subtract the used amount of probability mass
+                curBaseProba -= proba;
+            }
+
+            // transition probabilities for running backwards
+            // refer to above comments
+            curBaseProba = 1 / (sameStationWeight + 2);
+            for (int i = 1; i < numStepsBackwards; i ++) {
+                int nextSegment = Math.floorMod(prevSegment - i, beacons.size());
+                double proba = curBaseProba;
+                if (i < numStepsBackwards - 1) {
+                    proba *= (1 - skipStationProbability);
+                }
+                probas.put(nextSegment, proba);
+                curBaseProba -= proba;
+            }
+        }
+
+        return new ViterbiModel<>(
+                beacons.stream().map(Beacon::getId).collect(Collectors.toSet()),
+                IntStream.range(0, beacons.size()).boxed().collect(Collectors.toSet()),
+                transitionProbabilities,
+                emissionProbabilities,
                 calculateStartProbabilities()
         );
     }
@@ -86,61 +158,6 @@ public class ViterbiLapper implements Lapper {
         }
 
         return ret;
-    }
-
-    private Map<Integer, Map<Integer, Double>> calculateEmissionProbabilities(List<Beacon> stations) {
-        stations.sort(Comparator.comparing(Beacon::getDistanceFromStart));
-        Map<Integer, Map<Integer, Double>> ret = new HashMap<>();
-        for (int i = 0; i < stations.size(); i++) {
-            Map<Integer, Double> m = new HashMap<>();
-            for (int j = 0; j < stations.size(); j++) {
-                m.put(stations.get(j).getId(), 0.0);
-            }
-            m.put(stations.get(i).getId(), 1.0);
-            ret.put(i, m);
-        }
-
-        return ret;
-    }
-
-    private Map<Integer, Double> calculateSectorProbabilities(int start, int end, List<Beacon> stations) {
-        Map<Integer, Double> sectorProbabilities = new HashMap<>();
-        for (Beacon station : stations) {
-            double probability = 0.0;
-
-            // Detecting next lap
-            NormalDistribution stationDistribution = new NormalDistribution(station.getDistanceFromStart() - this.config.TRACK_LENGTH, this.config.STATION_RANGE_SIGMA);
-            probability += stationDistribution.cumulativeProbability(start, end);
-
-            // Detecting current lap
-            stationDistribution = new NormalDistribution(station.getDistanceFromStart(), this.config.STATION_RANGE_SIGMA);
-            probability += stationDistribution.cumulativeProbability(start, end);
-
-            // Detecting previous lap
-            stationDistribution = new NormalDistribution(station.getDistanceFromStart() + this.config.TRACK_LENGTH, this.config.STATION_RANGE_SIGMA);
-            probability += stationDistribution.cumulativeProbability(start, end);
-
-            sectorProbabilities.put(station.getId(), probability);
-        }
-        return sectorProbabilities;
-    }
-
-
-    private Map<Integer, Map<Integer, Double>> calculateTransitionProbabilities(Set<Integer> hiddenStates) {
-        Map<Integer, Map<Integer, Double>> transitionProbabilities = new HashMap<>();
-        for (int i: hiddenStates) {
-            Map<Integer, Double> probabilities = new HashMap<>();
-            for (int j : hiddenStates) {
-                if (i == j || j == (i+1)%hiddenStates.size()) {
-                    probabilities.put(j, 0.5);
-                } else {
-                    probabilities.put(j, 0.0);
-                }
-            }
-            transitionProbabilities.put(i, probabilities);
-        }
-
-        return transitionProbabilities;
     }
 
     @Override
@@ -173,8 +190,11 @@ public class ViterbiLapper implements Lapper {
         List<Detection> detections = detectionDAO.getAll();
         detections.sort(Comparator.comparing(Detection::getTimestamp));
 
+        // we create a viterbi model each time because the set of stations is not static
+        ViterbiModel<Integer, Integer> viterbiModel = createViterbiModel();
+
         Map<Integer, ViterbiAlgorithm<Integer>> viterbis = teams.stream()
-                .collect(Collectors.toMap(Team::getId, _team -> new ViterbiAlgorithm<>(this.viterbiModel)));
+                .collect(Collectors.toMap(Team::getId, _team -> new ViterbiAlgorithm<>(viterbiModel)));
 
         Map<Integer, Integer> batonIdToTeamId = teams.stream()
                 .collect(Collectors.toMap(Team::getBatonId, Team::getId));
@@ -227,6 +247,6 @@ public class ViterbiLapper implements Lapper {
     }
 
     public ViterbiModel<Integer, Integer> getModel() {
-        return this.viterbiModel;
+        return this.createViterbiModel();
     }
 }

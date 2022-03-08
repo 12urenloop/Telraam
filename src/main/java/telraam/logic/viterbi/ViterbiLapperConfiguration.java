@@ -9,6 +9,15 @@ public class ViterbiLapperConfiguration {
     public double RESTART_PROBABILITY;      // The probability that the runners will start the race in a different spot than the start/finish line (should only happen on complete restarts)
     public int DEBOUNCE_TIMEOUT;            // The amount of time detections are debounced for in seconds
 
+    // chance for detection in segment corresponding to a station
+    public double SAME_STATION_DETECTION_CHANCE;
+    // chance for detection in a different section
+    public double DIFFERENT_STATION_DETECTION_CHANCE;
+
+    // how much detections you expect to get (assuming all are succesful)
+    // when a runner passes a station
+    public double EXPECTED_NUM_DETECTIONS;
+
     public ViterbiLapperConfiguration() {
         this.TRACK_LENGTH = 500;
         this.SECTOR_STARTS = new int[]{0, 100, 150, 250, 350};
@@ -17,5 +26,9 @@ public class ViterbiLapperConfiguration {
         this.STATION_RANGE_SIGMA = 50;
         this.RESTART_PROBABILITY = 0.001;
         this.DEBOUNCE_TIMEOUT = 10;
+
+        this.SAME_STATION_DETECTION_CHANCE = 0.5;
+        this.DIFFERENT_STATION_DETECTION_CHANCE = 0.1;
+        this.EXPECTED_NUM_DETECTIONS = 8;
     }
 }
