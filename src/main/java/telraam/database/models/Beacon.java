@@ -4,12 +4,19 @@ public class Beacon {
     private Integer id;
     private String name;
     private Double distanceFromStart;
+    private Boolean isBroken;
 
     public Beacon() {
+      this.isBroken = false;
     }
 
     public Beacon(String name) {
         this.name = name;
+        this.isBroken = false;
+    }
+    public Beacon(String name, boolean isBroken) {
+        this.name = name;
+        this.isBroken = isBroken;
     }
 
     public Integer getId() {
@@ -35,4 +42,10 @@ public class Beacon {
     public void setDistanceFromStart(Double distanceFromStart) {
         this.distanceFromStart = distanceFromStart;
     }
+
+    public Boolean getIsBroken() {
+        return isBroken;
+    }
+
+    public void setBroken(Boolean isBroken) { this.isBroken = isBroken; }
 }

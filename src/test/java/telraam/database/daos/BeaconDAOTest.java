@@ -33,6 +33,7 @@ class BeaconDAOTest extends DatabaseTest {
         assertFalse(beaconOptional.isEmpty());
         Beacon beacon = beaconOptional.get();
         assertEquals("testbeacon", beacon.getName());
+        assertEquals(false, beacon.getIsBroken());
     }
 
     @Test
@@ -79,12 +80,14 @@ class BeaconDAOTest extends DatabaseTest {
         int testid = beaconDAO.insert(testBeacon);
         testBeacon.setId(testid);
         testBeacon.setName("postupdate");
+        testBeacon.setBroken(true);
         int updatedRows = beaconDAO.update(testid, testBeacon);
         assertEquals(1, updatedRows);
 
         Optional<Beacon> dbBeacon = beaconDAO.getById(testid);
         assertFalse(dbBeacon.isEmpty());
         assertEquals("postupdate", dbBeacon.get().getName());
+        assertEquals(true, dbBeacon.get().getIsBroken());
     }
 
     @Test
