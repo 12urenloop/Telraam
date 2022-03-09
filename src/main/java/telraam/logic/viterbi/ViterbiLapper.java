@@ -84,8 +84,8 @@ public class ViterbiLapper implements Lapper {
 
             // calculate numbers this way so that backwards steps are rounded down
             // and forward steps is rounded up
-            int numStepsBackwards = beacons.size() / 2;
-            int numStepsForwards = beacons.size() - numStepsBackwards;
+            int numStepsBackwards = (beacons.size() - 1) / 2;
+            int numStepsForwards = beacons.size() - 1 - numStepsBackwards;
 
             double sameStationWeight = this.config.SAME_STATION_DETECTION_CHANCE * this.config.EXPECTED_NUM_DETECTIONS;
             // add 2: one unit of weigth for running forwards, one for running backwards
@@ -94,11 +94,11 @@ public class ViterbiLapper implements Lapper {
             // transition probabilities for running forwards
             // curBaseProba is the probability mass that should still be distributed
             double curBaseProba = 1 / (sameStationWeight + 2);
-            for (int i = 1; i < numStepsForwards; i++) {
+            for (int i = 1; i <= numStepsForwards; i++) {
                 // compute next segment index
                 int nextSegment = Math.floorMod(prevSegment + i, beacons.size());
                 double proba = curBaseProba;
-                if (i < numStepsForwards - 1) {
+                if (i < numStepsForwards) {
                     // multiply by the probability that this station was not skipped.
                     // When this is the final step, we do not consider the possibility of skipping anymore
                     // (so that probabilities add up to 1)
@@ -113,15 +113,17 @@ public class ViterbiLapper implements Lapper {
             // transition probabilities for running backwards
             // refer to above comments
             curBaseProba = 1 / (sameStationWeight + 2);
-            for (int i = 1; i < numStepsBackwards; i++) {
+            for (int i = 1; i <= numStepsBackwards; i++) {
                 int nextSegment = Math.floorMod(prevSegment - i, beacons.size());
                 double proba = curBaseProba;
-                if (i < numStepsBackwards - 1) {
+                if (i < numStepsBackwards) {
                     proba *= (1 - skipStationProbability);
                 }
                 probas.put(nextSegment, proba);
                 curBaseProba -= proba;
             }
+
+            transitionProbabilities.put(prevSegment, probas);
         }
 
         return new ViterbiModel<>(
