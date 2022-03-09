@@ -31,7 +31,7 @@ class DetectionDAOTest extends DatabaseTest {
         BatonDAO batonDAO = jdbi.onDemand(BatonDAO.class);
         BeaconDAO beaconDAO = jdbi.onDemand(BeaconDAO.class);
         batonId1 = batonDAO.insert(new Baton("baton1"));
-        beaconId1 = beaconDAO.insert(new Beacon("beacon1"));
+        beaconId1 = beaconDAO.insert(new Beacon("beacon1", "localhost:8000"));
         exampleDetection =
                 new Detection(batonId1, beaconId1, new Timestamp(123456789));
     }
