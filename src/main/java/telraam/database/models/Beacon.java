@@ -5,14 +5,16 @@ public class Beacon {
     private String name;
     private Double distanceFromStart;
     private Boolean isBroken;
+    private String url;
 
     public Beacon() {
       this.isBroken = false;
     }
 
-    public Beacon(String name) {
+    public Beacon(String name, String url) {
         this.name = name;
         this.isBroken = false;
+        this.url = url;
     }
     public Beacon(String name, boolean isBroken) {
         this.name = name;
@@ -48,4 +50,8 @@ public class Beacon {
     }
 
     public void setBroken(Boolean isBroken) { this.isBroken = isBroken; }
+
+    public String getUrl() {
+        return this.url;
+    }
 }

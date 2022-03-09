@@ -25,7 +25,7 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void createBeacon() {
-        Beacon testBeacon = new Beacon("testbeacon");
+        Beacon testBeacon = new Beacon("testbeacon", "localhost:8000");
         final int testId = beaconDAO.insert(testBeacon);
         assertTrue(testId > 0);
 
@@ -52,8 +52,8 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void testList2Beacons() {
-        Beacon b1 = new Beacon("b1");
-        Beacon b2 = new Beacon("b2");
+        Beacon b1 = new Beacon("b1", "localhost:8000");
+        Beacon b2 = new Beacon("b2", "localhost:8001");
         beaconDAO.insert(b1);
         beaconDAO.insert(b2);
 
@@ -76,7 +76,7 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void testUpdateDoesUpdate() {
-        Beacon testBeacon = new Beacon("preupdate");
+        Beacon testBeacon = new Beacon("preupdate", "localhost:8000");
         int testid = beaconDAO.insert(testBeacon);
         testBeacon.setId(testid);
         testBeacon.setName("postupdate");
@@ -92,9 +92,9 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void updateDoesntDoAnythingWhenNotExists() {
-        Beacon testBeacon = new Beacon("test");
+        Beacon testBeacon = new Beacon("test", "localhost:8000");
         int id = beaconDAO.insert(testBeacon);
-        int updatedRows = beaconDAO.update(id + 1, new Beacon("test2"));
+        int updatedRows = beaconDAO.update(id + 1, new Beacon("test2", "localhost:8000"));
         List<Beacon> beacons = beaconDAO.getAll();
         assertEquals(0, updatedRows);
         assertEquals(1, beacons.size());
@@ -103,11 +103,11 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void updateOnlyUpdatesRelevantModel() {
-        Beacon testBeacon = new Beacon("test");
+        Beacon testBeacon = new Beacon("test", "localhost:8000");
         int id = beaconDAO.insert(testBeacon);
-        Beacon testBeacon2 = new Beacon("test2");
+        Beacon testBeacon2 = new Beacon("test2", "localhost:8000");
         int id2 = beaconDAO.insert(testBeacon2);
-        int updatedRows = beaconDAO.update(id, new Beacon("test3"));
+        int updatedRows = beaconDAO.update(id, new Beacon("test3", "localhost:8000"));
         List<Beacon> beacons = beaconDAO.getAll();
         assertEquals(1, updatedRows);
         assertEquals(testBeacon2.getName(), beaconDAO.getById(id2).get().getName());
@@ -115,7 +115,7 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void deleteRemovesBeacon() {
-        Beacon testBeacon = new Beacon("test");
+        Beacon testBeacon = new Beacon("test", "localhost:8000");
         int id = beaconDAO.insert(testBeacon);
         int updatedRows = beaconDAO.deleteById(id);
 
@@ -126,7 +126,7 @@ class BeaconDAOTest extends DatabaseTest {
 
     @Test
     void deleteDoesNothingIfNotExists() {
-        Beacon testBeacon = new Beacon("test");
+        Beacon testBeacon = new Beacon("test", "localhost:8000");
         int id = beaconDAO.insert(testBeacon);
         int updatedRows = beaconDAO.deleteById(id + 1);
 

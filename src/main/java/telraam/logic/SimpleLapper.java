@@ -43,7 +43,7 @@ public class SimpleLapper implements Lapper {
         testTeam = new Team("test", 1);
         testTeam.setId(1);
         this.teams.add(testTeam);
-        Beacon testBeacon = new Beacon("beacon A");
+        Beacon testBeacon = new Beacon("beacon A", "localhost:8001");
         testBeacon.setId(1);
         Baton testBaton = new Baton("baton 1");
         testBaton.setId(1);
