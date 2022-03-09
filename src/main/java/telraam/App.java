@@ -12,13 +12,22 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
 import telraam.database.daos.*;
+import telraam.database.models.Baton;
+import telraam.database.models.Beacon;
+import telraam.database.models.Detection;
 import telraam.healthchecks.TemplateHealthCheck;
 import telraam.station.Fetcher;
+import telraam.logic.Lapper;
+import telraam.logic.viterbi.ViterbiLapper;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class App extends Application<AppConfiguration> {
@@ -56,8 +65,9 @@ public class App extends Application<AppConfiguration> {
         this.environment = environment;
         // Add database
         final JdbiFactory factory = new JdbiFactory();
-        database = factory.build(environment, configuration.getDataSourceFactory(),
-                "postgresql");
+        this.database =
+                factory.build(environment, configuration.getDataSourceFactory(),
+                        "postgresql");
 
         // Add api resources
         JerseyEnvironment jersey = environment.jersey();
@@ -81,14 +91,43 @@ public class App extends Application<AppConfiguration> {
 
         // Add URL mapping
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+        
+        // Set up lapper algorithms
+        Set<Lapper> lappers = new HashSet<>();
 
+        lappers.add(new ViterbiLapper(this.database));
+
+        // Enable lapper APIs
+        for (Lapper lapper : lappers) {
+            lapper.registerAPI(jersey);
+        }
+        
         Fetcher fetcher = new Fetcher();
         fetcher.addStation("http://localhost:8001/detection/");
         fetcher.addStation("http://localhost:8002/detection/");
         fetcher.addStation("http://localhost:8003/detection/");
         fetcher.addStation("http://localhost:8004/detection/");
 
-        fetcher.addDetectionHanlder(x -> logger.info(x.getStationId() + " " + x.getId()));
+        fetcher.addDetectionHanlder(x -> {
+            BatonDAO batonDAO = this.database.onDemand(BatonDAO.class);
+            Optional<Baton> baton = batonDAO.getByMAC(x.getMac());
+            BeaconDAO beaconDAO = this.database.onDemand(BeaconDAO.class);
+            Optional<Beacon> beacon = beaconDAO.getById(x.getStationId());
+
+            if (baton.isEmpty() || beacon.isEmpty()) {
+                return;
+            }
+
+            Detection detection = new Detection(
+                baton.get().getId(),
+                beacon.get().getId(),
+                new Timestamp(x.getDetectionTimestamp())
+            );
+            for (Lapper lapper : lappers) {
+                lapper.handle(detection);
+            }
+            logger.info(x.getStationRonnyName() + " " + x.getId());
+        });
 
         Thread thread = new Thread(fetcher.start());
         thread.start();

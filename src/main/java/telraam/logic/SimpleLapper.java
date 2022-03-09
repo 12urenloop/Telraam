@@ -1,5 +1,6 @@
 package telraam.logic;
 
+import io.dropwizard.jersey.setup.JerseyEnvironment;
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.LapDAO;
 import telraam.database.daos.LapSourceDAO;
@@ -63,6 +64,9 @@ public class SimpleLapper implements Lapper {
         currentDetections.add(msg);
         generateLap(currentDetections);
     }
+
+    @Override
+    public void registerAPI(JerseyEnvironment jersey) {}
 
     private void generateLap(List<Detection> detections) {
         Detection first = detections.get(0);

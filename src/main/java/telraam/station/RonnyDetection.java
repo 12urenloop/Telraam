@@ -3,7 +3,7 @@ package telraam.station;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Detection {
+public class RonnyDetection {
     private int id;
     private String mac;
     private int rssi;
@@ -13,7 +13,9 @@ public class Detection {
     @JsonProperty("detection_timestamp")
     private long detectionTimestamp;
     @JsonIgnore
-    private String stationId;
+    private String stationRonnyName;
+    @JsonIgnore
+    private int stationId;
 
     public int getId() {
         return this.id;
@@ -39,11 +41,17 @@ public class Detection {
         return detectionTimestamp;
     }
 
-    public String getStationId() {
+    public int getStationId() {
         return stationId;
     }
 
-    public void setStationId(String stationId) {
-        this.stationId = stationId;
+    public String getStationRonnyName() {
+        return stationRonnyName;
     }
+
+    public void setStationRonnyName(String stationRonnyName) {
+        this.stationRonnyName = stationRonnyName;
+    }
+
+    public void setStationId(int id) { this.stationId = id; }
 }

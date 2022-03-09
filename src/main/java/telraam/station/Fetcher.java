@@ -38,7 +38,7 @@ public class Fetcher {
     private FetchConfig config;
     private List<Station> stations;
     private List<AtomicBoolean> busy;
-    private List<Consumer<Detection>> detectionHandlers;
+    private List<Consumer<RonnyDetection>> detectionHandlers;
     private int current = 0;
 
     public Fetcher() {
@@ -56,7 +56,7 @@ public class Fetcher {
         this.config = config;
     }
 
-    public void addDetectionHanlder(Consumer<Detection> handler) {
+    public void addDetectionHanlder(Consumer<RonnyDetection> handler) {
         this.detectionHandlers.add(handler);
     }
 
@@ -108,16 +108,14 @@ public class Fetcher {
         return () -> this.busy.get(index).set(false);
     }
 
-    private Void handleDetection(RonnyResponse detections) {
-        for (Detection detection : detections.getDetections()) {
-            detection.setStationId(detections.getStationId());
+    private void handleDetection(RonnyResponse detections) {
+        for (RonnyDetection detection : detections.getDetections()) {
+            detection.setStationRonnyName(detections.getStationRonnyName());
 
-            for (Consumer<Detection> h : this.detectionHandlers) {
+            for (Consumer<RonnyDetection> h : this.detectionHandlers) {
                 h.accept(detection);
             }
         }
-
-        return null;
     }
 
     private void handleError(Throwable err) {
@@ -135,7 +133,7 @@ public class Fetcher {
                 var detections = x.body().get();
                 onDetections.accept(detections);
                 detections.getDetections().stream()
-                        .map(Detection::getId)
+                        .map(RonnyDetection::getId)
                         .forEach(station::setLastSeenId);
             }
 

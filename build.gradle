@@ -67,6 +67,9 @@ dependencies {
     testImplementation('org.mockito:mockito-core:3.12.4')
     testImplementation("io.dropwizard:dropwizard-testing:" + dropwizardVersion)
 
+    // Statistics for Viterbi-lapper
+    implementation("org.apache.commons:commons-math3:3.0")
+
     // JAX-B dependencies for JDK 9+  -> https://stackoverflow.com/a/43574427
     implementation 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
     implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.1'
