@@ -19,7 +19,7 @@ public interface BeaconDAO extends DAO<Beacon> {
     List<Beacon> getAll();
 
     @Override
-    @SqlUpdate("INSERT INTO beacon (name distance_from_start, broken) VALUES (:name, :distanceFromStart, :isBroken)")
+    @SqlUpdate("INSERT INTO beacon (name, distance_from_start, broken) VALUES (:name, :distanceFromStart, :isBroken)")
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Beacon beacon);
 

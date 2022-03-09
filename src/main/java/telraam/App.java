@@ -11,21 +11,24 @@ import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
-import telraam.beacon.BeaconAggregator;
 import telraam.database.daos.*;
+import telraam.database.models.Baton;
+import telraam.database.models.Beacon;
 import telraam.database.models.Detection;
 import telraam.healthchecks.TemplateHealthCheck;
+import telraam.station.Fetcher;
 import telraam.logic.Lapper;
 import telraam.logic.viterbi.ViterbiLapper;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
-
 
 public class App extends Application<AppConfiguration> {
     private static Logger logger = Logger.getLogger(App.class.getName());
@@ -55,7 +58,6 @@ public class App extends Application<AppConfiguration> {
         });
     }
 
-
     @Override
     public void run(AppConfiguration configuration, Environment environment)
             throws IOException {
@@ -66,7 +68,6 @@ public class App extends Application<AppConfiguration> {
         this.database =
                 factory.build(environment, configuration.getDataSourceFactory(),
                         "postgresql");
-
 
         // Add api resources
         JerseyEnvironment jersey = environment.jersey();
@@ -81,8 +82,7 @@ public class App extends Application<AppConfiguration> {
                 new TemplateHealthCheck(configuration.getTemplate()));
 
         // Enable CORS
-        final FilterRegistration.Dynamic cors =
-                environment.servlets().addFilter("CORS", CrossOriginFilter.class);
+        final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
 
         // Configure CORS parameters
         cors.setInitParameter("allowedOrigins", "*");
@@ -91,8 +91,8 @@ public class App extends Application<AppConfiguration> {
 
         // Add URL mapping
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
-
-        // Set up lapper algorithm
+        
+        // Set up lapper algorithms
         Set<Lapper> lappers = new HashSet<>();
 
         lappers.add(new ViterbiLapper(this.database));
@@ -101,38 +101,37 @@ public class App extends Application<AppConfiguration> {
         for (Lapper lapper : lappers) {
             lapper.registerAPI(jersey);
         }
+        
+        Fetcher fetcher = new Fetcher();
+        fetcher.addStation("http://localhost:8001/detection/");
+        fetcher.addStation("http://localhost:8002/detection/");
+        fetcher.addStation("http://localhost:8003/detection/");
+        fetcher.addStation("http://localhost:8004/detection/");
 
-        // Set up beacon communications
-        BeaconAggregator ba;
-        if (configuration.getBeaconPort() < 0) {
-            ba = new BeaconAggregator();
-        } else {
-            ba = new BeaconAggregator(configuration.getBeaconPort());
-        }
-        ba.onError(e -> {
-            logger.warning(e.getMessage());
-            return null;
-        });
-        ba.onData(e -> {
-            logger.info(e.toString());
-            DetectionDAO detectionDAO = database.onDemand(DetectionDAO.class);
-            Detection detection = e.toDetection();
-            detectionDAO.insert(detection);
+        fetcher.addDetectionHanlder(x -> {
+            BatonDAO batonDAO = this.database.onDemand(BatonDAO.class);
+            Optional<Baton> baton = batonDAO.getByMAC(x.getMac());
+            BeaconDAO beaconDAO = this.database.onDemand(BeaconDAO.class);
+            Optional<Beacon> beacon = beaconDAO.getById(x.getStationId());
+
+            if (baton.isEmpty() || beacon.isEmpty()) {
+                return;
+            }
+
+            Detection detection = new Detection(
+                baton.get().getId(),
+                beacon.get().getId(),
+                new Timestamp(x.getDetectionTimestamp())
+            );
             for (Lapper lapper : lappers) {
                 lapper.handle(detection);
             }
-            return null;
+            logger.info(x.getStationRonnyName() + " " + x.getId());
         });
-        ba.onConnect(_e -> {
-            logger.info("Connect");
-            return null;
-        });
-        ba.onDisconnect(_e -> {
-            logger.info("Disconnected");
-            return null;
-        });
-        Thread beaconMessages = new Thread(ba);
-        beaconMessages.start();
+
+        Thread thread = new Thread(fetcher.start());
+        thread.start();
+        logger.info("Up and running!");
     }
 
     public AppConfiguration getConfig() {
