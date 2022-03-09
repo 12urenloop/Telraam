@@ -3,6 +3,7 @@ package telraam.database.models;
 public class Beacon {
     private Integer id;
     private String name;
+    private Double distanceFromStart;
     private Boolean isBroken;
 
     public Beacon() {
@@ -32,6 +33,14 @@ public class Beacon {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Double getDistanceFromStart() {
+        return distanceFromStart;
+    }
+
+    public void setDistanceFromStart(Double distanceFromStart) {
+        this.distanceFromStart = distanceFromStart;
     }
 
     public Boolean getIsBroken() {

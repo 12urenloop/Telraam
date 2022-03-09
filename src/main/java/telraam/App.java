@@ -13,12 +13,17 @@ import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
 import telraam.beacon.BeaconAggregator;
 import telraam.database.daos.*;
+import telraam.database.models.Detection;
 import telraam.healthchecks.TemplateHealthCheck;
+import telraam.logic.Lapper;
+import telraam.logic.viterbi.ViterbiLapper;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 
 
@@ -58,7 +63,7 @@ public class App extends Application<AppConfiguration> {
         this.environment = environment;
         // Add database
         final JdbiFactory factory = new JdbiFactory();
-        database =
+        this.database =
                 factory.build(environment, configuration.getDataSourceFactory(),
                         "postgresql");
 
@@ -87,6 +92,17 @@ public class App extends Application<AppConfiguration> {
         // Add URL mapping
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
+        // Set up lapper algorithm
+        Set<Lapper> lappers = new HashSet<>();
+
+        lappers.add(new ViterbiLapper(this.database));
+
+        // Enable lapper APIs
+        for (Lapper lapper : lappers) {
+            lapper.registerAPI(jersey);
+        }
+
+        // Set up beacon communications
         BeaconAggregator ba;
         if (configuration.getBeaconPort() < 0) {
             ba = new BeaconAggregator();
@@ -99,6 +115,12 @@ public class App extends Application<AppConfiguration> {
         });
         ba.onData(e -> {
             logger.info(e.toString());
+            DetectionDAO detectionDAO = database.onDemand(DetectionDAO.class);
+            Detection detection = e.toDetection();
+            detectionDAO.insert(detection);
+            for (Lapper lapper : lappers) {
+                lapper.handle(detection);
+            }
             return null;
         });
         ba.onConnect(_e -> {
