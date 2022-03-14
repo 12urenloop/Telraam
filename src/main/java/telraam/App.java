@@ -105,14 +105,22 @@ public class App extends Application<AppConfiguration> {
         Fetcher fetcher = new Fetcher();
 
         BeaconDAO beaconDAO = this.database.onDemand(BeaconDAO.class);
-        beaconDAO.getAll().forEach(beacon -> fetcher.addStation(beacon.getUrl() + "/detections/"));
+        beaconDAO.getAll().forEach(beacon -> fetcher.addStation("http://" + beacon.getUrl() + ":8000/detections/", beacon.getId()));
 
         fetcher.addDetectionHanlder(x -> {
+            if (x.getRssi() < -70) {
+                return;
+            }
+
             BatonDAO batonDAO = this.database.onDemand(BatonDAO.class);
-            Optional<Baton> baton = batonDAO.getByMAC(x.getMac());
+            DetectionDAO detectionDAO = this.database.onDemand(DetectionDAO.class);
+            Optional<Baton> baton = batonDAO.getByMAC(x.getMac().toUpperCase());
             Optional<Beacon> beacon = beaconDAO.getById(x.getStationId());
 
             if (baton.isEmpty() || beacon.isEmpty()) {
+                System.err.println("baton or beacon are empty");
+                System.err.println(x.getMac());
+                System.err.println(x.getStationId());
                 return;
             }
 
@@ -121,6 +129,9 @@ public class App extends Application<AppConfiguration> {
                 beacon.get().getId(),
                 new Timestamp(x.getDetectionTimestamp())
             );
+
+            detectionDAO.insert(detection);
+
             for (Lapper lapper : lappers) {
                 lapper.handle(detection);
             }
