@@ -17,8 +17,7 @@ public interface DetectionDAO extends DAO<Detection> {
     List<Detection> getAll();
 
     @Override
-    @SqlUpdate("INSERT INTO detection (station_id, baton_id, timestamp) " +
-            "VALUES (:stationId, :batonId, :timestamp)")
+    @SqlUpdate("INSERT INTO detection (station_id, baton_id, timestamp) VALUES (:stationId, :batonId, :timestamp)")
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Detection detection);
 
@@ -36,4 +35,8 @@ public interface DetectionDAO extends DAO<Detection> {
             "station_id = :stationId, " +
             "timestamp = :timestamp WHERE id = :id")
     int update(@Bind("id") int id, @BindBean Detection modelObj);
+
+    @SqlQuery("SELECT * FROM detection WHERE id = (SELECT MAX(id) FROM detection WHERE station_id = :stationId)")
+    @RegisterBeanMapper(Detection.class)
+    Optional<Detection> latestDetectionByStationId(@Bind("stationId") int stationId);
 }

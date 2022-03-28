@@ -1,158 +1,107 @@
 package telraam.station;
 
+import org.jdbi.v3.core.Jdbi;
+import telraam.database.daos.BatonDAO;
+import telraam.database.daos.DetectionDAO;
+import telraam.database.daos.StationDAO;
+import telraam.database.models.Detection;
+import telraam.database.models.Station;
+
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
+import java.sql.Timestamp;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
+import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import telraam.station.FetchConfig.WaitBetween;
-
 public class Fetcher {
-    private static class Station {
-        private String uriBase;
-        private int lastSeenId;
-        private int id;
+    private Station station;
 
-        public Station(String uri, int id) {
-            this.uriBase = uri;
-            this.lastSeenId = 0;
-            this.id = id;
-        }
+    private final BatonDAO batonDAO;
+    private final DetectionDAO detectionDAO;
+    private final StationDAO stationDAO;
 
-        public URI getUri() {
-            return URI.create(this.uriBase + this.lastSeenId);
-        }
+    private final HttpClient client = HttpClient.newHttpClient();
+    private final Logger logger = Logger.getLogger(Fetcher.class.getName());
 
-        public void setLastSeenId(int id) {
-            if (id > this.lastSeenId)
-                this.lastSeenId = id;
-        }
 
-        public int getId() {
-            return this.id;
-        }
-    }
+    public Fetcher(Jdbi database, Station station) {
+        this.batonDAO = database.onDemand(BatonDAO.class);
+        this.detectionDAO = database.onDemand(DetectionDAO.class);
+        this.stationDAO = database.onDemand(StationDAO.class);
 
-    private static HttpClient client = HttpClient.newHttpClient();
-    private static Logger logger = Logger.getLogger(Fetcher.class.getName());
-
-    private FetchConfig config;
-    private List<Station> stations;
-    private List<AtomicBoolean> busy;
-    private List<Consumer<RonnyDetection>> detectionHandlers;
-    private int current = 0;
-
-    public Fetcher() {
-        this(new FetchConfig(WaitBetween.PER_STATION_BLOCK, 200));
-    }
-
-    public Fetcher(FetchConfig config) {
-        this.stations = new ArrayList<>();
-        this.busy = new ArrayList<>();
-        this.detectionHandlers = new ArrayList<>();
-        this.config = config;
-    }
-
-    public void setConfig(FetchConfig config) {
-        this.config = config;
-    }
-
-    public void addDetectionHandler(Consumer<RonnyDetection> handler) {
-        this.detectionHandlers.add(handler);
-    }
-
-    public void addStation(String urlBase, int id) {
-        this.stations.add(new Station(urlBase, id));
-        this.busy.add(new AtomicBoolean(false));
-    }
-
-    public void fetchAll() {
-        for (int i = 0; i < this.stations.size(); i++) {
-            if (!this.busy.get(i).get()) {
-                Runnable end = this.getEnd(i);
-                get(this.stations.get(i), this::handleError, this::handleDetection, end);
-            }
-        }
+        this.station = station;
     }
 
     public void fetch() {
-        if (!this.stations.isEmpty()) {
-            if (!this.busy.get(this.current).get()) {
-                Runnable end = this.getEnd(this.current);
-                get(this.stations.get(this.current), this::handleError, this::handleDetection, end);
+        logger.info("Running Fetcher for station(" + this.station.getId() + ")");
+        JsonBodyHandler<RonnyResponse> bodyHandler = new JsonBodyHandler<>(RonnyResponse.class);
+
+        while (true) {
+            //Update the station to account for possible changes in the database
+            this.stationDAO.getById(station.getId()).ifPresentOrElse(
+                    station -> this.station = station,
+                    () -> this.logger.severe("Can't update station from database.")
+            );
+
+            //Get last detection id
+            int lastDetectionId = 0;
+            Optional<Detection> lastDetection = detectionDAO.latestDetectionByStationId(this.station.getId());
+            if (lastDetection.isPresent()) {
+                lastDetectionId = lastDetection.get().getId();
             }
 
-            this.current++;
-            if (this.stations.size() <= this.current)
-                this.current = 0;
-        }
-    }
-
-    public Runnable start() {
-        return () -> {
-            while (true) {
-                if (config.waitPolicy() == WaitBetween.PER_STATION)
-                    this.fetch();
-                else if (config.waitPolicy() == WaitBetween.PER_STATION_BLOCK)
-                    this.fetchAll();
-
-                try {
-                    Thread.sleep(this.config.waitMs());
-                } catch (InterruptedException ex) {
-                    return;
-                }
+            //Create URL
+            URI url;
+            try {
+                url = new URI(station.getUrl() + "detections/" + lastDetectionId);
+            } catch (URISyntaxException ex) {
+                this.logger.severe(ex.getMessage());
+                continue; //TODO: add timeout
             }
-        };
-    }
 
-    private Runnable getEnd(int index) {
-        return () -> this.busy.get(index).set(false);
-    }
+            //Create request
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(url)
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .build();
 
-    private void handleDetection(RonnyResponse detections) {
-        for (RonnyDetection detection : detections.getDetections()) {
-            detection.setStationRonnyName(detections.getStationRonnyName());
-
-            for (Consumer<RonnyDetection> h : this.detectionHandlers) {
-                h.accept(detection);
+            //Do request
+            HttpResponse<Supplier<RonnyResponse>> response;
+            try {
+                response = this.client.send(request, bodyHandler);
+            } catch (IOException ex) {
+                this.logger.severe(ex.getMessage());
+                continue;
+            } catch (InterruptedException ex) {
+                this.logger.warning(ex.getMessage());
+                return; //Interrupted so stopping the thread
             }
-        }
-    }
 
-    private void handleError(Throwable err) {
-        logger.log(Level.WARNING, "Error", err);
-    }
-
-    protected static void get(Station station, Consumer<Throwable> onError,
-            Consumer<RonnyResponse> onDetections, Runnable after) {
-        // create a request
-        var request = HttpRequest.newBuilder(station.getUri())
-                .version(HttpClient.Version.HTTP_1_1)
-                .build();
-        var bodyHandler = new JsonBodyHandler<>(RonnyResponse.class);
-
-        try {
-            HttpResponse<Supplier<RonnyResponse>> x = client.send(request, bodyHandler);
-            if (x.statusCode() == 200) {
-                var detections = x.body().get();
-                detections.setStationId(station.getId());
-                onDetections.accept(detections);
-                detections.getDetections().stream()
-                        .map(RonnyDetection::getId)
-                        .forEach(station::setLastSeenId);
+            //Check response state
+            if (response.statusCode() != 200) {
+                this.logger.warning(
+                        "Unexpected status code(" + response.statusCode() + ") for station(" + this.station.getName() + ")"
+                );
+                continue;
             }
-        } catch (IOException | InterruptedException e) {
-            onError.accept(e);
-        } finally {
-            after.run();
+
+            //Insert detections
+            List<RonnyDetection> detections = response.body().get().detections;
+            for (RonnyDetection detection : detections) {
+                batonDAO.getByMAC(detection.mac).ifPresent(value -> {
+                    detectionDAO.insert(new Detection(
+                            value.getId(),
+                            station.getId(),
+                            new Timestamp(detection.detectionTimestamp)
+                    ));
+                });
+            }
         }
     }
 }
