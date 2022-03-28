@@ -20,7 +20,7 @@ public class SimpleLapper implements Lapper {
 
     private List<Team> teams;
     private List<Baton> batons;
-    private List<Beacon> beacons;
+    private List<Station> stations;
     private Jdbi jdbi;
     private LapDAO lapDAO;
     private LapSourceDAO lapSourceDAO;
@@ -35,7 +35,7 @@ public class SimpleLapper implements Lapper {
 
         this.teams = new ArrayList<>();
         this.batons = new ArrayList<>();
-        this.beacons = new ArrayList<>();
+        this.stations = new ArrayList<>();
         this.positionMap = new HashMap<>();
         this.detections = new HashMap<>();
 
@@ -43,8 +43,8 @@ public class SimpleLapper implements Lapper {
         testTeam = new Team("test", 1);
         testTeam.setId(1);
         this.teams.add(testTeam);
-        Beacon testBeacon = new Beacon("beacon A", "localhost:8001");
-        testBeacon.setId(1);
+        Station testStation = new Station("station A", "localhost:8001");
+        testStation.setId(1);
         Baton testBaton = new Baton("baton 1");
         testBaton.setId(1);
         // TODO get this from the database
@@ -74,8 +74,8 @@ public class SimpleLapper implements Lapper {
         for (int i = 1; i < detections.size(); i++) {
             Detection detection = detections.get(i);
 
-            if (positionMap.get(first.getBeaconId()).equals(
-                    positionMap.get(detection.getBeaconId()))) {
+            if (positionMap.get(first.getStationId()).equals(
+                    positionMap.get(detection.getStationId()))) {
                 this.lapDAO.insert(new Lap(detection.getBatonId(), this.source.getId(),
                         detection.getTimestamp()));
                 detections.clear();

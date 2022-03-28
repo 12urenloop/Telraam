@@ -65,7 +65,7 @@ public class Fetcher {
         this.config = config;
     }
 
-    public void addDetectionHanlder(Consumer<RonnyDetection> handler) {
+    public void addDetectionHandler(Consumer<RonnyDetection> handler) {
         this.detectionHandlers.add(handler);
     }
 

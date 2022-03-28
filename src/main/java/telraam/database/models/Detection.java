@@ -5,15 +5,15 @@ import java.sql.Timestamp;
 public class Detection {
     private Integer id;
     private Integer batonId;
-    private Integer beaconId;
+    private Integer stationId;
     private Timestamp timestamp;
 
     public Detection() {
     }
 
-    public Detection(Integer batonId, Integer beaconId, Timestamp timestamp) {
+    public Detection(Integer batonId, Integer stationId, Timestamp timestamp) {
         this.batonId = batonId;
-        this.beaconId = beaconId;
+        this.stationId = stationId;
         this.timestamp = timestamp;
     }
 
@@ -33,12 +33,12 @@ public class Detection {
         this.batonId = batonId;
     }
 
-    public Integer getBeaconId() {
-        return beaconId;
+    public Integer getStationId() {
+        return stationId;
     }
 
-    public void setBeaconId(Integer beaconId) {
-        this.beaconId = beaconId;
+    public void setStationId(Integer stationId) {
+        this.stationId = stationId;
     }
 
     public Timestamp getTimestamp() {

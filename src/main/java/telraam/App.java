@@ -13,7 +13,7 @@ import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
 import telraam.database.daos.*;
 import telraam.database.models.Baton;
-import telraam.database.models.Beacon;
+import telraam.database.models.Station;
 import telraam.database.models.Detection;
 import telraam.healthchecks.TemplateHealthCheck;
 import telraam.station.Fetcher;
@@ -72,7 +72,7 @@ public class App extends Application<AppConfiguration> {
         // Add api resources
         JerseyEnvironment jersey = environment.jersey();
         jersey.register(new BatonResource(database.onDemand(BatonDAO.class)));
-        jersey.register(new BeaconResource(database.onDemand(BeaconDAO.class)));
+        jersey.register(new StationResource(database.onDemand(StationDAO.class)));
         jersey.register(
                 new DetectionResource(database.onDemand(DetectionDAO.class)));
         jersey.register(new LapResource(database.onDemand(LapDAO.class)));
@@ -104,22 +104,22 @@ public class App extends Application<AppConfiguration> {
         
         Fetcher fetcher = new Fetcher();
 
-        BeaconDAO beaconDAO = this.database.onDemand(BeaconDAO.class);
+        StationDAO stationDAO = this.database.onDemand(StationDAO.class);
         DetectionDAO detectionDAO = this.database.onDemand(DetectionDAO.class);
-        beaconDAO.getAll().forEach(beacon -> fetcher.addStation(beacon.getUrl() + "/detections/", beacon.getId()));
+        stationDAO.getAll().forEach(station -> fetcher.addStation(station.getUrl() + "/detections/", station.getId()));
 
-        fetcher.addDetectionHanlder(x -> {
+        fetcher.addDetectionHandler(x -> {
             BatonDAO batonDAO = this.database.onDemand(BatonDAO.class);
             Optional<Baton> baton = batonDAO.getByMAC(x.getMac());
-            Optional<Beacon> beacon = beaconDAO.getById(x.getStationId());
+            Optional<Station> station = stationDAO.getById(x.getStationId());
 
-            if (baton.isEmpty() || beacon.isEmpty()) {
+            if (baton.isEmpty() || station.isEmpty()) {
                 return;
             }
 
             Detection detection = new Detection(
                 baton.get().getId(),
-                beacon.get().getId(),
+                station.get().getId(),
                 new Timestamp(x.getDetectionTimestamp())
             );
 
