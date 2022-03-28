@@ -105,6 +105,7 @@ public class App extends Application<AppConfiguration> {
         Fetcher fetcher = new Fetcher();
 
         BeaconDAO beaconDAO = this.database.onDemand(BeaconDAO.class);
+        DetectionDAO detectionDAO = this.database.onDemand(DetectionDAO.class);
         beaconDAO.getAll().forEach(beacon -> fetcher.addStation(beacon.getUrl() + "/detections/"));
 
         fetcher.addDetectionHanlder(x -> {
@@ -121,10 +122,12 @@ public class App extends Application<AppConfiguration> {
                 beacon.get().getId(),
                 new Timestamp(x.getDetectionTimestamp())
             );
+
+            detectionDAO.insert(detection);
+
             for (Lapper lapper : lappers) {
                 lapper.handle(detection);
             }
-            logger.info(x.getStationRonnyName() + " " + x.getId());
         });
 
         Thread thread = new Thread(fetcher.start());
