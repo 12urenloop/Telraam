@@ -13,6 +13,7 @@ import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
 import telraam.database.daos.*;
 import telraam.database.models.Baton;
+import telraam.database.models.BatonSwitchover;
 import telraam.database.models.Station;
 import telraam.database.models.Detection;
 import telraam.healthchecks.TemplateHealthCheck;
@@ -76,8 +77,9 @@ public class App extends Application<AppConfiguration> {
         jersey.register(
                 new DetectionResource(database.onDemand(DetectionDAO.class)));
         jersey.register(new LapResource(database.onDemand(LapDAO.class)));
-        jersey.register(new TeamResource(database.onDemand(TeamDAO.class)));
+        jersey.register(new TeamResource(database.onDemand(TeamDAO.class), database.onDemand(BatonSwitchoverDAO.class)));
         jersey.register(new LapSourceResource(database.onDemand(LapSourceDAO.class)));
+        jersey.register(new BatonSwitchoverResource(database.onDemand(BatonSwitchoverDAO.class)));
         environment.healthChecks().register("template",
                 new TemplateHealthCheck(configuration.getTemplate()));
 
