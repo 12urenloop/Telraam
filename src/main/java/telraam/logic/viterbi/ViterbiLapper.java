@@ -204,8 +204,10 @@ public class ViterbiLapper implements Lapper {
         // BREAKING TODO: We need a way to find the team a baton was assigned to at the time of detection
         // This should probably be tagged at detection ingestion time
         for (Detection detection : detections) {
-            int teamId = batonIdToTeamId.get(detection.getBatonId());
-            viterbis.get(teamId).observe(detection.getBeaconId());
+            if (batonIdToTeamId.containsKey(detection.getBatonId())) {
+                int teamId = batonIdToTeamId.get(detection.getBatonId());
+                viterbis.get(teamId).observe(detection.getBeaconId());
+            }
         }
 
         this.currentStates = viterbis.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getState()));
