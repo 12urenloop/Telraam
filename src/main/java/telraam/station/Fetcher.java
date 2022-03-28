@@ -1,12 +1,15 @@
 package telraam.station;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -131,23 +134,25 @@ public class Fetcher {
     protected static void get(Station station, Consumer<Throwable> onError,
             Consumer<RonnyResponse> onDetections, Runnable after) {
         // create a request
-        var request = HttpRequest.newBuilder(station.getUri()).build();
+        var request = HttpRequest.newBuilder(station.getUri())
+                .version(HttpClient.Version.HTTP_1_1)
+                .build();
         var bodyHandler = new JsonBodyHandler<>(RonnyResponse.class);
 
-        client.sendAsync(request, bodyHandler).thenApply(x -> {
+        try {
+            HttpResponse<Supplier<RonnyResponse>> x = client.send(request, bodyHandler);
             if (x.statusCode() == 200) {
                 var detections = x.body().get();
+                detections.setStationId(station.getId());
                 onDetections.accept(detections);
                 detections.getDetections().stream()
                         .map(RonnyDetection::getId)
                         .forEach(station::setLastSeenId);
             }
-
-            return null;
-        }).whenComplete((v, e) -> {
-            if (e != null)
-                onError.accept(e);
+        } catch (IOException | InterruptedException e) {
+            onError.accept(e);
+        } finally {
             after.run();
-        });
+        }
     }
 }
