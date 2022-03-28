@@ -112,7 +112,7 @@ public class App extends Application<AppConfiguration> {
 
         fetcher.addDetectionHandler(x -> {
             BatonDAO batonDAO = this.database.onDemand(BatonDAO.class);
-            Optional<Baton> baton = batonDAO.getByMAC(x.getMac());
+            Optional<Baton> baton = batonDAO.getByMAC(x.getMac().toUpperCase());
             Optional<Station> station = stationDAO.getById(x.getStationId());
 
             if (baton.isEmpty() || station.isEmpty()) {

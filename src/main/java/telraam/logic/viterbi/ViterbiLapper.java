@@ -46,7 +46,7 @@ public class ViterbiLapper implements Lapper {
     }
 
 
-    private ViterbiModel createViterbiModel() {
+    private ViterbiModel<Integer, Integer> createViterbiModel() {
         StationDAO stationDAO = jdbi.onDemand(StationDAO.class);
 
         // We will construct one segment for each station, which will represent its
@@ -181,7 +181,9 @@ public class ViterbiLapper implements Lapper {
         TeamDAO teamDAO = this.jdbi.onDemand(TeamDAO.class);
         DetectionDAO detectionDAO = this.jdbi.onDemand(DetectionDAO.class);
         LapDAO lapDAO = this.jdbi.onDemand(LapDAO.class);
+        BatonSwitchoverDAO batonSwitchoverDAO = this.jdbi.onDemand(BatonSwitchoverDAO.class);
         List<Team> teams = teamDAO.getAll();
+        List<BatonSwitchover> switchovers = batonSwitchoverDAO.getAll();
 
         // TODO: stream these from the database
         List<Detection> detections = detectionDAO.getAll();
@@ -193,12 +195,17 @@ public class ViterbiLapper implements Lapper {
         Map<Integer, ViterbiAlgorithm<Integer>> viterbis = teams.stream()
                 .collect(Collectors.toMap(Team::getId, _team -> new ViterbiAlgorithm<>(viterbiModel)));
 
-        Map<Integer, Integer> batonIdToTeamId = teams.stream()
-                .collect(Collectors.toMap(Team::getBatonId, Team::getId));
+        Map<Integer, Integer> batonIdToTeamId = new HashMap<>();
 
-        // BREAKING TODO: We need a way to find the team a baton was assigned to at the time of detection
-        // This should probably be tagged at detection ingestion time
+        int switchoverIndex = 0;
+
         for (Detection detection : detections) {
+            while (switchovers.get(switchoverIndex).getTimestamp().before(detection.getTimestamp()) && switchoverIndex < switchovers.size()) {
+                BatonSwitchover switchover = switchovers.get(switchoverIndex);
+                batonIdToTeamId.put(switchover.getNewBatonId(), switchover.getTeamId());
+                switchoverIndex += 1;
+            }
+
             if (batonIdToTeamId.containsKey(detection.getBatonId())) {
                 int teamId = batonIdToTeamId.get(detection.getBatonId());
                 viterbis.get(teamId).observe(detection.getStationId());
