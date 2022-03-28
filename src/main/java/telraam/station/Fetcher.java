@@ -59,7 +59,7 @@ public class Fetcher {
             //Create URL
             URI url;
             try {
-                url = new URI(station.getUrl() + "detections/" + lastDetectionId);
+                url = new URI(station.getUrl() + "/detections/" + lastDetectionId);
             } catch (URISyntaxException ex) {
                 this.logger.severe(ex.getMessage());
                 continue; //TODO: add timeout
@@ -98,6 +98,10 @@ public class Fetcher {
                     detectionDAO.insert(new Detection(
                             value.getId(),
                             station.getId(),
+                            detection.rssi,
+                            detection.battery,
+                            detection.uptimeMs,
+                            detection.id,
                             new Timestamp(detection.detectionTimestamp)
                     ));
                 });
