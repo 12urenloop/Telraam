@@ -36,7 +36,18 @@ public class TeamResource extends AbstractListableResource<Team> {
     @Override
     @ApiOperation(value = "Add a new team to the database")
     public int create(Team team) {
-        return super.create(team);
+        int ret = super.create(team);
+
+        if (team.getBatonId() != null) {
+            this.batonSwitchoverDAO.insert(new BatonSwitchover(
+                    ret,
+                    null,
+                    team.getBatonId(),
+                    Timestamp.from(Instant.now())
+            ));
+        }
+
+        return ret;
     }
 
     @Override
