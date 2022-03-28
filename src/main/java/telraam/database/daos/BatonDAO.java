@@ -7,7 +7,6 @@ import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.Baton;
-import telraam.database.models.Beacon;
 
 import java.util.List;
 import java.util.Optional;

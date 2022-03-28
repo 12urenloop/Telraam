@@ -1,8 +1,6 @@
 package telraam.logic.viterbi;
 
 import io.dropwizard.jersey.setup.JerseyEnvironment;
-import io.swagger.models.auth.In;
-import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.*;
 import telraam.database.models.*;
@@ -16,10 +14,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -52,30 +47,30 @@ public class ViterbiLapper implements Lapper {
 
 
     private ViterbiModel createViterbiModel() {
-        BeaconDAO beaconDAO = jdbi.onDemand(BeaconDAO.class);
+        StationDAO stationDAO = jdbi.onDemand(StationDAO.class);
 
-        // We will construct one segment for each beacon, which will represent its
+        // We will construct one segment for each station, which will represent its
         // neighbourhood.
-        List<Beacon> beacons = beaconDAO.getAll();
-        beacons.sort(Comparator.comparing(Beacon::getDistanceFromStart));
+        List<Station> stations = stationDAO.getAll();
+        stations.sort(Comparator.comparing(Station::getDistanceFromStart));
 
 
         Map<Integer, Map<Integer, Double>> emissionProbabilities = new HashMap<>();
-        for (int segmentNum = 0; segmentNum < beacons.size(); segmentNum++) {
+        for (int segmentNum = 0; segmentNum < stations.size(); segmentNum++) {
             Map<Integer, Double> probas = new HashMap<>();
-            for (int beaconNum = 0; beaconNum < beacons.size(); beaconNum++) {
-                int beaconId = beacons.get(beaconNum).getId();
-                if (segmentNum == beaconNum) {
-                    probas.put(beaconId, this.config.SAME_STATION_DETECTION_CHANCE);
+            for (int stationNum = 0; stationNum < stations.size(); stationNum++) {
+                int stationId = stations.get(stationNum).getId();
+                if (segmentNum == stationNum) {
+                    probas.put(stationId, this.config.SAME_STATION_DETECTION_CHANCE);
                 } else {
-                    probas.put(beaconId, this.config.DIFFERENT_STATION_DETECTION_CHANCE);
+                    probas.put(stationId, this.config.DIFFERENT_STATION_DETECTION_CHANCE);
                 }
             }
             emissionProbabilities.put(segmentNum, probas);
         }
 
         Map<Integer, Map<Integer, Double>> transitionProbabilities = new HashMap<>();
-        for (int prevSegment = 0; prevSegment < beacons.size(); prevSegment++) {
+        for (int prevSegment = 0; prevSegment < stations.size(); prevSegment++) {
             Map<Integer, Double> probas = new HashMap<>();
             double sum = 0.0;
 
@@ -84,8 +79,8 @@ public class ViterbiLapper implements Lapper {
 
             // calculate numbers this way so that backwards steps are rounded down
             // and forward steps is rounded up
-            int numStepsBackwards = (beacons.size() - 1) / 2;
-            int numStepsForwards = beacons.size() - 1 - numStepsBackwards;
+            int numStepsBackwards = (stations.size() - 1) / 2;
+            int numStepsForwards = stations.size() - 1 - numStepsBackwards;
 
             double sameStationWeight = this.config.SAME_STATION_DETECTION_CHANCE * this.config.EXPECTED_NUM_DETECTIONS;
             // add 2: one unit of weigth for running forwards, one for running backwards
@@ -96,7 +91,7 @@ public class ViterbiLapper implements Lapper {
             double curBaseProba = 1 / (sameStationWeight + 2);
             for (int i = 1; i <= numStepsForwards; i++) {
                 // compute next segment index
-                int nextSegment = Math.floorMod(prevSegment + i, beacons.size());
+                int nextSegment = Math.floorMod(prevSegment + i, stations.size());
                 double proba = curBaseProba;
                 if (i < numStepsForwards) {
                     // multiply by the probability that this station was not skipped.
@@ -114,7 +109,7 @@ public class ViterbiLapper implements Lapper {
             // refer to above comments
             curBaseProba = 1 / (sameStationWeight + 2);
             for (int i = 1; i <= numStepsBackwards; i++) {
-                int nextSegment = Math.floorMod(prevSegment - i, beacons.size());
+                int nextSegment = Math.floorMod(prevSegment - i, stations.size());
                 double proba = curBaseProba;
                 if (i < numStepsBackwards) {
                     proba *= (1 - skipStationProbability);
@@ -127,8 +122,8 @@ public class ViterbiLapper implements Lapper {
         }
 
         return new ViterbiModel<>(
-                beacons.stream().map(Beacon::getId).collect(Collectors.toSet()),
-                IntStream.range(0, beacons.size()).boxed().collect(Collectors.toSet()),
+                stations.stream().map(Station::getId).collect(Collectors.toSet()),
+                IntStream.range(0, stations.size()).boxed().collect(Collectors.toSet()),
                 transitionProbabilities,
                 emissionProbabilities,
                 calculateStartProbabilities()
@@ -206,7 +201,7 @@ public class ViterbiLapper implements Lapper {
         for (Detection detection : detections) {
             if (batonIdToTeamId.containsKey(detection.getBatonId())) {
                 int teamId = batonIdToTeamId.get(detection.getBatonId());
-                viterbis.get(teamId).observe(detection.getBeaconId());
+                viterbis.get(teamId).observe(detection.getStationId());
             }
         }
 

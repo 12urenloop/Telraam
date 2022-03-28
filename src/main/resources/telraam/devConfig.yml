@@ -2,8 +2,6 @@ template: Hello xd, %s!
 
 defaultName: ${DW_DEFAULT_NAME:-Stranger}
 
-beaconPort: 4564
-
 swagger:
   resourcePackage: 'telraam.api'
 

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import telraam.DatabaseTest;
 import telraam.database.models.Baton;
-import telraam.database.models.Beacon;
+import telraam.database.models.Station;
 import telraam.database.models.Detection;
 
 import java.sql.Timestamp;
@@ -19,7 +19,7 @@ class DetectionDAOTest extends DatabaseTest {
 
     private DetectionDAO detectionDAO;
     private int batonId1;
-    private int beaconId1;
+    private int stationId;
     private Detection exampleDetection;
 
 
@@ -29,11 +29,11 @@ class DetectionDAOTest extends DatabaseTest {
         super.setUp();
         detectionDAO = jdbi.onDemand(DetectionDAO.class);
         BatonDAO batonDAO = jdbi.onDemand(BatonDAO.class);
-        BeaconDAO beaconDAO = jdbi.onDemand(BeaconDAO.class);
+        StationDAO stationDAO = jdbi.onDemand(StationDAO.class);
         batonId1 = batonDAO.insert(new Baton("baton1"));
-        beaconId1 = beaconDAO.insert(new Beacon("beacon1", "localhost:8000"));
+        stationId = stationDAO.insert(new Station("station1", "localhost:8000"));
         exampleDetection =
-                new Detection(batonId1, beaconId1, new Timestamp(123456789));
+                new Detection(batonId1, stationId, new Timestamp(123456789));
     }
 
     @Test
@@ -98,7 +98,7 @@ class DetectionDAOTest extends DatabaseTest {
     void updateDoesntDoAnythingWhenNotExists() {
         int testid = detectionDAO.insert(exampleDetection);
         exampleDetection.setId(testid);
-        int updatedRows = detectionDAO.update(testid + 1, new Detection(batonId1, beaconId1, new Timestamp(123456790)));
+        int updatedRows = detectionDAO.update(testid + 1, new Detection(batonId1, stationId, new Timestamp(123456790)));
         List<Detection> detections = detectionDAO.getAll();
         assertEquals(0, updatedRows);
         assertEquals(1, detections.size());
@@ -108,9 +108,9 @@ class DetectionDAOTest extends DatabaseTest {
     @Test
     void updateOnlyUpdatesRelevantModel() {
         int id1 = detectionDAO.insert(exampleDetection);
-        Detection detection2 = new Detection(batonId1, beaconId1, new Timestamp(123456790));
+        Detection detection2 = new Detection(batonId1, stationId, new Timestamp(123456790));
         int id2 = detectionDAO.insert(detection2);
-        int updatedRows = detectionDAO.update(id1, new Detection(batonId1, beaconId1, new Timestamp(123456791)));
+        int updatedRows = detectionDAO.update(id1, new Detection(batonId1, stationId, new Timestamp(123456791)));
         assertEquals(1, updatedRows);
         assertEquals(2, detectionDAO.getAll().size());
         assertEquals(detection2.getTimestamp(), detectionDAO.getById(id2).get().getTimestamp());

@@ -1,9 +1,3 @@
-template: Hello, %s!
-
-defaultName: ${DW_DEFAULT_NAME:-Stranger}
-
-beaconPort: -1
-
 swagger:
   resourcePackage: 'telraam.api'
 

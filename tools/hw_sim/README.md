@@ -22,7 +22,7 @@ Any versions of the below should work, but when in doubt, take the latest one
 - `-p`: What port to connect to (default: `4564`)
 - `-a`: What address to connect to (default: `127.0.0.1`).
 - `-r`: The amount of runners to spawn.
-- `-b`: The amount of beacons to spawn.
+- `-b`: The amount of stations to spawn.
 - `-m`: The average time per round
 - `-d`: Standard deviation for the average runner speed.
 - `-D`: Standard deviation of round speed, global for all runners.
@@ -30,5 +30,5 @@ Any versions of the below should work, but when in doubt, take the latest one
 
 ### Todo: added bonusses
 
-- Malformed message rate. We need closing and starting tags to properly detect this. So server code and code here. Look at the class `telraam.beacon.BeaconMessage`.
-- Messages per beacon or something, because irl the beacons are probably gonna send more than 1 message for a runner passing by.
+- Malformed message rate. We need closing and starting tags to properly detect this. So server code and code here. Look at the class `telraam.station.BeaconMessage`.
+- Messages per station or something, because irl the stations are probably gonna send more than 1 message for a runner passing by.

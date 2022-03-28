@@ -16,7 +16,6 @@ public class AppConfiguration extends Configuration {
     @NotNull
     private String defaultName = "Stranger";
 
-    private int beaconPort;
     @Valid
     @NotNull
     private DataSourceFactory database = new DataSourceFactory();
@@ -53,17 +52,6 @@ public class AppConfiguration extends Configuration {
     @JsonProperty("database")
     public void setDataSourceFactory(DataSourceFactory factory) {
         this.database = factory;
-    }
-
-    @JsonProperty("beaconPort")
-    public int getBeaconPort() {
-        return beaconPort;
-
-    }
-
-    @JsonProperty("beaconPort")
-    public void setBeaconPort(int port) {
-        beaconPort = port;
     }
 
     @JsonProperty("swagger")

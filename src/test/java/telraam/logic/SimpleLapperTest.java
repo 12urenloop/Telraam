@@ -31,8 +31,8 @@ class SimpleLapperTest {
     }
 
     @Test
-    void testOneBeaconShouldGenerate2Laps() {
-        int beaconId1 = 1;
+    void testOneStationShouldGenerate2Laps() {
+        int stationId1 = 1;
         int batonId1 = 1;
         int baseTime = 10000;
         // amount of milliseconds a lap should take
@@ -41,13 +41,13 @@ class SimpleLapperTest {
 
         // baton passes station 1 for the first time
         Detection d1 =
-                new Detection(batonId1, beaconId1, new Timestamp(baseTime));
+                new Detection(batonId1, stationId1, new Timestamp(baseTime));
         // baton passes station 1 for the second time
-        Detection d2 = new Detection(batonId1, beaconId1,
+        Detection d2 = new Detection(batonId1, stationId1,
                 new Timestamp(baseTime + lapTime));
 
         // baton passes station 1 for the third time
-        Detection d3 = new Detection(batonId1, beaconId1,
+        Detection d3 = new Detection(batonId1, stationId1,
                 new Timestamp(baseTime + lapTime + lapTime));
 
         Lapper lapper = new SimpleLapper(mockJdbi);
