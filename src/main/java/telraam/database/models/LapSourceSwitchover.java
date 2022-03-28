@@ -20,6 +20,10 @@ public class LapSourceSwitchover {
         return id;
     }
 
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     public Integer getNewLapSource() {
         return newLapSource;
     }

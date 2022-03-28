@@ -1,6 +1,7 @@
 package telraam.logic.viterbi;
 
 import io.dropwizard.jersey.setup.JerseyEnvironment;
+import io.swagger.models.auth.In;
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.*;
 import telraam.database.models.*;
@@ -130,16 +131,16 @@ public class ViterbiLapper implements Lapper {
         );
     }
 
-    public Map<Integer, double[]> getProbabilities() {
-        Map<Integer, double[]> ret = new HashMap<>();
+    public Map<Integer, Map<Integer, Double>> getProbabilities() {
+        Map<Integer, Map<Integer, Double>> ret = new HashMap<>();
         for (Map.Entry<Integer, ViterbiState> entry : this.currentStates.entrySet()) {
             ret.put(entry.getKey(), entry.getValue().probabilities());
         }
         return ret;
     }
 
-    public Map<Integer, int[]> getLapCounts() {
-        Map<Integer, int[]> ret = new HashMap<>();
+    public Map<Integer, Map<Integer, Integer>> getLapCounts() {
+        Map<Integer, Map<Integer, Integer>> ret = new HashMap<>();
         for (Map.Entry<Integer, ViterbiState> entry : this.currentStates.entrySet()) {
             ret.put(entry.getKey(), entry.getValue().lapCounts());
         }
@@ -228,7 +229,7 @@ public class ViterbiLapper implements Lapper {
 
             long previousLapCount = laps.size();
             ViterbiState state = entry.getValue();
-            long newLapCount = state.lapCounts()[state.mostLikelySegment()];
+            long newLapCount = state.lapCounts().get(state.mostLikelySegment());
 
             // add laps that were not counted yet
             for (long lapCount = previousLapCount; lapCount < newLapCount; lapCount++) {
@@ -241,6 +242,8 @@ public class ViterbiLapper implements Lapper {
                 lapDAO.deleteById(lapToRemove.getId());
             }
         }
+
+        System.out.println("Done calculating laps");
     }
 
     @Override

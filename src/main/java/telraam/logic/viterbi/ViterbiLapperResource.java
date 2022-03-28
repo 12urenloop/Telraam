@@ -23,14 +23,14 @@ public class ViterbiLapperResource {
     @GET
     @Path("/probabilities")
     @ApiOperation(value = "Get lapper position probabilities")
-    public Map<Integer, double[]> getProbabilities() {
+    public Map<Integer, Map<Integer, Double>> getProbabilities() {
         return this.lapper.getProbabilities();
     }
 
     @GET
     @Path("/lapcounts")
     @ApiOperation(value = "Get lapper estimated lap counts")
-    public Map<Integer, int[]> getLapCounts() {
+    public Map<Integer, Map<Integer, Integer>> getLapCounts() {
         return this.lapper.getLapCounts();
     }
 

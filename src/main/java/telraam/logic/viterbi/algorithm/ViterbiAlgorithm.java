@@ -1,5 +1,7 @@
 package telraam.logic.viterbi.algorithm;
 
+import io.swagger.models.auth.In;
+
 import java.util.*;
 
 /**
@@ -18,14 +20,14 @@ public class ViterbiAlgorithm<O> {
 
         // Set up the initial probabilities
         int numSegments = this.model.getHiddenStates().size();
-        double[] probabilities = new double[numSegments];
-        int[] previousSegments = new int[numSegments];
-        int[] lapCounts = new int[numSegments];
+        Map<Integer, Double> probabilities = new HashMap<>();
+        Map<Integer, Integer> previousSegments = new HashMap<>();
+        Map<Integer, Integer> lapCounts = new HashMap<>();
 
         for (Map.Entry<Integer, Double> entry : viterbiModel.getStartProbabilities().entrySet()) {
-            probabilities[entry.getKey()] = entry.getValue();
-            previousSegments[entry.getKey()] = 0;
-            lapCounts[entry.getKey()] = 0;
+            probabilities.put(entry.getKey(), entry.getValue());
+            previousSegments.put(entry.getKey(), 0);
+            lapCounts.put(entry.getKey(), 0);
         }
 
         this.lastState = new ViterbiState(probabilities, previousSegments, lapCounts);
@@ -70,19 +72,19 @@ public class ViterbiAlgorithm<O> {
      */
     public void observe(O observation) {
         int numSegments = this.model.getHiddenStates().size();
-        double[] probabilities = new double[numSegments];
-        int[] previousSegments = new int[numSegments];
-        int[] lapCounts = new int[numSegments];
+        Map<Integer, Double> probabilities = new HashMap<>();
+        Map<Integer, Integer> previousSegments = new HashMap<>();
+        Map<Integer, Integer> lapCounts = new HashMap<>();
 
         for (int nextSegment = 0; nextSegment < numSegments; nextSegment++) {
-            probabilities[nextSegment] = 0;
+            probabilities.put(nextSegment, 0.0);
             for (int previousSegment = 0; previousSegment < numSegments; previousSegment++) {
-                double probability = this.lastState.probabilities()[previousSegment] *
+                double probability = this.lastState.probabilities().get(previousSegment) *
                         this.model.getTransitionProbabilities().get(previousSegment).get(nextSegment) *
                         this.model.getEmitProbabilities().get(nextSegment).get(observation);
-                if (probabilities[nextSegment] < probability) {
-                    probabilities[nextSegment] = probability;
-                    previousSegments[nextSegment] = previousSegment;
+                if (probabilities.get(nextSegment) < probability) {
+                    probabilities.put(nextSegment, probability);
+                    previousSegments.put(nextSegment, previousSegment);
 
                     int half = numSegments / 2;
                     // Dit is het algoritme van De Voerstreek
@@ -90,23 +92,23 @@ public class ViterbiAlgorithm<O> {
 
                     if (delta > 0 && previousSegment > nextSegment) {
                         // forward wrap-around
-                        lapCounts[nextSegment] = this.lastState.lapCounts()[previousSegment] + 1;
+                        lapCounts.put(nextSegment, this.lastState.lapCounts().get(previousSegment) + 1);
 
                     } else if (delta < 0 && previousSegment < nextSegment) {
                         // backwards wrap-around
-                        lapCounts[nextSegment] = this.lastState.lapCounts()[previousSegment] - 1;
+                        lapCounts.put(nextSegment, this.lastState.lapCounts().get(previousSegment) - 1);
                     } else {
                         // no wrap-around (c) robbe
-                        lapCounts[nextSegment] = this.lastState.lapCounts()[previousSegment];
+                        lapCounts.put(nextSegment, this.lastState.lapCounts().get(previousSegment));
                     }
                 }
             }
         }
 
         // normalize probabilities
-        double sum = Arrays.stream(probabilities).sum();
+        double sum = probabilities.values().stream().reduce(0.0, Double::sum);
         for (int i = 0; i < numSegments; i++) {
-            probabilities[i] /= sum;
+            probabilities.put(i, probabilities.get(i) / sum);
         }
 
         this.lastState = new ViterbiState(probabilities, previousSegments, lapCounts);
