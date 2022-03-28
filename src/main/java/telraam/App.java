@@ -106,7 +106,7 @@ public class App extends Application<AppConfiguration> {
 
         BeaconDAO beaconDAO = this.database.onDemand(BeaconDAO.class);
         DetectionDAO detectionDAO = this.database.onDemand(DetectionDAO.class);
-        beaconDAO.getAll().forEach(beacon -> fetcher.addStation(beacon.getUrl() + "/detections/"));
+        beaconDAO.getAll().forEach(beacon -> fetcher.addStation(beacon.getUrl() + "/detections/", beacon.getId()));
 
         fetcher.addDetectionHanlder(x -> {
             BatonDAO batonDAO = this.database.onDemand(BatonDAO.class);

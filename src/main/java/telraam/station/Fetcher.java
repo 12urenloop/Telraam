@@ -16,10 +16,12 @@ public class Fetcher {
     private static class Station {
         private String uriBase;
         private int lastSeenId;
+        private int id;
 
-        public Station(String uri) {
+        public Station(String uri, int id) {
             this.uriBase = uri;
             this.lastSeenId = 0;
+            this.id = id;
         }
 
         public URI getUri() {
@@ -29,6 +31,10 @@ public class Fetcher {
         public void setLastSeenId(int id) {
             if (id > this.lastSeenId)
                 this.lastSeenId = id;
+        }
+
+        public int getId() {
+            return this.id;
         }
     }
 
@@ -60,8 +66,8 @@ public class Fetcher {
         this.detectionHandlers.add(handler);
     }
 
-    public void addStation(String urlBase) {
-        this.stations.add(new Station(urlBase));
+    public void addStation(String urlBase, int id) {
+        this.stations.add(new Station(urlBase, id));
         this.busy.add(new AtomicBoolean(false));
     }
 
