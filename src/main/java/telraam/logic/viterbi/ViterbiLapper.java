@@ -80,9 +80,12 @@ public class ViterbiLapper implements Lapper {
         for (int prevSegment = 0; prevSegment < stations.size(); prevSegment++) {
             Map<Integer, Double> probas = new HashMap<>();
 
-            // a station is skipped if all detections are missed
+            // a station is skipped when it is broken, or when all detections are missed
             // TODO: this currently does not take into account detections by other stations
-            double skipStationProbability = Math.pow(1 - this.config.SAME_STATION_DETECTION_CHANCE, this.config.EXPECTED_NUM_DETECTIONS);
+            double skipStationProbability = this.config.BROKEN_STATION_PROBABILITY + Math.pow(
+                    1 - this.config.SAME_STATION_DETECTION_CHANCE,
+                    this.config.EXPECTED_NUM_DETECTIONS
+            );
 
             // calculate amount of steps this way so that backwards steps are rounded down
             // and forward steps is rounded up (because we'd like to assume people run in the right direction)
@@ -91,7 +94,7 @@ public class ViterbiLapper implements Lapper {
 
             // This represents the odds (sameStationWeight against one) of staying on the same station
             // "how much more likely is it to stay, compared to moving"
-            double sameStationWeight = this.config.EXPECTED_NUM_DETECTIONS;
+            double sameStationWeight = (1 - this.config.BROKEN_STATION_PROBABILITY) * this.config.EXPECTED_NUM_DETECTIONS;
             // add 2: one unit of weight for running forwards, one for running backwards
             probas.put(prevSegment, sameStationWeight / (sameStationWeight + 2));
 
