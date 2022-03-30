@@ -1,2 +1,4 @@
-alter table baton
-    add mac varchar not null unique;
+--Delete all existing records.
+DELETE FROM baton;
+
+ALTER TABLE baton ADD mac VARCHAR NOT NULL UNIQUE;

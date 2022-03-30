@@ -3,7 +3,9 @@ package telraam.database.daos;
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
+import org.jdbi.v3.sqlobject.customizer.BindBeanList;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
+import org.jdbi.v3.sqlobject.statement.SqlBatch;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.Detection;
@@ -17,10 +19,19 @@ public interface DetectionDAO extends DAO<Detection> {
     List<Detection> getAll();
 
     @Override
-    @SqlUpdate("INSERT INTO detection (station_id, baton_id, timestamp) " +
-            "VALUES (:stationId, :batonId, :timestamp)")
+    @SqlUpdate("""
+            INSERT INTO detection (station_id, baton_id, timestamp, rssi, battery, remote_id, uptime_ms) \
+            VALUES (:stationId, :batonId, :timestamp, :rssi, :battery, :remoteId, :uptimeMs)
+            """)
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Detection detection);
+
+    @SqlBatch("""
+            INSERT INTO detection (station_id, baton_id, timestamp, rssi, battery, remote_id, uptime_ms) \
+            VALUES (:stationId, :batonId, :timestamp, :rssi, :battery, :remoteId, :uptimeMs)
+            """)
+    @GetGeneratedKeys({"id"})
+    int insertAll(@BindBean List<Detection> detection);
 
     @SqlQuery("SELECT * FROM detection WHERE id = :id")
     @RegisterBeanMapper(Detection.class)
@@ -36,4 +47,8 @@ public interface DetectionDAO extends DAO<Detection> {
             "station_id = :stationId, " +
             "timestamp = :timestamp WHERE id = :id")
     int update(@Bind("id") int id, @BindBean Detection modelObj);
+
+    @SqlQuery("SELECT * FROM detection WHERE remote_id = (SELECT MAX(remote_id) FROM detection WHERE station_id = :stationId) AND station_id = :stationId")
+    @RegisterBeanMapper(Detection.class)
+    Optional<Detection> latestDetectionByStationId(@Bind("stationId") int stationId);
 }

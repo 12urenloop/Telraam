@@ -12,22 +12,17 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
 import telraam.database.daos.*;
-import telraam.database.models.Baton;
-import telraam.database.models.BatonSwitchover;
 import telraam.database.models.Station;
-import telraam.database.models.Detection;
 import telraam.healthchecks.TemplateHealthCheck;
-import telraam.station.Fetcher;
 import telraam.logic.Lapper;
 import telraam.logic.viterbi.ViterbiLapper;
+import telraam.station.Fetcher;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -95,7 +90,7 @@ public class App extends Application<AppConfiguration> {
 
         // Add URL mapping
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
-        
+
         // Set up lapper algorithms
         Set<Lapper> lappers = new HashSet<>();
 
@@ -105,37 +100,13 @@ public class App extends Application<AppConfiguration> {
         for (Lapper lapper : lappers) {
             lapper.registerAPI(jersey);
         }
-        
-        Fetcher fetcher = new Fetcher();
 
+        // Start fetch thread for each station
         StationDAO stationDAO = this.database.onDemand(StationDAO.class);
-        DetectionDAO detectionDAO = this.database.onDemand(DetectionDAO.class);
-        stationDAO.getAll().forEach(station -> fetcher.addStation(station.getUrl() + "/detections/", station.getId()));
+        for (Station station : stationDAO.getAll()) {
+            new Thread(() -> new Fetcher(this.database, station).fetch()).start();
+        }
 
-        fetcher.addDetectionHandler(x -> {
-            BatonDAO batonDAO = this.database.onDemand(BatonDAO.class);
-            Optional<Baton> baton = batonDAO.getByMAC(x.getMac().toUpperCase());
-            Optional<Station> station = stationDAO.getById(x.getStationId());
-
-            if (baton.isEmpty() || station.isEmpty()) {
-                return;
-            }
-
-            Detection detection = new Detection(
-                baton.get().getId(),
-                station.get().getId(),
-                new Timestamp(x.getDetectionTimestamp())
-            );
-
-            detectionDAO.insert(detection);
-
-            for (Lapper lapper : lappers) {
-                lapper.handle(detection);
-            }
-        });
-
-        Thread thread = new Thread(fetcher.start());
-        thread.start();
         logger.info("Up and running!");
     }
 
