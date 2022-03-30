@@ -56,6 +56,9 @@ public class ViterbiLapper implements Lapper {
         stations.sort(Comparator.comparing(Station::getDistanceFromStart));
 
 
+        // ***********************************
+        // Build detection probability mapping
+        // ***********************************
         Map<Integer, Map<Integer, Double>> emissionProbabilities = new HashMap<>();
         for (int segmentNum = 0; segmentNum < stations.size(); segmentNum++) {
             Map<Integer, Double> probas = new HashMap<>();
@@ -64,36 +67,48 @@ public class ViterbiLapper implements Lapper {
                 if (segmentNum == stationNum) {
                     probas.put(stationId, this.config.SAME_STATION_DETECTION_CHANCE);
                 } else {
-                    probas.put(stationId, this.config.DIFFERENT_STATION_DETECTION_CHANCE);
+                    probas.put(stationId, this.config.BASE_DETECTION_CHANCE);
                 }
             }
             emissionProbabilities.put(segmentNum, probas);
         }
 
+        // ************************************
+        // Build transition probability mapping
+        // ************************************
         Map<Integer, Map<Integer, Double>> transitionProbabilities = new HashMap<>();
         for (int prevSegment = 0; prevSegment < stations.size(); prevSegment++) {
             Map<Integer, Double> probas = new HashMap<>();
-            double sum = 0.0;
 
-            // a station is skipped if all detections are missed
-            double skipStationProbability = Math.pow(1 - this.config.SAME_STATION_DETECTION_CHANCE, this.config.EXPECTED_NUM_DETECTIONS);
+            // a station is skipped when it is broken, or when all detections are missed
+            // TODO: this currently does not take into account detections by other stations
+            double skipStationProbability = this.config.BROKEN_STATION_PROBABILITY + Math.pow(
+                    1 - this.config.SAME_STATION_DETECTION_CHANCE,
+                    this.config.EXPECTED_NUM_DETECTIONS
+            );
 
-            // calculate numbers this way so that backwards steps are rounded down
-            // and forward steps is rounded up
+            // calculate amount of steps this way so that backwards steps are rounded down
+            // and forward steps is rounded up (because we'd like to assume people run in the right direction)
             int numStepsBackwards = (stations.size() - 1) / 2;
             int numStepsForwards = stations.size() - 1 - numStepsBackwards;
 
-            double sameStationWeight = this.config.SAME_STATION_DETECTION_CHANCE * this.config.EXPECTED_NUM_DETECTIONS;
-            // add 2: one unit of weigth for running forwards, one for running backwards
+            // This represents the odds (sameStationWeight against one) of staying on the same station
+            // "how much more likely is it to stay, compared to moving"
+            double sameStationWeight = (1 - this.config.BROKEN_STATION_PROBABILITY) * this.config.EXPECTED_NUM_DETECTIONS;
+            // add 2: one unit of weight for running forwards, one for running backwards
             probas.put(prevSegment, sameStationWeight / (sameStationWeight + 2));
 
-            // transition probabilities for running forwards
-            // curBaseProba is the probability mass that should still be distributed
-            double curBaseProba = 1 / (sameStationWeight + 2);
+            // transition probabilities for running forwards.
+            // To be precise: these probabilities should represent the probability that you will be at nextSegment
+            // when the next detection happens. So assuming that you cannot be detected when you are in segment 2,
+            // the transition probabilities towards segment 2 should always be 0.
+            // This is because the viterbi algorithm runs in discrete time-steps, where each step corresponds
+            // to a single detection (and is only vaguely related to the passage of time or distance).
+            double remainingProbabilityMass = 1 / (sameStationWeight + 2);
             for (int i = 1; i <= numStepsForwards; i++) {
                 // compute next segment index
                 int nextSegment = Math.floorMod(prevSegment + i, stations.size());
-                double proba = curBaseProba;
+                double proba = remainingProbabilityMass;
                 if (i < numStepsForwards) {
                     // multiply by the probability that this station was not skipped.
                     // When this is the final step, we do not consider the possibility of skipping anymore
@@ -103,20 +118,20 @@ public class ViterbiLapper implements Lapper {
                 probas.put(nextSegment, proba);
 
                 // subtract the used amount of probability mass
-                curBaseProba -= proba;
+                remainingProbabilityMass -= proba;
             }
 
             // transition probabilities for running backwards
             // refer to above comments
-            curBaseProba = 1 / (sameStationWeight + 2);
+            remainingProbabilityMass = 1 / (sameStationWeight + 2);
             for (int i = 1; i <= numStepsBackwards; i++) {
                 int nextSegment = Math.floorMod(prevSegment - i, stations.size());
-                double proba = curBaseProba;
+                double proba = remainingProbabilityMass;
                 if (i < numStepsBackwards) {
                     proba *= (1 - skipStationProbability);
                 }
                 probas.put(nextSegment, proba);
-                curBaseProba -= proba;
+                remainingProbabilityMass -= proba;
             }
 
             transitionProbabilities.put(prevSegment, probas);
