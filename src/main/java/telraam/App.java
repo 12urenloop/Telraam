@@ -77,6 +77,7 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new BatonSwitchoverResource(database.onDemand(BatonSwitchoverDAO.class)));
         jersey.register(new LapSourceSwitchoverResource(database.onDemand(LapSourceSwitchoverDAO.class)));
         jersey.register(new AcceptedLapsResource(database.onDemand(LapDAO.class), database.onDemand(LapSourceSwitchoverDAO.class)));
+        jersey.register(new TimeResource());
         environment.healthChecks().register("template",
                 new TemplateHealthCheck(configuration.getTemplate()));
 
