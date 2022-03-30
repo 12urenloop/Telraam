@@ -11,11 +11,20 @@ public class ViterbiLapperConfiguration {
 
     // chance for detection in segment corresponding to a station
     public double SAME_STATION_DETECTION_CHANCE;
-    // chance for detection in a different section
-    public double DIFFERENT_STATION_DETECTION_CHANCE;
 
-    // how much detections you expect to get (assuming all are succesful)
-    // when a runner passes a station
+    // the probability that you will be detected at any station ("noise" detections)
+    public double BASE_DETECTION_CHANCE;
+
+    // the probability that an individual station is down at any moment in time
+    // ~= downtime / total time.
+    public double BROKEN_STATION_PROBABILITY;
+
+    // The amount of times we expect a runner to be detected when passing by a station, given that the station is alive.
+    //
+    // The higher this parameter, the more 'evidence' (= detections) the system will require
+    // in order to change the predicted location - so, the predictions will be less sensitive to noise detections
+    // at different stations.
+    // Consequently, it is better to under-estimate this parameter than to over-estimate it.
     public double EXPECTED_NUM_DETECTIONS;
 
     public ViterbiLapperConfiguration() {
@@ -27,8 +36,9 @@ public class ViterbiLapperConfiguration {
         this.RESTART_PROBABILITY = 0.001;
         this.DEBOUNCE_TIMEOUT = 10;
 
-        this.SAME_STATION_DETECTION_CHANCE = 0.5;
-        this.DIFFERENT_STATION_DETECTION_CHANCE = 0.1;
+        this.SAME_STATION_DETECTION_CHANCE = 0.8;
+        this.BASE_DETECTION_CHANCE = 0.1;
         this.EXPECTED_NUM_DETECTIONS = 8;
+        this.BROKEN_STATION_PROBABILITY = 0.01;
     }
 }
