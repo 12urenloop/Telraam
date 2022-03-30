@@ -22,7 +22,7 @@ public class TimeResource {
     }
 
     @GET
-    @ApiOperation(value = "Find all laps")
+    @ApiOperation(value = "Get current time")
     public TimeResponse get() {
         return new TimeResponse();
     }
