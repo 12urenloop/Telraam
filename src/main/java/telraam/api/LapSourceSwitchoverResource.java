@@ -3,6 +3,7 @@ package telraam.api;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import telraam.database.daos.LapSourceSwitchoverDAO;
+import telraam.database.models.LapSource;
 import telraam.database.models.LapSourceSwitchover;
 
 import javax.ws.rs.Path;
@@ -29,6 +30,12 @@ public class LapSourceSwitchoverResource extends AbstractListableResource<LapSou
     @ApiOperation(value = "Find lap source switchover by ID")
     public LapSourceSwitchover get(Optional<Integer> id) {
         return super.get(id);
+    }
+
+    @Override
+    @ApiOperation(value = "Add a new lap source switchover to the database")
+    public int create(LapSourceSwitchover lapSourceSwitchover) {
+        return super.create(lapSourceSwitchover);
     }
 }
 

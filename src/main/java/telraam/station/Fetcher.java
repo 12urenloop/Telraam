@@ -6,6 +6,7 @@ import telraam.database.daos.DetectionDAO;
 import telraam.database.daos.StationDAO;
 import telraam.database.models.Detection;
 import telraam.database.models.Station;
+import telraam.logic.Lapper;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -20,10 +21,12 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public class Fetcher {
+    private final Set<Lapper> lappers;
     private Station station;
 
     private final BatonDAO batonDAO;
@@ -43,10 +46,11 @@ public class Fetcher {
     private final static int IDLE_TIMEOUT_MS = 200;
 
 
-    public Fetcher(Jdbi database, Station station) {
+    public Fetcher(Jdbi database, Station station, Set<Lapper> lappers) {
         this.batonDAO = database.onDemand(BatonDAO.class);
         this.detectionDAO = database.onDemand(DetectionDAO.class);
         this.stationDAO = database.onDemand(StationDAO.class);
+        this.lappers = lappers;
 
         this.station = station;
     }
@@ -123,7 +127,7 @@ public class Fetcher {
             //Check response state
             if (response.statusCode() != 200) {
                 this.logger.warning(
-                        "Unexpected status code(" + response.statusCode() + ") for station(" + this.station.getName() + ")"
+                        "Unexpected status code(" + response.statusCode() + ") when requesting " + url + " for station(" + this.station.getName() + ")"
                 );
                 continue;
             }
@@ -146,9 +150,10 @@ public class Fetcher {
             }
             if (!new_detections.isEmpty()) {
                 detectionDAO.insertAll(new_detections);
+                new_detections.forEach((detection) -> lappers.forEach((lapper) -> lapper.handle(detection)));
             }
 
-            this.logger.info("Fetched " + detections.size() + " detections from " + station.getName() + ", Saved " + new_detections.size());
+            this.logger.finer("Fetched " + detections.size() + " detections from " + station.getName() + ", Saved " + new_detections.size());
 
             //If few detections are retrieved from the station, wait for some time.
             if (detections.size() < Fetcher.FULL_BATCH_SIZE) {

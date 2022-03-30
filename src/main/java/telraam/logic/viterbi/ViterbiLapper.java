@@ -160,6 +160,9 @@ public class ViterbiLapper implements Lapper {
 
     @Override
     public synchronized void handle(Detection msg) {
+        if (msg.getRssi() < -70) {
+            return;
+        }
         if (!this.debounceScheduled) {
             // TODO: this might be better as an atomic
             this.debounceScheduled = true;
@@ -188,6 +191,7 @@ public class ViterbiLapper implements Lapper {
 
         // TODO: stream these from the database
         List<Detection> detections = detectionDAO.getAll();
+        detections.removeIf((detection) -> detection.getRssi() < -70);
         detections.sort(Comparator.comparing(Detection::getTimestamp));
 
         // we create a viterbi model each time because the set of stations is not static
@@ -201,7 +205,7 @@ public class ViterbiLapper implements Lapper {
         int switchoverIndex = 0;
 
         for (Detection detection : detections) {
-            while (switchovers.get(switchoverIndex).getTimestamp().before(detection.getTimestamp()) && switchoverIndex < switchovers.size()) {
+            while (switchoverIndex < switchovers.size() && switchovers.get(switchoverIndex).getTimestamp().before(detection.getTimestamp())) {
                 BatonSwitchover switchover = switchovers.get(switchoverIndex);
                 batonIdToTeamId.put(switchover.getNewBatonId(), switchover.getTeamId());
                 switchoverIndex += 1;

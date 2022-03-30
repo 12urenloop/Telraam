@@ -6,6 +6,7 @@ import telraam.database.daos.BatonDAO;
 import telraam.database.daos.BatonSwitchoverDAO;
 import telraam.database.models.Baton;
 import telraam.database.models.BatonSwitchover;
+import telraam.database.models.LapSourceSwitchover;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -31,6 +32,12 @@ public class BatonSwitchoverResource extends AbstractListableResource<BatonSwitc
     @ApiOperation(value = "Find baton switchover by ID")
     public BatonSwitchover get(Optional<Integer> id) {
         return super.get(id);
+    }
+
+    @Override
+    @ApiOperation(value = "Add a new baton switchover to the database")
+    public int create(BatonSwitchover batonSwitchover) {
+        return super.create(batonSwitchover);
     }
 }
 

@@ -6,8 +6,8 @@ function getData(items) {
     for(let i = 0; i < items; i++) {
     out.push({
         'id': i,
-        'mac': "Some mac",
-        'rssi': -1 * Math.random(),
+        'mac': process.argv[3],
+        'rssi': -69,
         'battery': Math.random(),
         'uptime_ms': new Date().getTime(),
         'detection_timestamp': new Date().getTime()
@@ -21,7 +21,7 @@ const pageSize = 10;
 const startTime = new Date().getTime();
 const port = process.argv[2];
 
-app.get('/detection/:id', (req, res) => {
+app.get('/detections/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const maxItems = new Date().getTime() - startTime;
     const end = Math.min(maxItems, id + pageSize);

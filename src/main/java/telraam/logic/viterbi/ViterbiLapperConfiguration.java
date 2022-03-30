@@ -19,7 +19,7 @@ public class ViterbiLapperConfiguration {
     public double EXPECTED_NUM_DETECTIONS;
 
     public ViterbiLapperConfiguration() {
-        this.TRACK_LENGTH = 500;
+        this.TRACK_LENGTH = 100;
         this.SECTOR_STARTS = new int[]{0, 100, 150, 250, 350};
         this.AVERAGE_RUNNER_SPEED = 3.2;
         this.DETECTIONS_PER_SECOND = 1;

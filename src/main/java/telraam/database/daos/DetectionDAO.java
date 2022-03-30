@@ -48,7 +48,7 @@ public interface DetectionDAO extends DAO<Detection> {
             "timestamp = :timestamp WHERE id = :id")
     int update(@Bind("id") int id, @BindBean Detection modelObj);
 
-    @SqlQuery("SELECT * FROM detection WHERE remote_id = (SELECT MAX(remote_id) FROM detection WHERE station_id = :stationId) AND station_id = :stationId")
+    @SqlQuery("SELECT * FROM detection WHERE remote_id = (SELECT MAX(remote_id) FROM detection WHERE station_id = :stationId) AND station_id = :stationId LIMIT 1")
     @RegisterBeanMapper(Detection.class)
     Optional<Detection> latestDetectionByStationId(@Bind("stationId") int stationId);
 }

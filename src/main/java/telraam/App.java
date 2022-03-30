@@ -104,7 +104,7 @@ public class App extends Application<AppConfiguration> {
         // Start fetch thread for each station
         StationDAO stationDAO = this.database.onDemand(StationDAO.class);
         for (Station station : stationDAO.getAll()) {
-            new Thread(() -> new Fetcher(this.database, station).fetch()).start();
+            new Thread(() -> new Fetcher(this.database, station, lappers).fetch()).start();
         }
 
         logger.info("Up and running!");
