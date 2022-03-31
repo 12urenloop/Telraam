@@ -215,7 +215,7 @@ public class ViterbiLapper implements Lapper {
 
         // TODO: stream these from the database
         List<Detection> detections = detectionDAO.getAll();
-        detections.removeIf((detection) -> detection.getRssi() < -70 || detection.getTimestamp().after(firstSwitchover));
+        detections.removeIf((detection) -> detection.getRssi() < -70 || detection.getTimestamp().before(firstSwitchover));
         detections.sort(Comparator.comparing(Detection::getTimestamp));
 
         // we create a viterbi model each time because the set of stations is not static
