@@ -10,6 +10,7 @@ import telraam.logic.viterbi.algorithm.ViterbiAlgorithm;
 import telraam.logic.viterbi.algorithm.ViterbiModel;
 import telraam.logic.viterbi.algorithm.ViterbiState;
 
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
@@ -205,12 +206,16 @@ public class ViterbiLapper implements Lapper {
         DetectionDAO detectionDAO = this.jdbi.onDemand(DetectionDAO.class);
         LapDAO lapDAO = this.jdbi.onDemand(LapDAO.class);
         BatonSwitchoverDAO batonSwitchoverDAO = this.jdbi.onDemand(BatonSwitchoverDAO.class);
+        LapSourceSwitchoverDAO lapSourceSwitchoverDAO = this.jdbi.onDemand(LapSourceSwitchoverDAO.class);
         List<Team> teams = teamDAO.getAll();
         List<BatonSwitchover> switchovers = batonSwitchoverDAO.getAll();
 
+        Optional<LapSourceSwitchover> maybeFirstLapSourceSwitchover = lapSourceSwitchoverDAO.getAll().stream().filter((x) -> x.getNewLapSource() == 3).findFirst();
+        Timestamp firstSwitchover = maybeFirstLapSourceSwitchover.map(LapSourceSwitchover::getTimestamp).orElse(new Timestamp(0));
+
         // TODO: stream these from the database
         List<Detection> detections = detectionDAO.getAll();
-        detections.removeIf((detection) -> detection.getRssi() < -70 && detection.getTimestamp().after(new Timestamp(1648742400)));
+        detections.removeIf((detection) -> detection.getRssi() < -70 && detection.getTimestamp().after(firstSwitchover));
         detections.sort(Comparator.comparing(Detection::getTimestamp));
 
         // we create a viterbi model each time because the set of stations is not static
