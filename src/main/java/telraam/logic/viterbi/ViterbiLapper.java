@@ -163,10 +163,14 @@ public class ViterbiLapper implements Lapper {
     }
 
     private Map<Integer, Double> calculateStartProbabilities() {
+        StationDAO stationDAO = jdbi.onDemand(StationDAO.class);
+        List<Station> stations = stationDAO.getAll();
+        int numStations = stations.size();
+
         Map<Integer, Double> ret = new HashMap<>();
 
-        ret.put(0, 1.0 - (this.config.SECTOR_STARTS.length - 1) * this.config.RESTART_PROBABILITY);
-        for (int i = 1; i < this.config.SECTOR_STARTS.length; i++) {
+        ret.put(0, 1.0 - (numStations - 1) * this.config.RESTART_PROBABILITY);
+        for (int i = 1; i < numStations; i++) {
             ret.put(i, this.config.RESTART_PROBABILITY);
         }
 
