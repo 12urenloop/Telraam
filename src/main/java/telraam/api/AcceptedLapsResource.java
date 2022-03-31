@@ -44,15 +44,13 @@ public class AcceptedLapsResource {
 
         for (Lap lap : laps) {
             while (lapSourceSwitchoverIndex < lapSourceSwitchovers.size() && lapSourceSwitchovers.get(lapSourceSwitchoverIndex).getTimestamp().before(lap.getTimestamp())) {
-                currentLapSource = lapSourceSwitchovers.get(lapSourceSwitchoverIndex).getId();
-                System.out.println("New lap source: " + currentLapSource);
+                currentLapSource = lapSourceSwitchovers.get(lapSourceSwitchoverIndex).getNewLapSource();
+                // System.out.println("New lap source: " + currentLapSource);
                 lapSourceSwitchoverIndex++;
             }
 
-            if (currentLapSource == -1 || lap.getLapSourceId() != currentLapSource) {
+            if (lap.getLapSourceId() == currentLapSource) {
                 ret.add(lap);
-            } else {
-                System.out.println("Rejecting lap source with lap source " + lap.getLapSourceId() + " (" + currentLapSource + ")");
             }
         }
 
