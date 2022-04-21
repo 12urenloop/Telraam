@@ -37,13 +37,13 @@ public class Fetcher {
     private final Logger logger = Logger.getLogger(Fetcher.class.getName());
 
     //Timeout to wait for before sending the next request after an error.
-    private final static int ERROR_TIMEOUT_MS = 1000;
+    private final static int ERROR_TIMEOUT_MS = 2000;
     //Timeout for a request to a station.
     private final static int REQUEST_TIMEOUT_S = 10;
     //Full batch size, if this number of detections is reached, more are probably available immediately.
     private final static int FULL_BATCH_SIZE = 1000;
     //Timeout when result has less than a full batch of detections.
-    private final static int IDLE_TIMEOUT_MS = 200;
+    private final static int IDLE_TIMEOUT_MS = 4000; // Wait 4 seconds
 
 
     public Fetcher(Jdbi database, Station station, Set<Lapper> lappers) {

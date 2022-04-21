@@ -1,0 +1,1 @@
+create index detection_remote_id_station_id_index on detection (remote_id desc, station_id asc);
