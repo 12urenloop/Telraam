@@ -4,6 +4,7 @@ import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.BatonDAO;
 import telraam.database.daos.DetectionDAO;
 import telraam.database.daos.StationDAO;
+import telraam.database.models.Baton;
 import telraam.database.models.Detection;
 import telraam.database.models.Station;
 import telraam.logic.Lapper;
@@ -18,12 +19,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.sql.Timestamp;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class Fetcher {
     private final Set<Lapper> lappers;
@@ -132,11 +132,14 @@ public class Fetcher {
                 continue;
             }
 
+            //Fetch all batons and create a map by batonMAC
+            Map<String, Baton> baton_mac_map = batonDAO.getAll().stream().collect(Collectors.toMap(Baton::getMac, Function.identity()));
+
             //Insert detections
             List<Detection> new_detections = new ArrayList<>();
             List<RonnyDetection> detections = response.body().get().detections;
             for (RonnyDetection detection : detections) {
-                batonDAO.getByMAC(detection.mac).ifPresent(value -> {
+                Optional.ofNullable(baton_mac_map.getOrDefault(detection.mac, null)).ifPresent(value -> {
                     new_detections.add(new Detection(
                             value.getId(),
                             station.getId(),
