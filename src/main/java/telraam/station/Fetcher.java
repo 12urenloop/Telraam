@@ -133,15 +133,17 @@ public class Fetcher {
             }
 
             //Fetch all batons and create a map by batonMAC
-            Map<String, Baton> baton_mac_map = batonDAO.getAll().stream().collect(Collectors.toMap(Baton::getMac, Function.identity()));
+            Map<String, Baton> baton_mac_map = batonDAO.getAll().stream()
+                    .collect(Collectors.toMap(b -> b.getMac().toUpperCase(), Function.identity()));
 
             //Insert detections
             List<Detection> new_detections = new ArrayList<>();
             List<RonnyDetection> detections = response.body().get().detections;
             for (RonnyDetection detection : detections) {
-                Optional.ofNullable(baton_mac_map.getOrDefault(detection.mac, null)).ifPresent(value -> {
+                if (baton_mac_map.containsKey(detection.mac.toUpperCase())) {
+                    var baton = baton_mac_map.get(detection.mac.toUpperCase());
                     new_detections.add(new Detection(
-                            value.getId(),
+                            baton.getId(),
                             station.getId(),
                             detection.rssi,
                             detection.battery,
@@ -149,7 +151,7 @@ public class Fetcher {
                             detection.id,
                             new Timestamp(detection.detectionTimestamp * 1000)
                     ));
-                });
+                }
             }
             if (!new_detections.isEmpty()) {
                 detectionDAO.insertAll(new_detections);
