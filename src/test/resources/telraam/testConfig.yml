@@ -1,0 +1,10 @@
+template: Hello, %s!
+
+defaultName: ${DW_DEFAULT_NAME:-Stranger}
+
+swagger:
+  resourcePackage: 'telraam.api'
+
+database:
+  driverClass: org.h2.Driver
+  url: jdbc:h2:mem:telraam_test
