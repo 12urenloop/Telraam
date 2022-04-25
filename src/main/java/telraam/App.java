@@ -82,7 +82,7 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new LapSourceSwitchoverResource(database.onDemand(LapSourceSwitchoverDAO.class)));
         jersey.register(new AcceptedLapsResource());
         jersey.register(new TimeResource());
-        jersey.register(new LapCountResource());
+        jersey.register(new LapCountResource(database.onDemand(TeamDAO.class)));
         environment.healthChecks().register("template",
                 new TemplateHealthCheck(configuration.getTemplate()));
 
