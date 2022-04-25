@@ -4,6 +4,7 @@ import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.BatonDAO;
 import telraam.database.daos.DetectionDAO;
 import telraam.database.daos.StationDAO;
+import telraam.database.models.Baton;
 import telraam.database.models.Detection;
 import telraam.database.models.Station;
 import telraam.logic.Lapper;
@@ -18,12 +19,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.sql.Timestamp;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class Fetcher {
     private final Set<Lapper> lappers;
@@ -37,13 +37,13 @@ public class Fetcher {
     private final Logger logger = Logger.getLogger(Fetcher.class.getName());
 
     //Timeout to wait for before sending the next request after an error.
-    private final static int ERROR_TIMEOUT_MS = 1000;
+    private final static int ERROR_TIMEOUT_MS = 2000;
     //Timeout for a request to a station.
     private final static int REQUEST_TIMEOUT_S = 10;
     //Full batch size, if this number of detections is reached, more are probably available immediately.
     private final static int FULL_BATCH_SIZE = 1000;
     //Timeout when result has less than a full batch of detections.
-    private final static int IDLE_TIMEOUT_MS = 200;
+    private final static int IDLE_TIMEOUT_MS = 4000; // Wait 4 seconds
 
 
     public Fetcher(Jdbi database, Station station, Set<Lapper> lappers) {
@@ -132,13 +132,18 @@ public class Fetcher {
                 continue;
             }
 
+            //Fetch all batons and create a map by batonMAC
+            Map<String, Baton> baton_mac_map = batonDAO.getAll().stream()
+                    .collect(Collectors.toMap(b -> b.getMac().toUpperCase(), Function.identity()));
+
             //Insert detections
             List<Detection> new_detections = new ArrayList<>();
             List<RonnyDetection> detections = response.body().get().detections;
             for (RonnyDetection detection : detections) {
-                batonDAO.getByMAC(detection.mac).ifPresent(value -> {
+                if (baton_mac_map.containsKey(detection.mac.toUpperCase())) {
+                    var baton = baton_mac_map.get(detection.mac.toUpperCase());
                     new_detections.add(new Detection(
-                            value.getId(),
+                            baton.getId(),
                             station.getId(),
                             detection.rssi,
                             detection.battery,
@@ -146,7 +151,7 @@ public class Fetcher {
                             detection.id,
                             new Timestamp(detection.detectionTimestamp * 1000)
                     ));
-                });
+                }
             }
             if (!new_detections.isEmpty()) {
                 detectionDAO.insertAll(new_detections);
