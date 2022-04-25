@@ -17,6 +17,7 @@ import telraam.healthchecks.TemplateHealthCheck;
 import telraam.logic.Lapper;
 import telraam.logic.viterbi.ViterbiLapper;
 import telraam.station.Fetcher;
+import telraam.util.AcceptedLapsUtil;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
@@ -65,6 +66,9 @@ public class App extends Application<AppConfiguration> {
                 factory.build(environment, configuration.getDataSourceFactory(),
                         "postgresql");
 
+        // Initialize AcceptedLapUtil
+        AcceptedLapsUtil.createInstance(this.database);
+
         // Add api resources
         JerseyEnvironment jersey = environment.jersey();
         jersey.register(new BatonResource(database.onDemand(BatonDAO.class)));
@@ -76,8 +80,9 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new LapSourceResource(database.onDemand(LapSourceDAO.class)));
         jersey.register(new BatonSwitchoverResource(database.onDemand(BatonSwitchoverDAO.class)));
         jersey.register(new LapSourceSwitchoverResource(database.onDemand(LapSourceSwitchoverDAO.class)));
-        jersey.register(new AcceptedLapsResource(database.onDemand(LapDAO.class), database.onDemand(LapSourceSwitchoverDAO.class)));
+        jersey.register(new AcceptedLapsResource());
         jersey.register(new TimeResource());
+        jersey.register(new LapCountResource(database.onDemand(TeamDAO.class)));
         environment.healthChecks().register("template",
                 new TemplateHealthCheck(configuration.getTemplate()));
 
