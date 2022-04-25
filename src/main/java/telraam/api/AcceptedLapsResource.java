@@ -6,6 +6,7 @@ import telraam.database.daos.LapDAO;
 import telraam.database.daos.LapSourceSwitchoverDAO;
 import telraam.database.models.Lap;
 import telraam.database.models.LapSourceSwitchover;
+import telraam.util.AcceptedLapsUtil;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -19,41 +20,9 @@ import java.util.List;
 @Api("/accepted-laps")
 @Produces(MediaType.APPLICATION_JSON)
 public class AcceptedLapsResource {
-    LapDAO lapDAO;
-    LapSourceSwitchoverDAO lapSourceSwitchoverDAO;
-
-    public AcceptedLapsResource(LapDAO lapDAO, LapSourceSwitchoverDAO lapSourceSwitchoverDAO) {
-        this.lapDAO = lapDAO;
-        this.lapSourceSwitchoverDAO = lapSourceSwitchoverDAO;
-    }
-
     @GET
     @ApiOperation("Get all accepted laps")
     public List<Lap> getLaps() {
-        List<Lap> laps = this.lapDAO.getAll();
-        // TODO: this should be done in SQL
-        laps.sort(Comparator.comparing(Lap::getTimestamp));
-
-        List<LapSourceSwitchover> lapSourceSwitchovers = this.lapSourceSwitchoverDAO.getAll();
-        lapSourceSwitchovers.sort(Comparator.comparing(LapSourceSwitchover::getTimestamp));
-
-        List<Lap> ret = new ArrayList<>();
-
-        int lapSourceSwitchoverIndex = 0;
-        int currentLapSource = -1;
-
-        for (Lap lap : laps) {
-            while (lapSourceSwitchoverIndex < lapSourceSwitchovers.size() && lapSourceSwitchovers.get(lapSourceSwitchoverIndex).getTimestamp().before(lap.getTimestamp())) {
-                currentLapSource = lapSourceSwitchovers.get(lapSourceSwitchoverIndex).getNewLapSource();
-                // System.out.println("New lap source: " + currentLapSource);
-                lapSourceSwitchoverIndex++;
-            }
-
-            if (lap.getLapSourceId() == currentLapSource) {
-                ret.add(lap);
-            }
-        }
-
-        return ret;
+        return AcceptedLapsUtil.getInstance().getAcceptedLaps();
     }
 }
