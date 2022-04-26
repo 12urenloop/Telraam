@@ -1,7 +1,6 @@
 package telraam.logic.viterbi;
 
 import io.dropwizard.jersey.setup.JerseyEnvironment;
-import io.swagger.models.auth.In;
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.*;
 import telraam.database.models.*;
@@ -155,10 +154,10 @@ public class ViterbiLapper implements Lapper {
         return ret;
     }
 
-    public Map<Integer, Map<Integer, Integer>> getLapCounts() {
-        Map<Integer, Map<Integer, Integer>> ret = new HashMap<>();
+    public Map<Integer, Map<Integer, Set<Timestamp>>> getLapTimes() {
+        Map<Integer, Map<Integer, Set<Timestamp>>> ret = new HashMap<>();
         for (Map.Entry<Integer, ViterbiState> entry : this.currentStates.entrySet()) {
-            ret.put(entry.getKey(), entry.getValue().lapCounts());
+            ret.put(entry.getKey(), entry.getValue().lapTimestamps());
         }
         return ret;
     }
@@ -200,7 +199,6 @@ public class ViterbiLapper implements Lapper {
 
     public synchronized void calculateLaps() {
         System.out.println("Calculating laps");
-        // TODO: this implementation does not take lap timestamps into account
 
         TeamDAO teamDAO = this.jdbi.onDemand(TeamDAO.class);
         DetectionDAO detectionDAO = this.jdbi.onDemand(DetectionDAO.class);
@@ -237,7 +235,7 @@ public class ViterbiLapper implements Lapper {
 
             if (batonIdToTeamId.containsKey(detection.getBatonId())) {
                 int teamId = batonIdToTeamId.get(detection.getBatonId());
-                viterbis.get(teamId).observe(detection.getStationId());
+                viterbis.get(teamId).observe(detection.getStationId(), detection.getTimestamp());
             }
         }
 
@@ -257,17 +255,22 @@ public class ViterbiLapper implements Lapper {
 
             long previousLapCount = laps.size();
             ViterbiState state = entry.getValue();
-            long newLapCount = state.lapCounts().get(state.mostLikelySegment());
 
-            // add laps that were not counted yet
-            for (long lapCount = previousLapCount; lapCount < newLapCount; lapCount++) {
-                lapDAO.insert(new Lap(teamId, this.lapSourceId, Timestamp.from(Instant.now())));
+            Set<Timestamp> currentLaps = laps.stream().map(Lap::getTimestamp).collect(Collectors.toSet());
+            Set<Timestamp> predictedLaps = state.lapTimestamps().get(state.mostLikelySegment());
+
+            Set<Timestamp> toRemove = new TreeSet<>(currentLaps);
+            toRemove.removeAll(predictedLaps);
+
+            Set<Timestamp> toAdd = new TreeSet<>(predictedLaps);
+            toRemove.removeAll(currentLaps);
+
+            for (Timestamp timestamp : toRemove) {
+                lapDAO.removeByTeamAndTimestamp(teamId, timestamp);
             }
-            // remove laps that were an overestimation
-            for (long lapCount = previousLapCount; lapCount > newLapCount; lapCount--) {
-                Lap lapToRemove = laps.last();
-                laps.remove(lapToRemove);
-                lapDAO.deleteById(lapToRemove.getId());
+
+            for (Timestamp timestamp : toAdd) {
+                lapDAO.insert(new Lap(teamId, this.lapSourceId, timestamp));
             }
         }
 
