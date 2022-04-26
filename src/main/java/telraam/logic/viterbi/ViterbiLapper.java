@@ -198,7 +198,7 @@ public class ViterbiLapper implements Lapper {
         }
     }
 
-    private synchronized void calculateLaps() {
+    public synchronized void calculateLaps() {
         System.out.println("Calculating laps");
         // TODO: this implementation does not take lap timestamps into account
 

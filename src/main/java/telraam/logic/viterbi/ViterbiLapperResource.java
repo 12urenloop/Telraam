@@ -47,4 +47,12 @@ public class ViterbiLapperResource {
     public ViterbiModel<Integer, Integer> getModel() {
         return this.lapper.getModel();
     }
+
+    @GET
+    @Path("/recalculate")
+    @ApiOperation(value = "Recalculate Viterbi rounds")
+    public String recalculateRounds() {
+        this.lapper.calculateLaps();
+        return "Recalculated rounds";
+    }
 }
