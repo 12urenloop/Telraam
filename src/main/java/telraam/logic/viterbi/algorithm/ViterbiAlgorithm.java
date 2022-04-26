@@ -2,6 +2,8 @@ package telraam.logic.viterbi.algorithm;
 
 import io.swagger.models.auth.In;
 
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -22,15 +24,15 @@ public class ViterbiAlgorithm<O> {
         int numSegments = this.model.getHiddenStates().size();
         Map<Integer, Double> probabilities = new HashMap<>();
         Map<Integer, Integer> previousSegments = new HashMap<>();
-        Map<Integer, Integer> lapCounts = new HashMap<>();
+        Map<Integer, Set<Timestamp>> lapTimestamps = new HashMap<>();
 
         for (Map.Entry<Integer, Double> entry : viterbiModel.getStartProbabilities().entrySet()) {
             probabilities.put(entry.getKey(), entry.getValue());
             previousSegments.put(entry.getKey(), 0);
-            lapCounts.put(entry.getKey(), 0);
+            lapTimestamps.put(entry.getKey(), new TreeSet<>());
         }
 
-        this.lastState = new ViterbiState(probabilities, previousSegments, lapCounts);
+        this.lastState = new ViterbiState(probabilities, previousSegments, lapTimestamps);
     }
 
     /**
@@ -69,12 +71,13 @@ public class ViterbiAlgorithm<O> {
     /**
      * Handle an observation.
      * @param observation The observation to process.
+     * @param observationTimestamp The timestamp when this observation was made
      */
-    public void observe(O observation) {
+    public void observe(O observation, Timestamp observationTimestamp) {
         int numSegments = this.model.getHiddenStates().size();
         Map<Integer, Double> probabilities = new HashMap<>();
         Map<Integer, Integer> previousSegments = new HashMap<>();
-        Map<Integer, Integer> lapCounts = new HashMap<>();
+        Map<Integer, Set<Timestamp>> lapTimestamps = new HashMap<>();
 
         for (int nextSegment = 0; nextSegment < numSegments; nextSegment++) {
             probabilities.put(nextSegment, 0.0);
@@ -90,17 +93,17 @@ public class ViterbiAlgorithm<O> {
                     // Dit is het algoritme van De Voerstreek
                     int delta = half - (half - (nextSegment - previousSegment)) % numSegments;
 
+                    Set<Timestamp> newTimestamps = new TreeSet<>(this.lastState.lapTimestamps().get(previousSegment));
+
                     if (delta > 0 && previousSegment > nextSegment) {
                         // forward wrap-around
-                        lapCounts.put(nextSegment, this.lastState.lapCounts().get(previousSegment) + 1);
-
+                        newTimestamps.add(observationTimestamp);
                     } else if (delta < 0 && previousSegment < nextSegment) {
                         // backwards wrap-around
-                        lapCounts.put(nextSegment, this.lastState.lapCounts().get(previousSegment) - 1);
-                    } else {
-                        // no wrap-around (c) robbe
-                        lapCounts.put(nextSegment, this.lastState.lapCounts().get(previousSegment));
+                        Optional<Timestamp> highestTimestamp = newTimestamps.stream().max(Timestamp::compareTo);
+                        highestTimestamp.ifPresent(newTimestamps::remove);
                     }
+                    lapTimestamps.put(nextSegment, newTimestamps);
                 }
             }
         }
@@ -111,7 +114,7 @@ public class ViterbiAlgorithm<O> {
             probabilities.put(i, probabilities.get(i) / sum);
         }
 
-        this.lastState = new ViterbiState(probabilities, previousSegments, lapCounts);
+        this.lastState = new ViterbiState(probabilities, previousSegments, lapTimestamps);
     }
 
     /**
