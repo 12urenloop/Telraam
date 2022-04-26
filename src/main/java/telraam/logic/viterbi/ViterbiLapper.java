@@ -212,8 +212,7 @@ public class ViterbiLapper implements Lapper {
         Optional<LapSourceSwitchover> maybeFirstLapSourceSwitchover = lapSourceSwitchoverDAO.getAll().stream().filter((x) -> x.getNewLapSource() == 3).findFirst();
         Timestamp firstSwitchover = maybeFirstLapSourceSwitchover.map(LapSourceSwitchover::getTimestamp).orElse(new Timestamp(0));
 
-        List<Detection> detections = detectionDAO.getAllOrderByTimestamp();
-        detections.removeIf((detection) -> detection.getRssi() < -70 || detection.getTimestamp().before(firstSwitchover));
+        List<Detection> detections = detectionDAO.getAllBeforeSwitchAndHigherRSSI(-70, firstSwitchover);
 
         // we create a viterbi model each time because the set of stations is not static
         ViterbiModel<Integer, Integer> viterbiModel = createViterbiModel();

@@ -10,6 +10,7 @@ import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.Detection;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +22,11 @@ public interface DetectionDAO extends DAO<Detection> {
     @SqlQuery("SELECT * FROM detection ORDER BY timestamp ")
     @RegisterBeanMapper(Detection.class)
     List<Detection> getAllOrderByTimestamp();
+
+    @SqlQuery("SELECT * FROM detection WHERE rssi >= :rssi - AND :firstSwitchover <= timestamp ORDER by timestamp")
+    @RegisterBeanMapper(Detection.class)
+    List<Detection> getAllBeforeSwitchAndHigherRSSI(@Bind("rssi") int rssi,@Bind("firstSwitchOver") Timestamp firstSwitchOver);
+
     @Override
     @SqlUpdate("""
             INSERT INTO detection (station_id, baton_id, timestamp, rssi, battery, remote_id, uptime_ms) \
