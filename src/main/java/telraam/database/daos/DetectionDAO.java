@@ -18,6 +18,9 @@ public interface DetectionDAO extends DAO<Detection> {
     @RegisterBeanMapper(Detection.class)
     List<Detection> getAll();
 
+    @SqlQuery("SELECT * FROM detection ORDER BY timestamp ")
+    @RegisterBeanMapper(Detection.class)
+    List<Detection> getAllOrderByTimestamp();
     @Override
     @SqlUpdate("""
             INSERT INTO detection (station_id, baton_id, timestamp, rssi, battery, remote_id, uptime_ms) \

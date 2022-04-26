@@ -18,6 +18,10 @@ public interface StationDAO extends DAO<Station> {
     @RegisterBeanMapper(Station.class)
     List<Station> getAll();
 
+    @SqlQuery("SELECT * FROM station ORDER BY distanceFromStart")
+    @RegisterBeanMapper(Station.class)
+    List<Station> getAllByDist();
+
     @Override
     @SqlUpdate("INSERT INTO station (name, distance_from_start, broken, url) VALUES (:name, :distanceFromStart, :isBroken, :url)")
     @GetGeneratedKeys({"id"})

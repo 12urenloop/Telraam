@@ -14,9 +14,13 @@ import java.util.Optional;
 public interface LapSourceSwitchoverDAO extends DAO<LapSourceSwitchover> {
 
     @Override
-    @SqlQuery("SELECT * FROM lapsourceswitchover ORDER BY timestamp")
+    @SqlQuery("SELECT * FROM lapsourceswitchover")
     @RegisterBeanMapper(LapSourceSwitchover.class)
     List<LapSourceSwitchover> getAll();
+
+    @SqlQuery("SELECT * FROM lapsourceswitchover ORDER BY timestamp")
+    @RegisterBeanMapper(LapSourceSwitchover.class)
+    List<LapSourceSwitchover> getAllOrderByTimestamp();
 
     @Override
     @SqlUpdate("INSERT INTO lapsourceswitchover (newLapSource, timestamp) VALUES (:newLapSource, :timestamp)")

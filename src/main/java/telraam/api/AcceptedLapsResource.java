@@ -30,12 +30,8 @@ public class AcceptedLapsResource {
     @GET
     @ApiOperation("Get all accepted laps")
     public List<Lap> getLaps() {
-        List<Lap> laps = this.lapDAO.getAll();
-        // TODO: this should be done in SQL
-        laps.sort(Comparator.comparing(Lap::getTimestamp));
-
-        List<LapSourceSwitchover> lapSourceSwitchovers = this.lapSourceSwitchoverDAO.getAll();
-        lapSourceSwitchovers.sort(Comparator.comparing(LapSourceSwitchover::getTimestamp));
+        List<Lap> laps = this.lapDAO.getAllOrderdByTimestamp();
+        List<LapSourceSwitchover> lapSourceSwitchovers = this.lapSourceSwitchoverDAO.getAllOrderByTimestamp();
 
         List<Lap> ret = new ArrayList<>();
 

@@ -53,8 +53,7 @@ public class ViterbiLapper implements Lapper {
 
         // We will construct one segment for each station, which will represent its
         // neighbourhood.
-        List<Station> stations = stationDAO.getAll();
-        stations.sort(Comparator.comparing(Station::getDistanceFromStart));
+        List<Station> stations = stationDAO.getAllByDist();
 
 
         // ***********************************
@@ -213,10 +212,8 @@ public class ViterbiLapper implements Lapper {
         Optional<LapSourceSwitchover> maybeFirstLapSourceSwitchover = lapSourceSwitchoverDAO.getAll().stream().filter((x) -> x.getNewLapSource() == 3).findFirst();
         Timestamp firstSwitchover = maybeFirstLapSourceSwitchover.map(LapSourceSwitchover::getTimestamp).orElse(new Timestamp(0));
 
-        // TODO: stream these from the database
-        List<Detection> detections = detectionDAO.getAll();
+        List<Detection> detections = detectionDAO.getAllOrderByTimestamp();
         detections.removeIf((detection) -> detection.getRssi() < -70 || detection.getTimestamp().before(firstSwitchover));
-        detections.sort(Comparator.comparing(Detection::getTimestamp));
 
         // we create a viterbi model each time because the set of stations is not static
         ViterbiModel<Integer, Integer> viterbiModel = createViterbiModel();
