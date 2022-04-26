@@ -253,7 +253,6 @@ public class ViterbiLapper implements Lapper {
             int teamId = entry.getKey();
             TreeSet<Lap> laps = lapsByTeam.get(teamId);
 
-            long previousLapCount = laps.size();
             ViterbiState state = entry.getValue();
 
             Set<Timestamp> currentLaps = laps.stream().map(Lap::getTimestamp).collect(Collectors.toSet());
@@ -263,7 +262,7 @@ public class ViterbiLapper implements Lapper {
             toRemove.removeAll(predictedLaps);
 
             Set<Timestamp> toAdd = new TreeSet<>(predictedLaps);
-            toRemove.removeAll(currentLaps);
+            toAdd.removeAll(currentLaps);
 
             for (Timestamp timestamp : toRemove) {
                 lapDAO.removeByTeamAndTimestamp(teamId, timestamp);
