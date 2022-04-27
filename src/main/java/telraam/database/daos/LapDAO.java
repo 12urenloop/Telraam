@@ -44,5 +44,5 @@ public interface LapDAO extends DAO<Lap> {
     int update(@Bind("id") int id, @BindBean Lap modelObj);
 
     @SqlUpdate("DELETE FROM lap WHERE team_id = :teamId AND timestamp = :timestamp")
-    void removeByTeamAndTimestamp(int teamId, Timestamp timestamp);
+    void removeByTeamAndTimestamp(@Bind("teamId") int teamId, @Bind("timestamp") Timestamp timestamp);
 }
