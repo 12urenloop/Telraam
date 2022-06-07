@@ -15,6 +15,7 @@ import telraam.database.daos.*;
 import telraam.database.models.Station;
 import telraam.healthchecks.TemplateHealthCheck;
 import telraam.logic.Lapper;
+import telraam.logic.plapper.PLapper;
 import telraam.logic.viterbi.ViterbiLapper;
 import telraam.station.Fetcher;
 import telraam.util.AcceptedLapsUtil;
@@ -101,6 +102,7 @@ public class App extends Application<AppConfiguration> {
         Set<Lapper> lappers = new HashSet<>();
 
         lappers.add(new ViterbiLapper(this.database));
+        lappers.add(new PLapper(this.database));
 
         // Enable lapper APIs
         for (Lapper lapper : lappers) {
@@ -110,7 +112,7 @@ public class App extends Application<AppConfiguration> {
         // Start fetch thread for each station
         StationDAO stationDAO = this.database.onDemand(StationDAO.class);
         for (Station station : stationDAO.getAll()) {
-            new Thread(() -> new Fetcher(this.database, station, lappers).fetch()).start();
+            //new Thread(() -> new Fetcher(this.database, station, lappers).fetch()).start();
         }
 
         logger.info("Up and running!");
