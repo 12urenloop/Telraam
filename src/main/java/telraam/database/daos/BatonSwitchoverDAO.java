@@ -7,6 +7,7 @@ import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.BatonSwitchover;
+import telraam.database.models.Detection;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,4 +37,8 @@ public interface BatonSwitchoverDAO extends DAO<BatonSwitchover> {
     @Override
     @SqlUpdate("UPDATE batonswitchover SET teamId = :teamId, previousBatonId = :previousBatonId, newBatonId = :newBatonId, timestamp = :timestamp WHERE id = :id")
     int update(@Bind("id") int id, @BindBean BatonSwitchover batonSwitchover);
+
+    @SqlQuery("SELECT * FROM batonswitchover WHERE id > :id")
+    @RegisterBeanMapper(BatonSwitchover.class)
+    List<BatonSwitchover> getAllSinceId(@Bind("id") int id);
 }

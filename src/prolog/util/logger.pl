@@ -1,6 +1,6 @@
-:- module(logger, [info/1, error/1, assert_logger/1]).
+:- module(logger, [info/1, error/1]).
 
-:- dynamic logger/1.
+:- use_module(jrefs).
 
 
 convert_thing(Thing, Thing) :- 
@@ -18,12 +18,13 @@ error(Thing) :- log('SEVERE', Thing).
 
 
 log(Level, Thing) :-
-    logger(JRefLogger),
+    (logger_jref(JRefLogger) ->
+        true
+        ;
+        lapper_jref(JRefLapper),
+        jpl_get(JRefLapper, 'logger', JRefLogger),
+        assert_jref(logger_jref(JRefLogger))
+    ),
     convert_thing(Thing, ConvertedThing),
     jpl_get('java.util.logging.Level', Level, JRefLevel),
     jpl_call(JRefLogger, log, [JRefLevel, ConvertedThing], _).
-
-
-assert_logger(JRefLogger) :-
-    retractall(logger(_)),
-    asserta(logger(JRefLogger)).

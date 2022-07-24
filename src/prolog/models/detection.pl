@@ -1,6 +1,7 @@
 :- module(detection, [assert_detections/1, detection/2]).
 
 :- use_module(atom_to_list).
+:- use_module('../util/jrefs').
 
 :- dynamic detection/2.
 
