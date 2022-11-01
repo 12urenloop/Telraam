@@ -49,38 +49,54 @@ public class HMM<S, O> {
         return emissionProbabilities;
     }
 
-    public List<Map<S, Double>> forward(List<O> observations, Map<S, Double> startProbabilities, S endState) {
+    public List<Map<S, Double>> forward(List<O> observations, LinkedList<Double> scalingFactors, Map<S, Double> startProbabilities) {
         LinkedList<Map<S, Double>> forwardHistory = new LinkedList<>(List.of(startProbabilities));
 
         for (O observation : observations.subList(1, observations.size())) {
             Map<S, Double> current = new HashMap<>();
+            double sum = 0.0;
             for (S state : states) {
-                double sum = states.stream().map(
+                double total = states.stream().map(
                         ps -> forwardHistory.getLast().get(ps) * transitionProbabilities.get(ps).get(state)
-                ).mapToDouble(Double::doubleValue).sum();
+                ).mapToDouble(Double::doubleValue).sum() * emissionProbabilities.get(state).get(observation);
 
-                current.put(state, emissionProbabilities.get(state).get(observation) * sum);
+                sum += total;
+                current.put(state, total);
             }
+
+            scalingFactors.addLast(sum);
+            for (S state : states) {
+                current.put(state, current.get(state) / sum);
+            }
+
             forwardHistory.addLast(current);
         }
         return forwardHistory;
     }
 
-    public List<Map<S, Double>> backward(List<O> observations, Map<S, Double> startProbabilities, S endState) {
+    public List<Map<S, Double>> backward(List<O> observations, LinkedList<Double> scalingFactors) {
         LinkedList<Map<S, Double>> backwardHistory = new LinkedList<>(List.of(new HashMap<>()));
         for (S state : states) {
-            backwardHistory.getLast().put(state, transitionProbabilities.get(state).get(endState));
+            /* TODO: verify the endState requirements */
+            //backwardHistory.getLast().put(state, transitionProbabilities.get(state).get(endState));
+            backwardHistory.getLast().put(state, 1.);
         }
 
         for (O observation : Lists.reverse(observations.subList(0, observations.size() - 1))) {
             Map<S, Double> current = new HashMap<>();
             for (S state : states) {
-                double sum = states.stream().map(
+                double total = states.stream().map(
                         ps -> transitionProbabilities.get(state).get(ps) * emissionProbabilities.get(ps).get(observation) * backwardHistory.getFirst().get(ps)
                 ).mapToDouble(Double::doubleValue).sum();
 
-                current.put(state, sum);
+                current.put(state, total);
             }
+
+            double scalingFactor = scalingFactors.removeFirst();
+            for (S state : states) {
+                current.put(state, current.get(state) / scalingFactor);
+            }
+
             backwardHistory.addFirst(current);
         }
         return backwardHistory;
@@ -91,21 +107,30 @@ public class HMM<S, O> {
             List<Map<S, Double>> forwardHistory,
             List<Map<S, Double>> backwardHistory) {
         List<Map<S, Map<S, Double>>> siHistory = new ArrayList<>();
+
+        ArrayList<Map<S, Double>> forwardHistoryArrayList = new ArrayList<>(forwardHistory);
+        ArrayList<Map<S, Double>> backwardHistoryArrayList = new ArrayList<>(backwardHistory);
+
         for (int i = 0; i < observations.size() - 1; i++) {
+            Map<S, Double> currentForward = forwardHistoryArrayList.get(i);
+            Map<S, Double> currentBackward = backwardHistoryArrayList.get(i);
+            Map<S, Double> nextBackward = backwardHistoryArrayList.get(i+1);
+            O nextObservation = observations.get(i + 1);
+
             Map<S, Map<S, Double>> current = new HashMap<>();
             for (S state1 : states) {
                 Map<S, Double> currentS = new HashMap<>();
                 for (S state2 : states) {
 
-                    double numerator = forwardHistory.get(i).get(state1) * transitionProbabilities.get(state1).get(state2);
-                    numerator *= backwardHistory.get(i + 1).get(state2) * emissionProbabilities.get(state2).get(observations.get(i + 1));
+                    double numerator = currentForward.get(state1) * transitionProbabilities.get(state1).get(state2);
+                    numerator *= nextBackward.get(state2) * emissionProbabilities.get(state2).get(nextObservation);
 
                     double denominator = 0;
 
                     for (S k : states) {
                         for (S w : states) {
-                            double partialDenominator = forwardHistory.get(i).get(k) * transitionProbabilities.get(k).get(w);
-                            partialDenominator *= backwardHistory.get(i + 1).get(w) * emissionProbabilities.get(w).get(observations.get(i + 1));
+                            double partialDenominator = currentForward.get(k) * transitionProbabilities.get(k).get(w);
+                            partialDenominator *= currentBackward.get(w) * emissionProbabilities.get(w).get(nextObservation);
 
                             denominator += partialDenominator;
                         }
@@ -125,15 +150,22 @@ public class HMM<S, O> {
             List<Map<S, Double>> forwardHistory,
             List<Map<S, Double>> backwardHistory) {
         List<Map<S, Double>> gammaHistory = new ArrayList<>();
+
+        ArrayList<Map<S, Double>> forwardHistoryArrayList = new ArrayList<>(forwardHistory);
+        ArrayList<Map<S, Double>> backwardHistoryArrayList = new ArrayList<>(backwardHistory);
+
         for (int i = 0; i < observations.size(); i++) {
+            Map<S, Double> currentForward = forwardHistoryArrayList.get(i);
+            Map<S, Double> currentBackward = backwardHistoryArrayList.get(i);
+
             Map<S, Double> current = new HashMap<>();
             for (S state1 : states) {
 
-                double numerator = forwardHistory.get(i).get(state1) * backwardHistory.get(i).get(state1);
+                double numerator = currentForward.get(state1) * currentBackward.get(state1);
                 double denominator = 0;
 
                 for (S state2 : states) {
-                    denominator += forwardHistory.get(i).get(state2) * backwardHistory.get(i).get(state2);
+                    denominator += currentForward.get(state2) * currentBackward.get(state2);
                 }
 
                 current.put(state1, numerator / denominator);
@@ -143,14 +175,21 @@ public class HMM<S, O> {
         return gammaHistory;
     }
 
-    public void baumWelch(List<O> observations, Map<S, Double> startProbabilities, S endState) {
+    public void baumWelch(List<O> observations, Map<S, Double> startProbabilities) {
 
-        List<Map<S, Double>> forwardHistory = forward(observations, startProbabilities, endState);
-        List<Map<S, Double>> backwardHistory = backward(observations, startProbabilities, endState);
+        LinkedList<Double> scalingFactors = new LinkedList<>();
 
+        System.out.println("\t FORWARD");
+        List<Map<S, Double>> forwardHistory = forward(observations, scalingFactors, startProbabilities);
+        System.out.println("\t BACKWARD");
+        List<Map<S, Double>> backwardHistory = backward(observations, scalingFactors);
+
+        System.out.println("\t GAMMA");
         List<Map<S, Double>> gammaHistory = gammaProbabilities(observations, forwardHistory, backwardHistory);
+        System.out.println("\t XI");
         List<Map<S, Map<S, Double>>> xiHistory = xiProbabilities(observations, forwardHistory, backwardHistory);
 
+        System.out.println("\t ACTUAL BAUMWELCH");
         for (S state1 : states) {
             for (S state2 : states) {
                 double numerator = 0;
