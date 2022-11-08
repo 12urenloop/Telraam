@@ -52,12 +52,14 @@ public class BaumWelchLapper implements Lapper {
 
             if (batonIdToTeam.containsKey(detection.getBatonId())) {
                 List<Detection> detections = teamToDetections.get(batonIdToTeam.get(detection.getBatonId()));
-                if (detections.size() > 0 && detections.get(detections.size() - 1).getTimestamp().getTime() == detection.getTimestamp().getTime()) {
-                    if (detections.get(detections.size() - 1).getRssi() < detection.getRssi()) {
-                        detections.set(detections.size() - 1, detection);
+                if (detection.getRssi() > -75) {
+                    if (detections.size() > 0 && detections.get(detections.size() - 1).getTimestamp().getTime() == detection.getTimestamp().getTime()) {
+                        if (detections.get(detections.size() - 1).getRssi() < detection.getRssi()) {
+                            detections.set(detections.size() - 1, detection);
+                        }
+                    } else {
+                        detections.add(detection);
                     }
-                } else {
-                    detections.add(detection);
                 }
             }
         }
@@ -70,54 +72,13 @@ public class BaumWelchLapper implements Lapper {
             List<Integer> observations = teamToDetections.get(team).stream().map(Detection::getStationId).toList();
 
             HMM<Integer, Integer> hmm = new HMM<>(IntStream.range(0, stations.size()).boxed().toList(), stations.stream().map(Station::getId).collect(Collectors.toList()));
-            for (int i = 0; i < 20; i++) {
+            for (int i = 0; i < 10; i++) {
                 hmm.baumWelch(observations, IntStream.range(0, stations.size()).boxed().collect(Collectors.toMap(Function.identity(), _station -> 1.0/stations.size())));
             }
             System.out.println("================================================================");
             System.out.println(hmm.getEmissionProbabilities());
             System.out.println(hmm.getTransitionProbabilities());
         }
-
-        /*System.out.println(teamToDetections);
-
-        HMM<Integer, Integer> hmm = new HMM<>(List.of(1, 2, 3, 4), List.of(1, 2, 3));
-        System.out.println(hmm.getTransitionProbabilities());
-        System.out.println(hmm.getEmissionProbabilities());
-
-        var observations = List.of(1, 2, 3, 3, 3, 3, 3, 3, 3, 1);
-        var forward = hmm.forward(observations, Map.of(1,0.25, 2,0.25, 3,0.25, 4,0.25));
-        var backward = hmm.backward(observations);
-
-        System.out.println(forward);
-        System.out.println(backward);
-        System.out.println(hmm.gammaProbabilities(observations, forward, backward));
-        System.out.println(hmm.xiProbabilities(observations, forward, backward));
-
-        System.out.println("==>");
-        hmm.baumWelch(observations, Map.of(1,0.25, 2,0.25, 3,0.25, 4,0.25), 1);
-        System.out.println(hmm.getTransitionProbabilities());
-        System.out.println(hmm.getEmissionProbabilities());
-
-        System.out.println("==>");
-        hmm.baumWelch(observations, Map.of(1,0.25, 2,0.25, 3,0.25, 4,0.25), 1);
-        System.out.println(hmm.getTransitionProbabilities());
-        System.out.println(hmm.getEmissionProbabilities());
-
-        System.out.println("==>");
-        hmm.baumWelch(observations, Map.of(1,0.25, 2,0.25, 3,0.25, 4,0.25), 1);
-        System.out.println(hmm.getTransitionProbabilities());
-        System.out.println(hmm.getEmissionProbabilities());
-
-        System.out.println("==>");
-        hmm.baumWelch(observations, Map.of(1,0.25, 2,0.25, 3,0.25, 4,0.25), 1);
-        System.out.println(hmm.getTransitionProbabilities());
-        System.out.println(hmm.getEmissionProbabilities());
-
-        System.out.println("==>");
-        hmm.baumWelch(observations, Map.of(1,0.25, 2,0.25, 3,0.25, 4,0.25), 1);
-        System.out.println(hmm.getTransitionProbabilities());
-        System.out.println(hmm.getEmissionProbabilities());
-        */
     }
 
 

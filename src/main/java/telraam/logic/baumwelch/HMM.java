@@ -8,12 +8,14 @@ public class HMM<S, O> {
     private final List<S> states;
     private final List<O> observationStates;
 
-    private final Map<S, Map<S, Double>> transitionProbabilities = new HashMap<>();
-    private final Map<S, Map<O, Double>> emissionProbabilities = new HashMap<>();
+    private Map<S, Map<S, Double>> transitionProbabilities = new HashMap<>();
+    private Map<S, Map<O, Double>> emissionProbabilities = new HashMap<>();
 
     public HMM(List<S> states, List<O> observationStates) {
         this.states = states;
         this.observationStates = observationStates;
+
+        Random rg = new Random();
 
         for (S s1 : states) {
             Map<S, Double> sTransitionProbabilities = new HashMap<>();
@@ -22,7 +24,7 @@ public class HMM<S, O> {
             /* Initialize Transition Probabilities */
             double sum = 0;
             for (S s2 : states) {
-                double probability = new Random().nextDouble();
+                double probability = rg.nextDouble();
                 sTransitionProbabilities.put(s2, probability);
                 sum += probability;
             }
@@ -33,10 +35,16 @@ public class HMM<S, O> {
             /* Initialize Emission Probabilities */
             Map<O, Double> sEmissionProbabilities = new HashMap<>();
             emissionProbabilities.put(s1, sEmissionProbabilities);
-            double probability = 1. / observationStates.size();
+
+            sum = 0.;
+            for (O o : observationStates) {
+                double value = rg.nextDouble();
+                sum += value;
+                sEmissionProbabilities.put(o, value);
+            }
 
             for (O o : observationStates) {
-                sEmissionProbabilities.put(o, probability);
+                sEmissionProbabilities.put(o, sEmissionProbabilities.get(o) / sum);
             }
         }
     }
@@ -47,6 +55,14 @@ public class HMM<S, O> {
 
     public Map<S, Map<O, Double>> getEmissionProbabilities() {
         return emissionProbabilities;
+    }
+
+    public void setTransitionProbabilities(Map<S, Map<S, Double>> transitionProbabilities) {
+        this.transitionProbabilities = transitionProbabilities;
+    }
+
+    public void setEmissionProbabilities(Map<S, Map<O, Double>> emissionProbabilities) {
+        this.emissionProbabilities = emissionProbabilities;
     }
 
     public List<Map<S, Double>> forward(List<O> observations, LinkedList<Double> scalingFactors, Map<S, Double> startProbabilities) {
@@ -92,7 +108,7 @@ public class HMM<S, O> {
                 current.put(state, total);
             }
 
-            double scalingFactor = scalingFactors.removeFirst();
+            double scalingFactor = scalingFactors.removeLast();
             for (S state : states) {
                 current.put(state, current.get(state) / scalingFactor);
             }
@@ -114,7 +130,7 @@ public class HMM<S, O> {
         for (int i = 0; i < observations.size() - 1; i++) {
             Map<S, Double> currentForward = forwardHistoryArrayList.get(i);
             Map<S, Double> currentBackward = backwardHistoryArrayList.get(i);
-            Map<S, Double> nextBackward = backwardHistoryArrayList.get(i+1);
+            Map<S, Double> nextBackward = backwardHistoryArrayList.get(i + 1);
             O nextObservation = observations.get(i + 1);
 
             Map<S, Map<S, Double>> current = new HashMap<>();
@@ -184,25 +200,33 @@ public class HMM<S, O> {
         System.out.println("\t BACKWARD");
         List<Map<S, Double>> backwardHistory = backward(observations, scalingFactors);
 
+        /* E step */
         System.out.println("\t GAMMA");
         List<Map<S, Double>> gammaHistory = gammaProbabilities(observations, forwardHistory, backwardHistory);
         System.out.println("\t XI");
         List<Map<S, Map<S, Double>>> xiHistory = xiProbabilities(observations, forwardHistory, backwardHistory);
 
-        System.out.println("\t ACTUAL BAUMWELCH");
+        /* M step */
         for (S state1 : states) {
+            double sum = 0.0;
             for (S state2 : states) {
                 double numerator = 0;
                 double denominator = 0;
-                for (int i = 0; i < observations.size()-1; i++) {
+                for (int i = 0; i < observations.size() - 1; i++) {
                     numerator += xiHistory.get(i).get(state1).get(state2);
                     denominator += gammaHistory.get(i).get(state1);
                 }
+                sum += numerator / denominator;
                 transitionProbabilities.get(state1).put(state2, numerator / denominator);
+            }
+
+            for (S state2 : states) {
+                transitionProbabilities.get(state1).put(state2, transitionProbabilities.get(state1).get(state2) / sum);
             }
         }
 
         for (S state1 : states) {
+            double sum = 0.0;
             for (O observationState : observationStates) {
                 double numerator = 0;
                 double denominator = 0;
@@ -212,7 +236,12 @@ public class HMM<S, O> {
                     }
                     denominator += gammaHistory.get(i).get(state1);
                 }
+                sum += numerator / denominator;
                 emissionProbabilities.get(state1).put(observationState, numerator / denominator);
+            }
+
+            for (O observationState : observationStates) {
+                emissionProbabilities.get(state1).put(observationState, emissionProbabilities.get(state1).get(observationState) / sum);
             }
         }
     }
