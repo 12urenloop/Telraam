@@ -24,9 +24,13 @@ public class HMM<S, O> {
             /* Initialize Transition Probabilities */
             double sum = 0;
             for (S s2 : states) {
-                double probability = rg.nextDouble();
-                sTransitionProbabilities.put(s2, probability);
-                sum += probability;
+                if (s1 == s2) {
+                    sTransitionProbabilities.put(s2, 1.);
+                    sum += 1.;
+                } else {
+                    sum += 0.01;
+                    sTransitionProbabilities.put(s2, 0.01);
+                }
             }
             for (S s2 : states) {
                 sTransitionProbabilities.put(s2, sTransitionProbabilities.get(s2) / sum);
@@ -72,9 +76,11 @@ public class HMM<S, O> {
             Map<S, Double> current = new HashMap<>();
             double sum = 0.0;
             for (S state : states) {
-                double total = states.stream().map(
-                        ps -> forwardHistory.getLast().get(ps) * transitionProbabilities.get(ps).get(state)
-                ).mapToDouble(Double::doubleValue).sum() * emissionProbabilities.get(state).get(observation);
+                double total = 0.0;
+                for (S state2 : states) {
+                    total += forwardHistory.getLast().get(state2) * transitionProbabilities.get(state2).get(state);
+                }
+                total *= emissionProbabilities.get(state).get(observation);
 
                 sum += total;
                 current.put(state, total);
@@ -100,12 +106,13 @@ public class HMM<S, O> {
 
         for (O observation : Lists.reverse(observations.subList(0, observations.size() - 1))) {
             Map<S, Double> current = new HashMap<>();
-            for (S state : states) {
-                double total = states.stream().map(
-                        ps -> transitionProbabilities.get(state).get(ps) * emissionProbabilities.get(ps).get(observation) * backwardHistory.getFirst().get(ps)
-                ).mapToDouble(Double::doubleValue).sum();
+            for (S state1 : states) {
+                double total = 0.0;
+                for (S state2 : states) {
+                    total += transitionProbabilities.get(state1).get(state2) * emissionProbabilities.get(state2).get(observation) * backwardHistory.getFirst().get(state2);
+                }
 
-                current.put(state, total);
+                current.put(state1, total);
             }
 
             double scalingFactor = scalingFactors.removeLast();
@@ -133,6 +140,17 @@ public class HMM<S, O> {
             Map<S, Double> nextBackward = backwardHistoryArrayList.get(i + 1);
             O nextObservation = observations.get(i + 1);
 
+            double denominator = 0;
+
+            for (S k : states) {
+                for (S w : states) {
+                    double partialDenominator = currentForward.get(k) * transitionProbabilities.get(k).get(w);
+                    partialDenominator *= currentBackward.get(w) * emissionProbabilities.get(w).get(nextObservation);
+
+                    denominator += partialDenominator;
+                }
+            }
+
             Map<S, Map<S, Double>> current = new HashMap<>();
             for (S state1 : states) {
                 Map<S, Double> currentS = new HashMap<>();
@@ -140,17 +158,6 @@ public class HMM<S, O> {
 
                     double numerator = currentForward.get(state1) * transitionProbabilities.get(state1).get(state2);
                     numerator *= nextBackward.get(state2) * emissionProbabilities.get(state2).get(nextObservation);
-
-                    double denominator = 0;
-
-                    for (S k : states) {
-                        for (S w : states) {
-                            double partialDenominator = currentForward.get(k) * transitionProbabilities.get(k).get(w);
-                            partialDenominator *= currentBackward.get(w) * emissionProbabilities.get(w).get(nextObservation);
-
-                            denominator += partialDenominator;
-                        }
-                    }
 
                     currentS.put(state2, numerator / denominator);
                 }

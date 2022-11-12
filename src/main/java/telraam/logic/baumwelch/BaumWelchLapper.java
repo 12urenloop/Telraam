@@ -18,6 +18,7 @@ public class BaumWelchLapper implements Lapper {
 
     private final Thread runner = new Thread(this::run);
     private final Jdbi jdbi;
+    private HMM<Integer, Integer> hmm;
 
     public BaumWelchLapper(Jdbi jdbi) {
         this.jdbi = jdbi;
@@ -67,8 +68,8 @@ public class BaumWelchLapper implements Lapper {
         List<Station> stations = stationDAO.getAll();
 
         List<List<Integer>> observations = teamToDetections.values().stream().map(a -> a.stream().map(Detection::getStationId).toList()).toList();
-        HMM<Integer, Integer> hmm = new HMM<>(IntStream.range(0, stations.size()).boxed().toList(), stations.stream().map(Station::getId).collect(Collectors.toList()));
-        for (int i = 0; i < 10; i++) {
+        hmm = new HMM<>(IntStream.range(0, stations.size()).boxed().toList(), stations.stream().map(Station::getId).collect(Collectors.toList()));
+        for (int i = 0; i < 100; i++) {
             hmm.baumWelch(observations, IntStream.range(0, stations.size()).boxed().collect(Collectors.toMap(Function.identity(), _station -> 1.0/stations.size())));
             System.out.println("================================================================");
             System.out.println(hmm.getEmissionProbabilities());
@@ -84,7 +85,12 @@ public class BaumWelchLapper implements Lapper {
         }
     }
 
+    public HMM<Integer, Integer> getHmm() {
+        return hmm;
+    }
+
     @Override
     public void registerAPI(JerseyEnvironment jersey) {
+        jersey.register(new BaumWelchLapperResource(this));
     }
 }
