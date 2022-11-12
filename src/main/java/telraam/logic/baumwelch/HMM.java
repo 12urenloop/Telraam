@@ -191,20 +191,28 @@ public class HMM<S, O> {
         return gammaHistory;
     }
 
-    public void baumWelch(List<O> observations, Map<S, Double> startProbabilities) {
+    public void baumWelch(List<List<O>> observationsList, Map<S, Double> startProbabilities) {
 
-        LinkedList<Double> scalingFactors = new LinkedList<>();
+        List<List<Map<S, Double>>> gammaHistoryList = new ArrayList<>();
+        List<List<Map<S, Map<S, Double>>>> xiHistoryList = new ArrayList<>();
 
-        System.out.println("\t FORWARD");
-        List<Map<S, Double>> forwardHistory = forward(observations, scalingFactors, startProbabilities);
-        System.out.println("\t BACKWARD");
-        List<Map<S, Double>> backwardHistory = backward(observations, scalingFactors);
+        for (List<O> observations : observationsList) {
 
-        /* E step */
-        System.out.println("\t GAMMA");
-        List<Map<S, Double>> gammaHistory = gammaProbabilities(observations, forwardHistory, backwardHistory);
-        System.out.println("\t XI");
-        List<Map<S, Map<S, Double>>> xiHistory = xiProbabilities(observations, forwardHistory, backwardHistory);
+            LinkedList<Double> scalingFactors = new LinkedList<>();
+
+            System.out.println("\t FORWARD");
+            List<Map<S, Double>> forwardHistory = forward(observations, scalingFactors, startProbabilities);
+
+            System.out.println("\t BACKWARD");
+            List<Map<S, Double>> backwardHistory = backward(observations, scalingFactors);
+
+            /* E step */
+            System.out.println("\t GAMMA");
+            gammaHistoryList.add(gammaProbabilities(observations, forwardHistory, backwardHistory));
+            System.out.println("\t XI");
+            xiHistoryList.add(xiProbabilities(observations, forwardHistory, backwardHistory));
+
+        }
 
         /* M step */
         for (S state1 : states) {
@@ -212,9 +220,16 @@ public class HMM<S, O> {
             for (S state2 : states) {
                 double numerator = 0;
                 double denominator = 0;
-                for (int i = 0; i < observations.size() - 1; i++) {
-                    numerator += xiHistory.get(i).get(state1).get(state2);
-                    denominator += gammaHistory.get(i).get(state1);
+                for (int set = 0; set < observationsList.size(); set ++) {
+                    int observationsSize = observationsList.get(set).size();
+
+                    List<Map<S, Double>> gammaHistory = gammaHistoryList.get(set);
+                    List<Map<S, Map<S, Double>>> xiHistory = xiHistoryList.get(set);
+
+                    for (int i = 0; i < observationsSize - 1; i++) {
+                        numerator += xiHistory.get(i).get(state1).get(state2);
+                        denominator += gammaHistory.get(i).get(state1);
+                    }
                 }
                 sum += numerator / denominator;
                 transitionProbabilities.get(state1).put(state2, numerator / denominator);
@@ -230,12 +245,21 @@ public class HMM<S, O> {
             for (O observationState : observationStates) {
                 double numerator = 0;
                 double denominator = 0;
-                for (int i = 0; i < observations.size(); i++) {
-                    if (observationState == observations.get(i)) {
-                        numerator += gammaHistory.get(i).get(state1);
+
+                for (int set = 0; set < observationsList.size(); set ++) {
+                    List<O> observations = observationsList.get(set);
+                    int observationsSize = observationsList.get(set).size();
+
+                    List<Map<S, Double>> gammaHistory = gammaHistoryList.get(set);
+
+                    for (int i = 0; i < observationsSize; i++) {
+                        if (observationState == observations.get(i)) {
+                            numerator += gammaHistory.get(i).get(state1);
+                        }
+                        denominator += gammaHistory.get(i).get(state1);
                     }
-                    denominator += gammaHistory.get(i).get(state1);
                 }
+
                 sum += numerator / denominator;
                 emissionProbabilities.get(state1).put(observationState, numerator / denominator);
             }

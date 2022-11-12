@@ -65,16 +65,11 @@ public class BaumWelchLapper implements Lapper {
         }
 
         List<Station> stations = stationDAO.getAll();
-        Map<Integer, Station> stationIdToStation = stations.stream().collect(Collectors.toMap(Station::getId, Function.identity()));
 
-        for (Team team : teamToDetections.keySet()) {
-            System.out.println("Running for team " + team.getName());
-            List<Integer> observations = teamToDetections.get(team).stream().map(Detection::getStationId).toList();
-
-            HMM<Integer, Integer> hmm = new HMM<>(IntStream.range(0, stations.size()).boxed().toList(), stations.stream().map(Station::getId).collect(Collectors.toList()));
-            for (int i = 0; i < 10; i++) {
-                hmm.baumWelch(observations, IntStream.range(0, stations.size()).boxed().collect(Collectors.toMap(Function.identity(), _station -> 1.0/stations.size())));
-            }
+        List<List<Integer>> observations = teamToDetections.values().stream().map(a -> a.stream().map(Detection::getStationId).toList()).toList();
+        HMM<Integer, Integer> hmm = new HMM<>(IntStream.range(0, stations.size()).boxed().toList(), stations.stream().map(Station::getId).collect(Collectors.toList()));
+        for (int i = 0; i < 10; i++) {
+            hmm.baumWelch(observations, IntStream.range(0, stations.size()).boxed().collect(Collectors.toMap(Function.identity(), _station -> 1.0/stations.size())));
             System.out.println("================================================================");
             System.out.println(hmm.getEmissionProbabilities());
             System.out.println(hmm.getTransitionProbabilities());
