@@ -11,11 +11,12 @@ public class Detection {
     private Long uptimeMs;
     private Integer remoteId;
     private Timestamp timestamp;
+    private Timestamp timestampIngestion;
 
     public Detection() {
     }
 
-    public Detection(Integer batonId, Integer stationId, Integer rssi, Float battery, Long uptimeMs, Integer remoteId, Timestamp timestamp) {
+    public Detection(Integer batonId, Integer stationId, Integer rssi, Float battery, Long uptimeMs, Integer remoteId, Timestamp timestamp, Timestamp timestampIngestion) {
         this.batonId = batonId;
         this.stationId = stationId;
         this.rssi = rssi;
@@ -23,6 +24,7 @@ public class Detection {
         this.uptimeMs = uptimeMs;
         this.remoteId = remoteId;
         this.timestamp = timestamp;
+        this.timestampIngestion = timestampIngestion;
     }
 
     public Integer getId() {
@@ -87,5 +89,13 @@ public class Detection {
 
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public Timestamp getTimestampIngestion() {
+        return timestampIngestion;
+    }
+
+    public void setTimestampIngestion(Timestamp timestampIngestion) {
+        this.timestampIngestion = timestampIngestion;
     }
 }
