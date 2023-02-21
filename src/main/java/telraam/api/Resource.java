@@ -46,5 +46,4 @@ public interface Resource<T> {
     @Path(ENTITY_PATH)
     boolean delete(@PathParam(ID_NAME) Optional<Integer> id);
 
-
 }

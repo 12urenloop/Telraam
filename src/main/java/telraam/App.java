@@ -55,22 +55,18 @@ public class App extends Application<AppConfiguration> {
     }
 
     @Override
-    public void run(AppConfiguration configuration, Environment environment)
-            throws IOException {
+    public void run(AppConfiguration configuration, Environment environment) throws IOException {
         this.config = configuration;
         this.environment = environment;
         // Add database
         final JdbiFactory factory = new JdbiFactory();
-        this.database =
-                factory.build(environment, configuration.getDataSourceFactory(),
-                        "postgresql");
+        this.database = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
 
         // Add api resources
         JerseyEnvironment jersey = environment.jersey();
         jersey.register(new BatonResource(database.onDemand(BatonDAO.class)));
         jersey.register(new StationResource(database.onDemand(StationDAO.class)));
-        jersey.register(
-                new DetectionResource(database.onDemand(DetectionDAO.class)));
+        jersey.register(new DetectionResource(database.onDemand(DetectionDAO.class)));
         jersey.register(new LapResource(database.onDemand(LapDAO.class)));
         jersey.register(new TeamResource(database.onDemand(TeamDAO.class), database.onDemand(BatonSwitchoverDAO.class)));
         jersey.register(new LapSourceResource(database.onDemand(LapSourceDAO.class)));
@@ -78,8 +74,7 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new LapSourceSwitchoverResource(database.onDemand(LapSourceSwitchoverDAO.class)));
         jersey.register(new AcceptedLapsResource(database.onDemand(LapDAO.class), database.onDemand(LapSourceSwitchoverDAO.class)));
         jersey.register(new TimeResource());
-        environment.healthChecks().register("template",
-                new TemplateHealthCheck(configuration.getTemplate()));
+        environment.healthChecks().register("template", new TemplateHealthCheck(configuration.getTemplate()));
 
         // Enable CORS
         final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
