@@ -33,7 +33,7 @@ class DetectionDAOTest extends DatabaseTest {
         batonId1 = batonDAO.insert(new Baton("baton1"));
         stationId = stationDAO.insert(new Station("station1", "localhost:8000"));
         exampleDetection =
-                new Detection(batonId1, stationId, new Timestamp(123456789));
+                new Detection(batonId1, stationId, -80, 100.0f, 1L, 1, new Timestamp(1));
     }
 
     @Test
@@ -44,7 +44,7 @@ class DetectionDAOTest extends DatabaseTest {
         Optional<Detection> detectionOptional = detectionDAO.getById(testId);
         assertFalse(detectionOptional.isEmpty());
         Detection detection = detectionOptional.get();
-        assertEquals(new Timestamp(123456789), detection.getTimestamp());
+        assertEquals(new Timestamp(1), detection.getTimestamp());
     }
 
     @Test
@@ -65,7 +65,7 @@ class DetectionDAOTest extends DatabaseTest {
     void testList2Detections() {
         Detection b1 = exampleDetection;
         Detection b2 = exampleDetection;
-        b2.setTimestamp(new Timestamp(1234567890));
+        b2.setTimestamp(new Timestamp(2));
         detectionDAO.insert(b1);
         detectionDAO.insert(b2);
 
@@ -83,7 +83,7 @@ class DetectionDAOTest extends DatabaseTest {
     @Test
     void testUpdateDoesUpdate() {
         int testid = detectionDAO.insert(exampleDetection);
-        Timestamp afterTime = new Timestamp(1123456789);
+        Timestamp afterTime = new Timestamp(1);
         exampleDetection.setTimestamp(afterTime);
 
         int updatedRows = detectionDAO.update(testid, exampleDetection);
@@ -98,7 +98,7 @@ class DetectionDAOTest extends DatabaseTest {
     void updateDoesntDoAnythingWhenNotExists() {
         int testid = detectionDAO.insert(exampleDetection);
         exampleDetection.setId(testid);
-        int updatedRows = detectionDAO.update(testid + 1, new Detection(batonId1, stationId, new Timestamp(123456790)));
+        int updatedRows = detectionDAO.update(testid + 1, new Detection(batonId1, stationId, -80, 100.0f, 1L, 1, new Timestamp(1)));
         List<Detection> detections = detectionDAO.getAll();
         assertEquals(0, updatedRows);
         assertEquals(1, detections.size());
@@ -108,9 +108,9 @@ class DetectionDAOTest extends DatabaseTest {
     @Test
     void updateOnlyUpdatesRelevantModel() {
         int id1 = detectionDAO.insert(exampleDetection);
-        Detection detection2 = new Detection(batonId1, stationId, new Timestamp(123456790));
+        Detection detection2 = new Detection(batonId1, stationId, -80, 100.0f, 1L, 1, new Timestamp(1));;
         int id2 = detectionDAO.insert(detection2);
-        int updatedRows = detectionDAO.update(id1, new Detection(batonId1, stationId, new Timestamp(123456791)));
+        int updatedRows = detectionDAO.update(id1, new Detection(batonId1, stationId, -80, 100.0f, 2L, 2, new Timestamp(2)));
         assertEquals(1, updatedRows);
         assertEquals(2, detectionDAO.getAll().size());
         assertEquals(detection2.getTimestamp(), detectionDAO.getById(id2).get().getTimestamp());
