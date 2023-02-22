@@ -27,6 +27,7 @@ public class ExternalLapperResource {
         this.lapper.saveLaps(teamLaps);
     }
 
+    //TODO: Give the lapper an option to publish some of its internal state for debugging.
     //@GET
     //@Path("/stats")
     //@ApiOperation(value = "Get lapper statistics")

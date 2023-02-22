@@ -10,7 +10,6 @@ import telraam.database.models.LapSource;
 import telraam.logic.Lapper;
 
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,9 +18,11 @@ public class ExternalLapper implements Lapper {
     static final String SOURCE_NAME = "external-lapper";
     private final LapDAO lapDAO;
     private int lapSourceId;
+
     public ExternalLapper(Jdbi jdbi) {
         this.lapDAO = jdbi.onDemand(LapDAO.class);
 
+        // Get the lapSourceId, create the source if needed
         LapSourceDAO lapSourceDAO = jdbi.onDemand(LapSourceDAO.class);
         lapSourceDAO.getByName(SOURCE_NAME).ifPresentOrElse(
                 lapSource -> this.lapSourceId = lapSource.getId(),
@@ -30,15 +31,18 @@ public class ExternalLapper implements Lapper {
     }
 
     @Override
-    public void handle(Detection msg) {}
+    public void handle(Detection msg) {
+        // Do nothing here. The external lappers polls periodically using the general api.
+    }
 
     public void saveLaps(List<ExternalLapperTeamLaps> teamLaps) {
+        //TODO: Be less destructive on the database: Only delete and add the required laps.
         lapDAO.deleteByLapSourceId(this.lapSourceId);
 
         LinkedList<Lap> laps = new LinkedList<>();
 
-        for (ExternalLapperTeamLaps teamLap: teamLaps) {
-            for (ExternalLapperLap lap: teamLap.laps) {
+        for (ExternalLapperTeamLaps teamLap : teamLaps) {
+            for (ExternalLapperLap lap : teamLap.laps) {
                 laps.add(new Lap(teamLap.teamId, this.lapSourceId, new Timestamp((long) (lap.timestamp))));
             }
         }

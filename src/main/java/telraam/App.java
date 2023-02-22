@@ -91,7 +91,9 @@ public class App extends Application<AppConfiguration> {
         // Set up lapper algorithms
         Set<Lapper> lappers = new HashSet<>();
 
-        lappers.add(new ViterbiLapper(this.database));
+        // Old viterbi lapper is disabled
+        //lappers.add(new ViterbiLapper(this.database));
+
         lappers.add(new ExternalLapper(this.database));
 
         // Enable lapper APIs
