@@ -25,7 +25,7 @@ class StationDAOTest extends DatabaseTest {
 
     @Test
     void createStation() {
-        Station testStation = new Station("teststation", "localhost:8000");
+        Station testStation = new Station("teststation", 1d, "localhost:8000");
         final int testId = stationDAO.insert(testStation);
         assertTrue(testId > 0);
 
@@ -33,7 +33,9 @@ class StationDAOTest extends DatabaseTest {
         assertFalse(stationOptional.isEmpty());
         Station station = stationOptional.get();
         assertEquals("teststation", station.getName());
+        assertEquals(1d, station.getDistanceFromStart());
         assertEquals(false, station.getIsBroken());
+        assertEquals("localhost:8000", station.getUrl());
     }
 
     @Test
@@ -52,8 +54,8 @@ class StationDAOTest extends DatabaseTest {
 
     @Test
     void testList2Stations() {
-        Station b1 = new Station("b1", "localhost:8000");
-        Station b2 = new Station("b2", "localhost:8001");
+        Station b1 = new Station("b1", 1d ,"localhost:8000");
+        Station b2 = new Station("b2", 1d, "localhost:8001");
         stationDAO.insert(b1);
         stationDAO.insert(b2);
 
@@ -76,25 +78,29 @@ class StationDAOTest extends DatabaseTest {
 
     @Test
     void testUpdateDoesUpdate() {
-        Station testStation = new Station("preupdate", "localhost:8000");
+        Station testStation = new Station("preUpdate", 1d, "localhost:8000");
         int testid = stationDAO.insert(testStation);
         testStation.setId(testid);
-        testStation.setName("postupdate");
+        testStation.setName("postUpdate");
+        testStation.setDistanceFromStart(2d);
         testStation.setBroken(true);
+        testStation.setUrl("localhost:8001");
         int updatedRows = stationDAO.update(testid, testStation);
         assertEquals(1, updatedRows);
 
         Optional<Station> dbStation = stationDAO.getById(testid);
         assertFalse(dbStation.isEmpty());
-        assertEquals("postupdate", dbStation.get().getName());
+        assertEquals("postUpdate", dbStation.get().getName());
+        assertEquals(2d, dbStation.get().getDistanceFromStart());
         assertEquals(true, dbStation.get().getIsBroken());
+        assertEquals("localhost:8001", dbStation.get().getUrl());
     }
 
     @Test
     void updateDoesntDoAnythingWhenNotExists() {
-        Station testStation = new Station("test", "localhost:8000");
+        Station testStation = new Station("test", 1d, "localhost:8000");
         int id = stationDAO.insert(testStation);
-        int updatedRows = stationDAO.update(id + 1, new Station("test2", "localhost:8000"));
+        int updatedRows = stationDAO.update(id + 1, new Station("test2", 1d, "localhost:8000"));
         List<Station> stations = stationDAO.getAll();
         assertEquals(0, updatedRows);
         assertEquals(1, stations.size());
@@ -103,19 +109,18 @@ class StationDAOTest extends DatabaseTest {
 
     @Test
     void updateOnlyUpdatesRelevantModel() {
-        Station testStation = new Station("test", "localhost:8000");
+        Station testStation = new Station("test", 1d, "localhost:8000");
         int id = stationDAO.insert(testStation);
-        Station testStation2 = new Station("test2", "localhost:8000");
+        Station testStation2 = new Station("test2", 1d, "localhost:8001");
         int id2 = stationDAO.insert(testStation2);
-        int updatedRows = stationDAO.update(id, new Station("test3", "localhost:8000"));
-        List<Station> stations = stationDAO.getAll();
+        int updatedRows = stationDAO.update(id, new Station("test3", 1d, "localhost:8000"));
         assertEquals(1, updatedRows);
         assertEquals(testStation2.getName(), stationDAO.getById(id2).get().getName());
     }
 
     @Test
     void deleteRemovesStation() {
-        Station testStation = new Station("test", "localhost:8000");
+        Station testStation = new Station("test", 1d, "localhost:8000");
         int id = stationDAO.insert(testStation);
         int updatedRows = stationDAO.deleteById(id);
 
@@ -126,7 +131,7 @@ class StationDAOTest extends DatabaseTest {
 
     @Test
     void deleteDoesNothingIfNotExists() {
-        Station testStation = new Station("test", "localhost:8000");
+        Station testStation = new Station("test", 1d, "localhost:8000");
         int id = stationDAO.insert(testStation);
         int updatedRows = stationDAO.deleteById(id + 1);
 
