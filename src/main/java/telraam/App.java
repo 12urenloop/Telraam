@@ -31,7 +31,6 @@ public class App extends Application<AppConfiguration> {
     private AppConfiguration config;
     private Environment environment;
     private Jdbi database;
-    private JerseyEnvironment jersey;
     private boolean testing;
 
     public static void main(String[] args) throws Exception {
@@ -75,7 +74,7 @@ public class App extends Application<AppConfiguration> {
         this.database = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
 
         // Add api resources
-        this.jersey = environment.jersey();
+        JerseyEnvironment jersey = environment.jersey();
         jersey.register(new BatonResource(database.onDemand(BatonDAO.class)));
         jersey.register(new StationResource(database.onDemand(StationDAO.class)));
         jersey.register(new DetectionResource(database.onDemand(DetectionDAO.class)));
