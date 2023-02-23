@@ -15,6 +15,8 @@ import telraam.database.daos.*;
 import telraam.database.models.Station;
 import telraam.healthchecks.TemplateHealthCheck;
 import telraam.logic.Lapper;
+import telraam.logic.monitoring.MonitoringLapper;
+import telraam.logic.monitoring.MonitoringResource;
 import telraam.logic.external.ExternalLapper;
 import telraam.logic.robustLapper.RobustLapper;
 import telraam.logic.viterbi.ViterbiLapper;
@@ -115,6 +117,7 @@ public class App extends Application<AppConfiguration> {
 
             lappers.add(new ExternalLapper(this.database));
             lappers.add(new RobustLapper(this.database));
+            lappers.add(new MonitoringLapper(this.database));
 
             // Enable lapper APIs
             for (Lapper lapper : lappers) {
