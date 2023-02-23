@@ -149,7 +149,8 @@ public class Fetcher {
                             detection.battery,
                             detection.uptimeMs,
                             detection.id,
-                            new Timestamp((long) (detection.detectionTimestamp * 1000))
+                            new Timestamp((long) (detection.detectionTimestamp * 1000)),
+                            new Timestamp(System.currentTimeMillis())
                     ));
                 }
             }
