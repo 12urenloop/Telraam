@@ -1,7 +1,9 @@
-package telraam.logic.monitoring;
+package telraam.monitoring;
 
 import telraam.database.daos.BatonDAO;
+import telraam.database.daos.DetectionDAO;
 import telraam.database.models.Baton;
+import telraam.database.models.Detection;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,9 +15,11 @@ public class StatusHolder {
     private HashMap<Integer, String> batonIdToMac = new HashMap<>();
 
     private BatonDAO batonDAO;
+    private DetectionDAO detectionDAO;
 
-    public StatusHolder(BatonDAO BDAO) {
+    public StatusHolder(BatonDAO BDAO, DetectionDAO DDAO) {
         batonDAO = BDAO;
+        detectionDAO = DDAO;
         this.initStatus();
     }
 
@@ -37,7 +41,36 @@ public class StatusHolder {
     }
 
     public List<BatonStatus> GetAllBatonStatuses() {
+        // For each baton, fetch latest detection
+        var batons = batonDAO.getAll();
+        for (Baton baton : batons) {
+            var batonStatus = GetBatonStatus(baton.getId());
+            var detection = detectionDAO.latestDetectionByBatonId(baton.getId(), batonStatus.getLastSeen());
+            detection.ifPresent(this::updateState);
+        }
         return new ArrayList<>(batonStatusMap.values());
+    }
+
+    private void updateState(Detection msg) {
+        BatonStatus batonStatus = GetBatonStatus(msg.getBatonId());
+        if (batonStatus == null) {
+            batonStatus = createBatonStatus(msg.getBatonId());
+            return;
+        }
+        if (batonStatus.getLastSeen() == null) {
+            batonStatus.setLastSeen(msg.getTimestamp());
+        }
+        if (batonStatus.getLastSeen().after(msg.getTimestamp())) {
+            return;
+        }
+        if (msg.getUptimeMs() < batonStatus.getUptime() - 3000) {
+            batonStatus.setRebooted(true);
+        }
+        batonStatus.setLastSeenSecondsAgo((System.currentTimeMillis() - msg.getTimestamp().getTime()) / 1000);
+        batonStatus.setLastSeen(msg.getTimestamp());
+        batonStatus.setUptime(msg.getUptimeMs() / 1000);
+        batonStatus.setBattery(msg.getBattery());
+        batonStatus.setLastDetectedAtStation(msg.getStationId());
     }
 
     public BatonStatus GetBatonStatus(Integer batonId) {

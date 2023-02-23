@@ -94,6 +94,7 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new AcceptedLapsResource());
         jersey.register(new TimeResource());
         jersey.register(new LapCountResource(database.onDemand(TeamDAO.class)));
+        jersey.register(new MonitoringResource(database.onDemand(BatonDAO.class), database.onDemand(DetectionDAO.class)));
         environment.healthChecks().register("template", new TemplateHealthCheck(configuration.getTemplate()));
 
 
@@ -117,7 +118,6 @@ public class App extends Application<AppConfiguration> {
 
             lappers.add(new ExternalLapper(this.database));
             lappers.add(new RobustLapper(this.database));
-            lappers.add(new MonitoringLapper(this.database));
 
             // Enable lapper APIs
             for (Lapper lapper : lappers) {

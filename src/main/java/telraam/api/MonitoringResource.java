@@ -1,9 +1,11 @@
-package telraam.logic.monitoring;
+package telraam.api;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import telraam.database.daos.BatonDAO;
 import telraam.database.daos.DetectionDAO;
+import telraam.monitoring.BatonStatus;
+import telraam.monitoring.StatusHolder;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -15,10 +17,9 @@ import java.util.List;
 @Api("/monitoring")
 @Produces(MediaType.APPLICATION_JSON)
 public class MonitoringResource {
-
-    private MonitoringLapper monitoringLapper;
-    public MonitoringResource(MonitoringLapper lapper) {
-        this.monitoringLapper = lapper;
+    private final StatusHolder statusHolder;
+    public MonitoringResource(BatonDAO BDAO, DetectionDAO DDAO) {
+        this.statusHolder = new StatusHolder(BDAO, DDAO);
     }
 
     @GET
@@ -26,6 +27,6 @@ public class MonitoringResource {
     @ApiOperation(value = "Get monitoring data that can be used as grafana datasource")
     public List<BatonStatus> getBatonMetrics() {
         // TODO: filter assigned parameter in request
-        return monitoringLapper.getBatonStatuses();
+        return statusHolder.GetAllBatonStatuses();
     }
 }
