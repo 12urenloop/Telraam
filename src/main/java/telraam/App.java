@@ -31,9 +31,20 @@ public class App extends Application<AppConfiguration> {
     private AppConfiguration config;
     private Environment environment;
     private Jdbi database;
+    private boolean testing;
 
     public static void main(String[] args) throws Exception {
-        new App().run(args);
+        App app = new App();
+        app.setTesting(false);
+        app.run(args);
+    }
+
+    public App() {
+        testing = true;
+    }
+
+    public void setTesting(boolean testing) {
+        this.testing = testing;
     }
 
     @Override
@@ -87,20 +98,22 @@ public class App extends Application<AppConfiguration> {
         // Add URL mapping
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
-        // Set up lapper algorithms
-        Set<Lapper> lappers = new HashSet<>();
+        if (! testing) {
+            // Set up lapper algorithms
+            Set<Lapper> lappers = new HashSet<>();
 
-        lappers.add(new ViterbiLapper(this.database));
+            lappers.add(new ViterbiLapper(this.database));
 
-        // Enable lapper APIs
-        for (Lapper lapper : lappers) {
-            lapper.registerAPI(jersey);
-        }
+            // Enable lapper APIs
+            for (Lapper lapper : lappers) {
+                lapper.registerAPI(jersey);
+            }
 
-        // Start fetch thread for each station
-        StationDAO stationDAO = this.database.onDemand(StationDAO.class);
-        for (Station station : stationDAO.getAll()) {
-            new Thread(() -> new Fetcher(this.database, station, lappers).fetch()).start();
+            // Start fetch thread for each station
+            StationDAO stationDAO = this.database.onDemand(StationDAO.class);
+            for (Station station : stationDAO.getAll()) {
+                new Thread(() -> new Fetcher(this.database, station, lappers).fetch()).start();
+            }
         }
 
         logger.info("Up and running!");

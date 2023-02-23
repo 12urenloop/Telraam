@@ -18,6 +18,14 @@ public class Station {
         this.isBroken = false;
         this.url = url;
     }
+
+    public Station(String name, Double distanceFromStart, String url) {
+        this.name = name;
+        this.isBroken = false;
+        this.distanceFromStart = distanceFromStart;
+        this.url = url;
+    }
+
     public Station(String name, boolean isBroken) {
         this.name = name;
         this.isBroken = isBroken;

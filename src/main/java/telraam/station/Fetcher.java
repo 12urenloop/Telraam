@@ -82,7 +82,7 @@ public class Fetcher {
                 try {
                     Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    logger.severe(e.getMessage());
                 }
                 continue;
             }
@@ -95,12 +95,12 @@ public class Fetcher {
                         .version(HttpClient.Version.HTTP_1_1)
                         .timeout(Duration.ofSeconds(Fetcher.REQUEST_TIMEOUT_S))
                         .build();
-            } catch (IllegalArgumentException ex) {
-                ex.printStackTrace();
+            } catch (IllegalArgumentException e) {
+                logger.severe(e.getMessage());
                 try {
                     Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } catch (InterruptedException ex) {
+                    logger.severe(ex.getMessage());
                 }
                 continue;
             }
@@ -114,13 +114,13 @@ public class Fetcher {
                     this.logger.severe("Could not connect to " + request.uri());
                     Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
                     continue;
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+                } catch (IOException e) {
+                    logger.severe(e.getMessage());
                     Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
                     continue;
                 }
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
+            } catch (InterruptedException e) {
+                logger.severe(e.getMessage());
                 continue;
             }
 
@@ -165,8 +165,8 @@ public class Fetcher {
             if (detections.size() < Fetcher.FULL_BATCH_SIZE) {
                 try {
                     Thread.sleep(Fetcher.IDLE_TIMEOUT_MS);
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
+                } catch (InterruptedException e) {
+                    logger.severe(e.getMessage());
                 }
             }
         }

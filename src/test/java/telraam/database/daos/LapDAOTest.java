@@ -53,10 +53,7 @@ class LapDAOTest extends DatabaseTest {
     @Test
     void testInsertFailsWhenNoTeam() {
         Lap testlap = new Lap();
-        assertThrows(UnableToExecuteStatementException.class, () -> {
-            lapDAO.insert(testlap);
-        });
-
+        assertThrows(UnableToExecuteStatementException.class, () -> lapDAO.insert(testlap));
     }
 
     @Test
