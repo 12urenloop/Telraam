@@ -15,6 +15,7 @@ import telraam.database.daos.*;
 import telraam.database.models.Station;
 import telraam.healthchecks.TemplateHealthCheck;
 import telraam.logic.Lapper;
+import telraam.logic.external.ExternalLapper;
 import telraam.logic.viterbi.ViterbiLapper;
 import telraam.station.Fetcher;
 
@@ -102,7 +103,10 @@ public class App extends Application<AppConfiguration> {
             // Set up lapper algorithms
             Set<Lapper> lappers = new HashSet<>();
 
-            lappers.add(new ViterbiLapper(this.database));
+            // Old viterbi lapper is disabled
+            //lappers.add(new ViterbiLapper(this.database));
+
+            lappers.add(new ExternalLapper(this.database));
 
             // Enable lapper APIs
             for (Lapper lapper : lappers) {
