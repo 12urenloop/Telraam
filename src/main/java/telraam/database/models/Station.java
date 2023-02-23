@@ -6,6 +6,8 @@ public class Station {
     private Double distanceFromStart;
     private Boolean isBroken;
     private String url;
+    private Double coordX;
+    private Double coordY;
 
     public Station() {
       this.isBroken = false;
@@ -57,5 +59,17 @@ public class Station {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public Double getCoordX() { return this.coordX; };
+
+    public void setCoordX(Double coordX) {
+        this.coordX = coordX;
+    }
+
+    public Double getCoordY() { return this.coordY; }
+
+    public void setCoordY(Double coordY) {
+        this.coordY = coordY;
     }
 }
