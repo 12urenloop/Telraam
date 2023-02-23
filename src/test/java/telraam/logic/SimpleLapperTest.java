@@ -35,18 +35,19 @@ class SimpleLapperTest {
         int stationId1 = 1;
         int batonId1 = 1;
         int baseTime = 10000;
+        int ingestionTime = 15000;
         // amount of milliseconds a lap should take
         int lapTime = 50000;
 
 
         // baton passes station 1 for the first time
         Detection d1 =
-                new Detection(batonId1, stationId1, -80, 100.0f, 1L, 1, new Timestamp(baseTime));
+                new Detection(batonId1, stationId1, -80, 100.0f, 1L, 1, new Timestamp(baseTime), new Timestamp(ingestionTime));
         // baton passes station 1 for the second time
-        Detection d2 = new Detection(batonId1, stationId1, -80, 100.0f, 2L, 2, new Timestamp(baseTime + lapTime));
+        Detection d2 = new Detection(batonId1, stationId1, -80, 100.0f, 2L, 2, new Timestamp(baseTime + lapTime), new Timestamp(baseTime + lapTime + 1000));
 
         // baton passes station 1 for the third time
-        Detection d3 = new Detection(batonId1, stationId1, -80, 100.0f, 3L, 3, new Timestamp(baseTime + lapTime + lapTime));
+        Detection d3 = new Detection(batonId1, stationId1, -80, 100.0f, 3L, 3, new Timestamp(baseTime + lapTime + lapTime), new Timestamp(baseTime + lapTime + lapTime + 1000));
 
         Lapper lapper = new SimpleLapper(mockJdbi);
 

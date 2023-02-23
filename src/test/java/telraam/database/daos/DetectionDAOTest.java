@@ -33,7 +33,7 @@ class DetectionDAOTest extends DatabaseTest {
         batonId1 = batonDAO.insert(new Baton("baton1", "mac1"));
         stationId = stationDAO.insert(new Station("station1", 1d, "localhost:8000"));
         exampleDetection =
-                new Detection(batonId1, stationId, -80, 100.0f, 1L, 1, new Timestamp(1));
+                new Detection(batonId1, stationId, -80, 100.0f, 1L, 1, new Timestamp(1), new Timestamp(1000));
     }
 
     @Test
@@ -98,7 +98,7 @@ class DetectionDAOTest extends DatabaseTest {
     void updateDoesntDoAnythingWhenNotExists() {
         int testid = detectionDAO.insert(exampleDetection);
         exampleDetection.setId(testid);
-        int updatedRows = detectionDAO.update(testid + 1, new Detection(batonId1, stationId, -90, 100.0f, 1L, 1, new Timestamp(1)));
+        int updatedRows = detectionDAO.update(testid + 1, new Detection(batonId1, stationId, -90, 100.0f, 1L, 1, new Timestamp(1), new Timestamp(1000)));
         List<Detection> detections = detectionDAO.getAll();
         assertEquals(0, updatedRows);
         assertEquals(1, detections.size());
@@ -108,9 +108,9 @@ class DetectionDAOTest extends DatabaseTest {
     @Test
     void updateOnlyUpdatesRelevantModel() {
         int id1 = detectionDAO.insert(exampleDetection);
-        Detection detection2 = new Detection(batonId1, stationId, -80, 100.0f, 1L, 1, new Timestamp(1));
+        Detection detection2 = new Detection(batonId1, stationId, -80, 100.0f, 1L, 1, new Timestamp(1), new Timestamp(1000));
         int id2 = detectionDAO.insert(detection2);
-        int updatedRows = detectionDAO.update(id1, new Detection(batonId1, stationId, -80, 100.0f, 2L, 2, new Timestamp(2)));
+        int updatedRows = detectionDAO.update(id1, new Detection(batonId1, stationId, -80, 100.0f, 2L, 2, new Timestamp(2), new Timestamp(1000)));
         assertEquals(1, updatedRows);
         assertEquals(2, detectionDAO.getAll().size());
         assertEquals(detection2.getTimestamp(), detectionDAO.getById(id2).get().getTimestamp());
