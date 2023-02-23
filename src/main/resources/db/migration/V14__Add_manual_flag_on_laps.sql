@@ -1,0 +1,1 @@
+ALTER TABLE lap ADD manual BOOLEAN NOT NULL DEFAULT false;

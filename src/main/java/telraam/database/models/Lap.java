@@ -6,6 +6,7 @@ public class Lap {
     private Integer id;
     private Integer teamId;
     private Integer lapSourceId;
+    private Boolean manual;
     private Timestamp timestamp;
 
     public Lap() {

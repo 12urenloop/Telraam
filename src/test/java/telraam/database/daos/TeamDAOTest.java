@@ -39,7 +39,7 @@ class TeamDAOTest extends DatabaseTest {
 
     @Test
     void testCreateTeamWithBaton() {
-        Baton testBaton = new Baton("testbaton");
+        Baton testBaton = new Baton("testbaton", "mac1");
         int batonId = batonDAO.insert(testBaton);
         Team testteam = new Team("testteam", batonId);
         int testId = teamDAO.insert(testteam);
@@ -113,7 +113,7 @@ class TeamDAOTest extends DatabaseTest {
 
     @Test
     void testUpdateFailsWhenInvalidBaton() {
-        Baton testBaton = new Baton("testbaton");
+        Baton testBaton = new Baton("testbaton", "mac1");
         int batonId = batonDAO.insert(testBaton);
         Team testTeam = new Team("testteam", batonId);
         int teamId = teamDAO.insert(testTeam);
@@ -139,12 +139,12 @@ class TeamDAOTest extends DatabaseTest {
 
     @Test
     void updateOnlyUpdatesRelevantModel() {
-        Baton testBaton = new Baton("testbaton");
+        Baton testBaton = new Baton("testbaton", "mac1");
         int batonId = batonDAO.insert(testBaton);
         Team testTeam = new Team("testteam", batonId);
         int teamId = teamDAO.insert(testTeam);
 
-        Baton testBaton2= new Baton("testbaton2");
+        Baton testBaton2= new Baton("testbaton2", "mac2");
         int batonId2 = batonDAO.insert(testBaton2);
         Team testTeam2 = new Team("testteam2", batonId2);
         int teamId2 = teamDAO.insert(testTeam2);

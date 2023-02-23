@@ -19,7 +19,7 @@ public interface StationDAO extends DAO<Station> {
     List<Station> getAll();
 
     @Override
-    @SqlUpdate("INSERT INTO station (name, distance_from_start, broken, url) VALUES (:name, :distanceFromStart, :isBroken, :url)")
+    @SqlUpdate("INSERT INTO station (name, distance_from_start, broken, url, coord_x, coord_y) VALUES (:name, :distanceFromStart, :isBroken, :url, :coordX, :coordY)")
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Station station);
 
@@ -33,7 +33,6 @@ public interface StationDAO extends DAO<Station> {
     int deleteById(@Bind("id") int id);
 
     @Override
-    @SqlUpdate("UPDATE station SET name = :name, distance_from_start = :distanceFromStart, broken = :isBroken, url = :url WHERE id = :id")
+    @SqlUpdate("UPDATE station SET name = :name, distance_from_start = :distanceFromStart, broken = :isBroken, url = :url, coord_x = :coordX, coord_y = :coordY WHERE id = :id")
     int update(@Bind("id") int id, @BindBean Station station);
-
 }
