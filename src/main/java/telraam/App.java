@@ -16,6 +16,7 @@ import telraam.database.models.Station;
 import telraam.healthchecks.TemplateHealthCheck;
 import telraam.logic.Lapper;
 import telraam.logic.external.ExternalLapper;
+import telraam.logic.robustLapper.RobustLapper;
 import telraam.logic.viterbi.ViterbiLapper;
 import telraam.station.Fetcher;
 
@@ -107,6 +108,7 @@ public class App extends Application<AppConfiguration> {
             //lappers.add(new ViterbiLapper(this.database));
 
             lappers.add(new ExternalLapper(this.database));
+            lappers.add(new RobustLapper(this.database));
 
             // Enable lapper APIs
             for (Lapper lapper : lappers) {
