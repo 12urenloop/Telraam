@@ -13,7 +13,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 // Implement Lapper for easier use in App and Fetcher
 public class RobustLapper implements Lapper {
@@ -30,7 +29,6 @@ public class RobustLapper implements Lapper {
     private boolean debounceScheduled;
     private int lapSourceId;
     private Map<Integer, List<Detection>> teamDetections;
-    private List<Team> teams;
     private List<Station> stations;
     private Map<Integer, List<Timestamp>> teamLaps;
 
@@ -49,47 +47,32 @@ public class RobustLapper implements Lapper {
         );
     }
 
+    // Group all detections by time and keep only one detection per timestamp
     private void processData() {
-        // Maps a baton id to the current team using it
-        Map<Integer, Team> batonTeam = new HashMap<>();
-        // Map containing all detections belonging to a team
+        DetectionDAO detectionDAO = this.jdbi.onDemand(DetectionDAO.class);
+        List<Detection> detections = detectionDAO.getAllWithTeamId(MIN_RSSI);
+        detections.sort(Comparator.comparing(Detection::getTimestamp));
         teamDetections = new HashMap<>();
 
-        TeamDAO teamDAO = this.jdbi.onDemand(TeamDAO.class);
-        DetectionDAO detectionDAO = this.jdbi.onDemand(DetectionDAO.class);
-        BatonSwitchoverDAO batonSwitchoverDAO = this.jdbi.onDemand(BatonSwitchoverDAO.class);
-
-        teams = teamDAO.getAll();
-        List<Detection> detections = detectionDAO.getAll();
-        List<BatonSwitchover> switchovers = batonSwitchoverDAO.getAll();
-
-        switchovers.sort(Comparator.comparing(BatonSwitchover::getTimestamp));
-        detections.sort(Comparator.comparing(Detection::getTimestamp));
-
-        Map<Integer, Team> teamById = teams.stream().collect(Collectors.toMap(Team::getId, team -> team));
-        teams.forEach(team -> teamDetections.put(team.getId(), new ArrayList<>()));
-
-        int switchoverIndex = 0;
         for (Detection detection : detections) {
-            // Switch teams batons if it happened before the current detection
-            while (switchoverIndex < switchovers.size() && switchovers.get(switchoverIndex).getTimestamp().before(detection.getTimestamp())) {
-                BatonSwitchover switchover = switchovers.get(switchoverIndex);
-                batonTeam.put(switchover.getNewBatonId(), teamById.get(switchover.getTeamId()));
-                batonTeam.remove(switchover.getPreviousBatonId());
-                switchoverIndex++;
-            }
-
-            // Check if detection belongs to a team, and it's signal is strong enough
-            if (batonTeam.containsKey(detection.getBatonId()) && detection.getRssi() > MIN_RSSI) {
-                List<Detection> currentDetections = teamDetections.get(batonTeam.get(detection.getBatonId()).getId());
-                // If team already has a detection for that timestamp keep the one with the strongest signal
-                if (! currentDetections.isEmpty() && currentDetections.get(currentDetections.size() - 1).getTimestamp().compareTo(detection.getTimestamp()) == 0) {
-                    if (currentDetections.get(currentDetections.size() - 1).getRssi() < detection.getRssi()) {
-                        currentDetections.remove(currentDetections.size() - 1);
-                        currentDetections.add(detection);
+            if (detection.getTeamId() != null) {
+                if (teamDetections.containsKey(detection.getTeamId())) {
+                    // teamDetections already contains teamId
+                    List<Detection> teamDetectionsList = teamDetections.get(detection.getTeamId());
+                    if (teamDetectionsList.get(teamDetectionsList.size() - 1).getTimestamp().compareTo(detection.getTimestamp()) == 0) {
+                        // There's already a detection for that timestamp, keep the one with the highest rssi
+                        if (teamDetectionsList.get(teamDetectionsList.size() - 1).getRssi() < detection.getRssi()) {
+                            teamDetectionsList.remove(teamDetectionsList.size() - 1);
+                            teamDetectionsList.add(detection);
+                        }
+                    } else {
+                        // No detection yet for that timestamp so let's add it
+                        teamDetectionsList.add(detection);
                     }
                 } else {
-                    currentDetections.add(detection);
+                    // Team id isn't in teamDetections yet so let's add it
+                    teamDetections.put(detection.getTeamId(), new ArrayList<>());
+                    teamDetections.get(detection.getTeamId()).add(detection);
                 }
             }
         }
@@ -108,7 +91,7 @@ public class RobustLapper implements Lapper {
         // List containing station id's and sorted based on their distance from the start
         List<Integer> stationIdToPosition = stations.stream().map(Station::getId).toList();
 
-        for (Team team : teams) {
+        for (Map.Entry<Integer, List<Detection>> entry : teamDetections.entrySet()) {
             List<Timestamp> lapTimes = new ArrayList<>();
 
             // Station that is used for current interval
@@ -117,9 +100,7 @@ public class RobustLapper implements Lapper {
             int currentStationRssi = MIN_RSSI;
             int currentStationPosition = 0;
 
-            List<Detection> detections = teamDetections.get(team.getId());
-
-            for (Detection detection : detections) {
+            for (Detection detection : entry.getValue()) {
                 // Group all detections based on INTERVAL_TIME
                 if (detection.getTimestamp().getTime() - currentStationTime < INTERVAL_TIME) {
                     // We're still in the same interval
@@ -146,7 +127,7 @@ public class RobustLapper implements Lapper {
                 }
             }
             // Save result for team
-            teamLaps.put(team.getId(), lapTimes);
+            teamLaps.put(entry.getKey(), lapTimes);
         }
 
         save();
@@ -158,13 +139,13 @@ public class RobustLapper implements Lapper {
         return (((fromStation - toStation) % stations.size()) + stations.size()) % stations.size();
     }
 
-    // Is the finish line between from_station and to_station when running forwards?
+    // Returns whether the finish line is between from_station and to_station when running forwards
     private boolean isStartBetween(int fromStation, int toStation) {
         return fromStation > toStation;
     }
 
     private void save() {
-        lapDAO.deleteByLapSourceId(this.lapSourceId);
+        lapDAO.deleteByLapSourceId(lapSourceId);
 
         LinkedList<Lap> laps = new LinkedList<>();
         for (Map.Entry<Integer, List<Timestamp>> entries : teamLaps.entrySet()) {
