@@ -3,7 +3,6 @@ package telraam.database.daos;
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
-import org.jdbi.v3.sqlobject.customizer.BindBeanList;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlBatch;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
@@ -50,4 +49,8 @@ public interface LapDAO extends DAO<Lap> {
 
     @SqlBatch("INSERT INTO lap (team_id, lap_source_id, timestamp) VALUES (:teamId, :lapSourceId, :timestamp)")
     void insertAll(@BindBean Iterator<Lap> laps);
+
+    @SqlQuery("DELETE FROM lap WHERE id in (SELECT id FROM lap WHERE team_id = :teamId AND lap_source_id = :lapSourceId ORDER BY timestamp DESC LIMIT 2) RETURNING *")
+    @RegisterBeanMapper(Lap.class)
+    List<Lap> deleteLatestTwoLaps(@Bind("teamId") int teamId, @Bind("lapSourceId") int lapSourceId);
 }

@@ -5,7 +5,6 @@ import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.*;
 import telraam.database.models.*;
 import telraam.logic.Lapper;
-import telraam.logic.viterbi.ViterbiLapper;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -35,7 +34,7 @@ public class RobustLapper implements Lapper {
     public RobustLapper(Jdbi jdbi) {
         this.jdbi = jdbi;
         this.scheduler = Executors.newScheduledThreadPool(1);
-        this.logger = Logger.getLogger(ViterbiLapper.class.getName());
+        this.logger = Logger.getLogger(RobustLapper.class.getName());
         this.lapDAO = jdbi.onDemand(LapDAO.class);
         this.debounceScheduled = false;
 
@@ -145,13 +144,22 @@ public class RobustLapper implements Lapper {
     }
 
     private void save() {
-        lapDAO.deleteByLapSourceId(lapSourceId);
-
         LinkedList<Lap> laps = new LinkedList<>();
+
         for (Map.Entry<Integer, List<Timestamp>> entries : teamLaps.entrySet()) {
-            for (Timestamp timestamp : entries.getValue()) {
-                laps.add(new Lap(entries.getKey(), lapSourceId, timestamp));
+            // Delete last two laps
+            List<Lap> deletedLaps = lapDAO.deleteLatestTwoLaps(entries.getKey(), lapSourceId);
+            Timestamp minTimestamp;
+            if (deletedLaps.size() == 2) {
+                deletedLaps.sort(Comparator.comparing(Lap::getTimestamp));
+                minTimestamp = deletedLaps.get(0).getTimestamp();
+            } else {
+                minTimestamp = new Timestamp(0);
             }
+            // Only add new laps
+            entries.getValue().stream()
+                    .filter(timestamp -> timestamp.getTime() >= minTimestamp.getTime())
+                    .forEach(timestamp -> laps.add(new Lap(entries.getKey(), lapSourceId, timestamp)));
         }
 
         lapDAO.insertAll(laps.iterator());
