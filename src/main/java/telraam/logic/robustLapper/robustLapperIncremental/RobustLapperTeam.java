@@ -39,10 +39,11 @@ public class RobustLapperTeam implements Runnable {
         this.teamId = teamId;
         this.lapSourceId = lapSourceId;
         this.lapDAO = jdbi.onDemand(LapDAO.class);
-        makeStationIdToPosition();
+
+        makeStationIdToPositionMap();
     }
 
-    private void makeStationIdToPosition() {
+    private void makeStationIdToPositionMap() {
         StationDAO stationDAO = jdbi.onDemand(StationDAO.class);
         List<Station> stations = stationDAO.getAll();
         stations.sort(Comparator.comparing(Station::getDistanceFromStart));
@@ -91,15 +92,17 @@ public class RobustLapperTeam implements Runnable {
     private void getOldData(List<Detection> detections) {
         DetectionDAO detectionDAO = jdbi.onDemand(DetectionDAO.class);
         LapDAO lapDAO = jdbi.onDemand(LapDAO.class);
-        Optional<Lap> lastLapOptional = lapDAO.getTeamLastLapBeforeWithSourceId(teamId, detections.get(0).getTimestamp(), lapSourceId);
+
+        Optional<Lap> secondLastLapOptional = lapDAO.getTeamSecondLastLapBefore(teamId, detections.get(0).getTimestamp(), lapSourceId);
         Timestamp timestamp;
-        if (lastLapOptional.isPresent()) {
-            Lap lastLap = lastLapOptional.get();
-            timestamp = lastLap.getTimestamp();
-            lapDAO.deleteTeamLapsSinceIdWithSourceId(teamId, lastLap.getId(), lapSourceId);
+        if (secondLastLapOptional.isPresent()) {
+            Lap secondLastLap = secondLastLapOptional.get();
+            timestamp = secondLastLap.getTimestamp();
+            lapDAO.deleteTeamLapsSinceIdWithSourceId(teamId, secondLastLap.getId(), lapSourceId);
         } else {
             timestamp = new Timestamp(0);
         }
+
         detections.clear();
         detections.addAll(detectionDAO.getAfterTimestampFilterTeamId(teamId, timestamp, MIN_RSSI));
     }
@@ -109,7 +112,7 @@ public class RobustLapperTeam implements Runnable {
     private int getStationIndex(int stationId) {
         int index = stationIdToPosition.indexOf(stationId);
         if (index == -1) {
-            makeStationIdToPosition();
+            makeStationIdToPositionMap();
             index = stationIdToPosition.indexOf(stationId);
         }
 

@@ -14,6 +14,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+// 3 Potential problems:
+// 1: Telraam gets restarted
+//          -> lastDetection & lastSwitchoverId are set back to 0 and all previous laps get deleted
+// 2: A switchover gets added with a timestamp earlier than the last detection that was handled ergo some detections ended up in the wrong team
+//          -> processData checks for switchover timestamp. If it's earlier it fetches all detections since second last registered lap before the switchover timestamp
+//          -> team class gets a detection with timestamp earlier than its latest detection, deletes all laps since then and fetches the detections again
+// 3: Some detections don't get added in chronological order (e.g. temporarily ronny disconnect)
+//          -> See second point for 2:
+
 // Implement Lapper for easier use in App and Fetcher
 public class RobustLapperIncremental implements Lapper {
 
@@ -55,6 +64,7 @@ public class RobustLapperIncremental implements Lapper {
         );
 
         setTeamVariables();
+        deleteLaps();
     }
 
     // Set all team variables according to the data in the database
@@ -65,6 +75,12 @@ public class RobustLapperIncremental implements Lapper {
         teamById = teams.stream().collect(Collectors.toMap(Team::getId, team -> team));
         teamLappers = teams.stream().collect(Collectors.toMap(Team::getId, team -> new RobustLapperTeam(jdbi, team.getId(), lapSourceId)));
         teamDetections = teams.stream().collect(Collectors.toMap(Team::getId, team -> new ArrayList<>()));
+    }
+
+    // Deletes all previous lap records in db with the same lapSourceId
+    private void deleteLaps() {
+        LapDAO lapDAO = jdbi.onDemand(LapDAO.class);
+        lapDAO.deleteByLapSourceId(lapSourceId);
     }
 
     // Retrieve and process all new detections and switchovers from database
@@ -143,10 +159,10 @@ public class RobustLapperIncremental implements Lapper {
             BatonSwitchover switchover = switchovers.get(i);
             if (! handledTeams.contains(switchover.getTeamId())) {
                 handledTeams.add(switchover.getTeamId());
-                Optional<Lap> lastTeamLapOptional = lapDAO.getTeamLastLapBeforeWithSourceId(switchover.getTeamId(), switchover.getTimestamp(), lapSourceId);
+                Optional<Lap> secondLastLapOptional = lapDAO.getTeamSecondLastLapBefore(switchover.getTeamId(), switchover.getTimestamp(), lapSourceId);
                 Timestamp timestamp;
-                if (lastTeamLapOptional.isPresent()) {
-                    timestamp = lastTeamLapOptional.get().getTimestamp();
+                if (secondLastLapOptional.isPresent()) {
+                    timestamp = secondLastLapOptional.get().getTimestamp();
                 } else {
                     timestamp = new Timestamp(0);
                 }

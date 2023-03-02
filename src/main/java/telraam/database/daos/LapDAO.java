@@ -51,9 +51,9 @@ public interface LapDAO extends DAO<Lap> {
     @SqlBatch("INSERT INTO lap (team_id, lap_source_id, timestamp) VALUES (:teamId, :lapSourceId, :timestamp)")
     void insertAll(@BindBean Iterator<Lap> laps);
 
-    @SqlQuery("SELECT * FROM lap WHERE lap_source_id = :lapSourceId AND team_id = :teamId AND timestamp < :timestamp ORDER BY timestamp DESC LIMIT 1")
+    @SqlQuery("SELECT * FROM lap WHERE lap_source_id = :lapSourceId AND team_id = :teamId AND timestamp < :timestamp ORDER BY timestamp DESC LIMIT 1 OFFSET 1")
     @RegisterBeanMapper(Lap.class)
-    Optional<Lap> getTeamLastLapBeforeWithSourceId(@Bind("teamId") int team, @Bind("timestamp") Timestamp timestamp, @Bind("lapSourceId") int lapSourceId);
+    Optional<Lap> getTeamSecondLastLapBefore(@Bind("teamId") int team, @Bind("timestamp") Timestamp timestamp, @Bind("lapSourceId") int lapSourceId);
 
     @SqlUpdate("DELETE FROM lap WHERE lap_source_id = :lapSourceId AND team_id = :teamId and id > :id")
     void deleteTeamLapsSinceIdWithSourceId(@Bind("teamId") int teamId, @Bind("id") int id, @Bind("lapSourceId") int lapSourceId);
