@@ -3,13 +3,13 @@ package telraam.database.daos;
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
-import org.jdbi.v3.sqlobject.customizer.BindBeanList;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlBatch;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.Detection;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,4 +55,15 @@ public interface DetectionDAO extends DAO<Detection> {
     @SqlQuery("SELECT * FROM detection WHERE id > :id ORDER BY id LIMIT :limit")
     @RegisterBeanMapper(Detection.class)
     List<Detection> getSinceId(@Bind("id") int id, @Bind("limit") int limit);
+
+    @SqlQuery("SELECT * FROM detection WHERE id > :id AND rssi > :rssi ORDER BY timestamp")
+    @RegisterBeanMapper(Detection.class)
+    List<Detection> getSinceIdWithMinRssi(@Bind("id") int id, @Bind("rssi") int rssi);
+
+    @SqlQuery("""
+            WITH bso AS (SELECT teamid, newbatonid, timestamp AS current_timestamp, LEAD(timestamp) OVER (PARTITION BY teamid ORDER BY timestamp) next_baton_switch FROM batonswitchover)
+            SELECT d.id, baton_id, station_id, rssi, timestamp FROM detection d LEFT JOIN bso ON d.baton_id = bso.newbatonid AND d.timestamp BETWEEN bso.current_timestamp AND bso.next_baton_switch WHERE teamid = :teamId AND d.timestamp > :timestamp AND rssi > :minRssi ORDER BY d.timestamp
+            """)
+    @RegisterBeanMapper(Detection.class)
+    List<Detection> getAfterTimestampFilterTeamId(@Bind("teamId") int teamId, @Bind("timestamp") Timestamp timestamp, @Bind("minRssi") int minRssi);
 }

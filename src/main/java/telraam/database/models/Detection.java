@@ -13,7 +13,14 @@ public class Detection {
     private Timestamp timestamp;
     private Timestamp timestampIngestion;
 
+    private Integer teamId;
+
     public Detection() {
+    }
+
+    public Detection(Integer id, Timestamp timestamp) {
+        this.id = id;
+        this.timestamp = timestamp;
     }
 
     public Detection(Integer batonId, Integer stationId, Integer rssi, Float battery, Long uptimeMs, Integer remoteId, Timestamp timestamp, Timestamp timestampIngestion) {
@@ -97,5 +104,13 @@ public class Detection {
 
     public void setTimestampIngestion(Timestamp timestampIngestion) {
         this.timestampIngestion = timestampIngestion;
+    }
+
+    public void setTeamId(Integer teamId) {
+        this.teamId = teamId;
+    }
+
+    public Integer getTeamId() {
+        return teamId;
     }
 }

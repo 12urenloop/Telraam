@@ -3,13 +3,13 @@ package telraam.database.daos;
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
-import org.jdbi.v3.sqlobject.customizer.BindBeanList;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlBatch;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.Lap;
 
+import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -50,4 +50,11 @@ public interface LapDAO extends DAO<Lap> {
 
     @SqlBatch("INSERT INTO lap (team_id, lap_source_id, timestamp) VALUES (:teamId, :lapSourceId, :timestamp)")
     void insertAll(@BindBean Iterator<Lap> laps);
+
+    @SqlQuery("SELECT * FROM lap WHERE lap_source_id = :lapSourceId AND team_id = :teamId AND timestamp < :timestamp ORDER BY timestamp DESC LIMIT 1")
+    @RegisterBeanMapper(Lap.class)
+    Optional<Lap> getTeamLastLapBeforeWithSourceId(@Bind("teamId") int team, @Bind("timestamp") Timestamp timestamp, @Bind("lapSourceId") int lapSourceId);
+
+    @SqlUpdate("DELETE FROM lap WHERE lap_source_id = :lapSourceId AND team_id = :teamId and id > :id")
+    void deleteTeamLapsSinceIdWithSourceId(@Bind("teamId") int teamId, @Bind("id") int id, @Bind("lapSourceId") int lapSourceId);
 }

@@ -36,4 +36,8 @@ public interface BatonSwitchoverDAO extends DAO<BatonSwitchover> {
     @Override
     @SqlUpdate("UPDATE batonswitchover SET teamId = :teamId, previousBatonId = :previousBatonId, newBatonId = :newBatonId, timestamp = :timestamp WHERE id = :id")
     int update(@Bind("id") int id, @BindBean BatonSwitchover batonSwitchover);
+
+    @SqlQuery("SELECT * FROM batonswitchover WHERE id > :id ORDER BY timestamp")
+    @RegisterBeanMapper(BatonSwitchover.class)
+    List<BatonSwitchover> getSinceId(@Bind("id") int id);
 }
