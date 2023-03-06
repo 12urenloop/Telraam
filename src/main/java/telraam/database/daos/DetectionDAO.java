@@ -20,15 +20,15 @@ public interface DetectionDAO extends DAO<Detection> {
 
     @Override
     @SqlUpdate("""
-            INSERT INTO detection (station_id, baton_id, timestamp, rssi, battery, remote_id, uptime_ms) \
-            VALUES (:stationId, :batonId, :timestamp, :rssi, :battery, :remoteId, :uptimeMs)
+            INSERT INTO detection (station_id, baton_id, timestamp, rssi, battery, remote_id, uptime_ms, timestamp_ingestion) \
+            VALUES (:stationId, :batonId, :timestamp, :rssi, :battery, :remoteId, :uptimeMs, :timestampIngestion)
             """)
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Detection detection);
 
     @SqlBatch("""
-            INSERT INTO detection (station_id, baton_id, timestamp, rssi, battery, remote_id, uptime_ms) \
-            VALUES (:stationId, :batonId, :timestamp, :rssi, :battery, :remoteId, :uptimeMs)
+            INSERT INTO detection (station_id, baton_id, timestamp, rssi, battery, remote_id, uptime_ms, timestamp_ingestion) \
+            VALUES (:stationId, :batonId, :timestamp, :rssi, :battery, :remoteId, :uptimeMs, :timestampIngestion)
             """)
     @GetGeneratedKeys({"id"})
     int insertAll(@BindBean List<Detection> detection);
@@ -51,4 +51,8 @@ public interface DetectionDAO extends DAO<Detection> {
     @SqlQuery("SELECT * FROM detection WHERE remote_id = (SELECT MAX(remote_id) FROM detection WHERE station_id = :stationId) AND station_id = :stationId LIMIT 1")
     @RegisterBeanMapper(Detection.class)
     Optional<Detection> latestDetectionByStationId(@Bind("stationId") int stationId);
+
+    @SqlQuery("SELECT * FROM detection WHERE id > :id ORDER BY id LIMIT :limit")
+    @RegisterBeanMapper(Detection.class)
+    List<Detection> getSinceId(@Bind("id") int id, @Bind("limit") int limit);
 }

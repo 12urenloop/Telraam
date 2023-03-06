@@ -15,6 +15,11 @@ public class Baton {
         this.name = name;
     }
 
+    public Baton(String name, String mac) {
+        this.name = name;
+        this.mac = mac;
+    }
+
     public Integer getId() {
         return id;
     }

@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -28,6 +29,7 @@ public class ViterbiLapper implements Lapper {
     private final int lapSourceId;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private boolean debounceScheduled;
+    private final Logger logger = Logger.getLogger(ViterbiLapper.class.getName());
 
     public ViterbiLapper(Jdbi jdbi) {
         this(jdbi, new ViterbiLapperConfiguration());
@@ -189,8 +191,7 @@ public class ViterbiLapper implements Lapper {
                 try {
                     this.calculateLaps();
                 } catch (Exception e) {
-                    System.err.println("Something went wrong");
-                    e.printStackTrace();
+                    logger.severe(e.getMessage());
                 }
                 this.debounceScheduled = false;
             }, this.config.DEBOUNCE_TIMEOUT, TimeUnit.SECONDS);

@@ -26,8 +26,8 @@ public class BatonResourceTest extends DatabaseTest {
 
     @Test
     public void testGetAll() {
-        var baton1 = new Baton("Foccacia");
-        var baton2 = new Baton("Glutenvrij");
+        var baton1 = new Baton("Foccacia", "mac1");
+        var baton2 = new Baton("Glutenvrij", "mac2");
 
         baton1.setId(batonDAO.insert(baton1));
         baton2.setId(batonDAO.insert(baton2));
@@ -41,8 +41,8 @@ public class BatonResourceTest extends DatabaseTest {
 
     @Test
     public void testGetFirst() {
-        var baton1 = new Baton("Foccacia");
-        var baton2 = new Baton("Glutenvrij");
+        var baton1 = new Baton("Foccacia", "mac1");
+        var baton2 = new Baton("Glutenvrij", "mac2");
 
         baton1.setId(batonDAO.insert(baton1));
         baton2.setId(batonDAO.insert(baton2));
@@ -67,7 +67,7 @@ public class BatonResourceTest extends DatabaseTest {
 
     @Test
     public void testCreate() {
-        var baton1 = new Baton("Foccacia");
+        var baton1 = new Baton("Foccacia", "mac1");
 
         var resource = new BatonResource(batonDAO);
         baton1.setId(resource.create(baton1));
@@ -77,8 +77,8 @@ public class BatonResourceTest extends DatabaseTest {
 
     @Test
     public void testDelete() {
-        var baton1 = new Baton("Foccacia");
-        var baton2 = new Baton("Glutenvrij");
+        var baton1 = new Baton("Foccacia", "mac1");
+        var baton2 = new Baton("Glutenvrij", "mac2");
 
         baton1.setId(batonDAO.insert(baton1));
         baton2.setId(batonDAO.insert(baton2));
@@ -92,8 +92,8 @@ public class BatonResourceTest extends DatabaseTest {
 
     @Test
     public void testDeleteNoId() {
-        var baton1 = new Baton("Foccacia");
-        var baton2 = new Baton("Glutenvrij");
+        var baton1 = new Baton("Foccacia", "mac1");
+        var baton2 = new Baton("Glutenvrij", "mac2");
 
         baton1.setId(batonDAO.insert(baton1));
         baton2.setId(batonDAO.insert(baton2));
@@ -106,8 +106,8 @@ public class BatonResourceTest extends DatabaseTest {
 
     @Test
     public void testUpdate() {
-        var baton1 = new Baton("Foccacia");
-        var update = new Baton("Glutenvrij");
+        var baton1 = new Baton("Foccacia", "mac1");
+        var update = new Baton("Glutenvrij", "mac2");
 
         baton1.setId(batonDAO.insert(baton1));
 
@@ -120,15 +120,15 @@ public class BatonResourceTest extends DatabaseTest {
 
     @Test
     public void testUpdateNoId() {
-        var update = new Baton("Glutenvrij");
+        var update = new Baton("Glutenvrij", "mac1");
         var resource = new BatonResource(batonDAO);
         assertThrows(WebApplicationException.class, () -> resource.update(update, Optional.empty()));
     }
 
     @Test
     public void testUpdateNonExistentId() {
-        var baton1 = new Baton("Foccacia");
-        var update = new Baton("Glutenvrij");
+        var baton1 = new Baton("Foccacia", "mac1");
+        var update = new Baton("Glutenvrij", "mac2");
 
         baton1.setId(batonDAO.insert(baton1));
 

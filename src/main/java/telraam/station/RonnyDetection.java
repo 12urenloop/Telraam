@@ -10,5 +10,5 @@ public class RonnyDetection {
     @JsonProperty("uptime_ms")
     public long uptimeMs;
     @JsonProperty("detection_timestamp")
-    public long detectionTimestamp;
+    public double detectionTimestamp;
 }

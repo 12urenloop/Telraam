@@ -15,6 +15,8 @@ import telraam.database.daos.*;
 import telraam.database.models.Station;
 import telraam.healthchecks.TemplateHealthCheck;
 import telraam.logic.Lapper;
+import telraam.logic.external.ExternalLapper;
+import telraam.logic.robustLapper.RobustLapper;
 import telraam.logic.viterbi.ViterbiLapper;
 import telraam.station.Fetcher;
 import telraam.util.AcceptedLapsUtil;
@@ -32,9 +34,20 @@ public class App extends Application<AppConfiguration> {
     private AppConfiguration config;
     private Environment environment;
     private Jdbi database;
+    private boolean testing;
 
     public static void main(String[] args) throws Exception {
-        new App().run(args);
+        App app = new App();
+        app.setTesting(false);
+        app.run(args);
+    }
+
+    public App() {
+        testing = true;
+    }
+
+    public void setTesting(boolean testing) {
+        this.testing = testing;
     }
 
     @Override
@@ -56,15 +69,12 @@ public class App extends Application<AppConfiguration> {
     }
 
     @Override
-    public void run(AppConfiguration configuration, Environment environment)
-            throws IOException {
+    public void run(AppConfiguration configuration, Environment environment) throws IOException {
         this.config = configuration;
         this.environment = environment;
         // Add database
         final JdbiFactory factory = new JdbiFactory();
-        this.database =
-                factory.build(environment, configuration.getDataSourceFactory(),
-                        "postgresql");
+        this.database = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
 
         // Initialize AcceptedLapUtil
         AcceptedLapsUtil.createInstance(this.database);
@@ -73,8 +83,7 @@ public class App extends Application<AppConfiguration> {
         JerseyEnvironment jersey = environment.jersey();
         jersey.register(new BatonResource(database.onDemand(BatonDAO.class)));
         jersey.register(new StationResource(database.onDemand(StationDAO.class)));
-        jersey.register(
-                new DetectionResource(database.onDemand(DetectionDAO.class)));
+        jersey.register(new DetectionResource(database.onDemand(DetectionDAO.class)));
         jersey.register(new LapResource(database.onDemand(LapDAO.class)));
         jersey.register(new TeamResource(database.onDemand(TeamDAO.class), database.onDemand(BatonSwitchoverDAO.class)));
         jersey.register(new LapSourceResource(database.onDemand(LapSourceDAO.class)));
@@ -83,8 +92,8 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new AcceptedLapsResource());
         jersey.register(new TimeResource());
         jersey.register(new LapCountResource(database.onDemand(TeamDAO.class)));
-        environment.healthChecks().register("template",
-                new TemplateHealthCheck(configuration.getTemplate()));
+        environment.healthChecks().register("template", new TemplateHealthCheck(configuration.getTemplate()));
+
 
         // Enable CORS
         final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
@@ -97,20 +106,26 @@ public class App extends Application<AppConfiguration> {
         // Add URL mapping
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
-        // Set up lapper algorithms
-        Set<Lapper> lappers = new HashSet<>();
+        if (! testing) {
+            // Set up lapper algorithms
+            Set<Lapper> lappers = new HashSet<>();
 
-        lappers.add(new ViterbiLapper(this.database));
+            // Old viterbi lapper is disabled
+            //lappers.add(new ViterbiLapper(this.database));
 
-        // Enable lapper APIs
-        for (Lapper lapper : lappers) {
-            lapper.registerAPI(jersey);
-        }
+            lappers.add(new ExternalLapper(this.database));
+            lappers.add(new RobustLapper(this.database));
 
-        // Start fetch thread for each station
-        StationDAO stationDAO = this.database.onDemand(StationDAO.class);
-        for (Station station : stationDAO.getAll()) {
-            new Thread(() -> new Fetcher(this.database, station, lappers).fetch()).start();
+            // Enable lapper APIs
+            for (Lapper lapper : lappers) {
+                lapper.registerAPI(jersey);
+            }
+
+            // Start fetch thread for each station
+            StationDAO stationDAO = this.database.onDemand(StationDAO.class);
+            for (Station station : stationDAO.getAll()) {
+                new Thread(() -> new Fetcher(this.database, station, lappers).fetch()).start();
+            }
         }
 
         logger.info("Up and running!");
