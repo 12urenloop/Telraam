@@ -177,19 +177,15 @@ public class RobustLapper implements Lapper {
             }
 
             // More old laps so delete the surplus
-            if (i < oldLapsTeam.size()) {
-                while (i < oldLapsTeam.size()) {
-                    lapsToDelete.add(oldLapsTeam.get(i));
-                    i++;
-                }
+            while (i < oldLapsTeam.size()) {
+                lapsToDelete.add(oldLapsTeam.get(i));
+                i++;
             }
 
             // Add the new laps
-            if (i < newLapsTeam.size()) {
-                while (i < newLapsTeam.size()) {
-                    lapsToInsert.add(newLapsTeam.get(i));
-                    i++;
-                }
+            while (i < newLapsTeam.size()) {
+                lapsToInsert.add(newLapsTeam.get(i));
+                i++;
             }
         }
 
