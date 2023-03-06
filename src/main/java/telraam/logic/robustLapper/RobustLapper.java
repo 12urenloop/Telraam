@@ -147,6 +147,7 @@ public class RobustLapper implements Lapper {
     private void save() {
         // Get all the old laps and sort by team
         List<Lap> laps = lapDAO.getAllBySource(lapSourceId);
+        laps = laps.stream().filter(lap -> ! lap.getManual()).collect(Collectors.toList());
         Map<Integer, List<Lap>> oldLaps = new HashMap<>();
 
         for (Integer teamId : teamLaps.keySet()) {
