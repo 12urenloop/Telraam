@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 // Implement Lapper for easier use in App and Fetcher
 public class RobustLapper implements Lapper {
@@ -29,7 +30,7 @@ public class RobustLapper implements Lapper {
     private int lapSourceId;
     private Map<Integer, List<Detection>> teamDetections;
     private List<Station> stations;
-    private Map<Integer, List<Timestamp>> teamLaps;
+    private Map<Integer, List<Lap>> teamLaps;
 
     public RobustLapper(Jdbi jdbi) {
         this.jdbi = jdbi;
@@ -126,7 +127,7 @@ public class RobustLapper implements Lapper {
                 }
             }
             // Save result for team
-            teamLaps.put(entry.getKey(), lapTimes);
+            teamLaps.put(entry.getKey(), lapTimes.stream().map(time -> new Lap(entry.getKey(), lapSourceId, time)).collect(Collectors.toList()));
         }
 
         save();
@@ -144,25 +145,57 @@ public class RobustLapper implements Lapper {
     }
 
     private void save() {
-        LinkedList<Lap> laps = new LinkedList<>();
+        // Get all the old laps and sort by team
+        List<Lap> laps = lapDAO.getAllBySource(lapSourceId);
+        Map<Integer, List<Lap>> oldLaps = new HashMap<>();
 
-        for (Map.Entry<Integer, List<Timestamp>> entries : teamLaps.entrySet()) {
-            // Delete last two laps
-            List<Lap> deletedLaps = lapDAO.deleteLatestTwoLaps(entries.getKey(), lapSourceId);
-            Timestamp minTimestamp;
-            if (deletedLaps.size() == 2) {
-                deletedLaps.sort(Comparator.comparing(Lap::getTimestamp));
-                minTimestamp = deletedLaps.get(0).getTimestamp();
-            } else {
-                minTimestamp = new Timestamp(0);
-            }
-            // Only add new laps
-            entries.getValue().stream()
-                    .filter(timestamp -> timestamp.getTime() >= minTimestamp.getTime())
-                    .forEach(timestamp -> laps.add(new Lap(entries.getKey(), lapSourceId, timestamp)));
+        for (Integer teamId : teamLaps.keySet()) {
+            oldLaps.put(teamId, new ArrayList<>());
         }
 
-        lapDAO.insertAll(laps.iterator());
+        for (Lap lap : laps) {
+            oldLaps.get(lap.getTeamId()).add(lap);
+        }
+
+        List<Lap> lapsToUpdate = new ArrayList<>();
+        List<Lap> lapsToInsert = new ArrayList<>();
+        List<Lap> lapsToDelete = new ArrayList<>();
+
+        for (Map.Entry<Integer, List<Lap>> entries : teamLaps.entrySet()) {
+            List<Lap> newLapsTeam = entries.getValue();
+            List<Lap> oldLapsTeam = oldLaps.get(entries.getKey());
+            oldLapsTeam.sort(Comparator.comparing(Lap::getTimestamp));
+            int i = 0;
+            // Go over each lap and compare timestamp
+            while (i < oldLapsTeam.size() && i < newLapsTeam.size()) {
+                // Update the timestamp if it isn't equal
+                if (! oldLapsTeam.get(i).getTimestamp().equals(newLapsTeam.get(i).getTimestamp())) {
+                    oldLapsTeam.get(i).setTimestamp(newLapsTeam.get(i).getTimestamp());
+                    lapsToUpdate.add(oldLapsTeam.get(i));
+                }
+                i++;
+            }
+
+            // More old laps so delete the surplus
+            if (i < oldLapsTeam.size()) {
+                while (i < oldLapsTeam.size()) {
+                    lapsToDelete.add(oldLapsTeam.get(i));
+                    i++;
+                }
+            }
+
+            // Add the new laps
+            if (i < newLapsTeam.size()) {
+                while (i < newLapsTeam.size()) {
+                    lapsToInsert.add(newLapsTeam.get(i));
+                    i++;
+                }
+            }
+        }
+
+        lapDAO.updateAll(lapsToUpdate.iterator());
+        lapDAO.insertAll(lapsToInsert.iterator());
+        lapDAO.deleteAll(lapsToDelete.iterator());
     }
 
     @Override
