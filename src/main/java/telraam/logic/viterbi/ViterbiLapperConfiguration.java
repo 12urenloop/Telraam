@@ -32,9 +32,9 @@ public class ViterbiLapperConfiguration {
         // ballpark estimates extracted from test event data
         // IMPORTANT: these numbers are only valid assuming that detection are filtered for rssi >=-70
         // (ask @iasoon for details)
-        this.SAME_STATION_DETECTION_CHANCE = 0.75;
-        this.BASE_DETECTION_CHANCE = 0.01;
-        this.EXPECTED_NUM_DETECTIONS = 10;
+        this.SAME_STATION_DETECTION_CHANCE = 0.90;
+        this.BASE_DETECTION_CHANCE = 0.10;
+        this.EXPECTED_NUM_DETECTIONS = 3;
 
 
         this.BROKEN_STATION_PROBABILITY = 0.01;

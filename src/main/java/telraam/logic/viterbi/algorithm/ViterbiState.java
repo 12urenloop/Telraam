@@ -1,11 +1,13 @@
 package telraam.logic.viterbi.algorithm;
 
+import java.sql.Timestamp;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Helper class to store steps in the Viterbi algorithm.
  */
-public record ViterbiState(Map<Integer, Double> probabilities, Map<Integer, Integer> previousStates, Map<Integer, Integer> lapCounts) {
+public record ViterbiState(Map<Integer, Double> probabilities, Map<Integer, Integer> previousStates, Map<Integer, Set<Timestamp>> lapTimestamps) {
     /**
      * Get the most likely state to be in, in this Result
      *

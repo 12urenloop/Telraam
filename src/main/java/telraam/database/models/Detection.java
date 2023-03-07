@@ -12,6 +12,7 @@ public class Detection {
     private Integer remoteId;
     private Timestamp timestamp;
     private Timestamp timestampIngestion;
+    private Integer teamId;
 
     public Detection() {
     }
@@ -97,5 +98,13 @@ public class Detection {
 
     public void setTimestampIngestion(Timestamp timestampIngestion) {
         this.timestampIngestion = timestampIngestion;
+    }
+
+    public Integer getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(Integer teamId) {
+        this.teamId = teamId;
     }
 }
