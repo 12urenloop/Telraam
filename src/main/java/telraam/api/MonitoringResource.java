@@ -2,7 +2,6 @@ package telraam.api;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.BatonDAO;
 import telraam.database.daos.DetectionDAO;
 import telraam.database.daos.LapDAO;
@@ -11,6 +10,9 @@ import telraam.database.models.Lap;
 import telraam.database.models.Team;
 import telraam.database.models.TeamLapCount;
 import telraam.monitoring.*;
+import telraam.monitoring.models.BatonDetection;
+import telraam.monitoring.models.BatonStatus;
+import telraam.monitoring.models.TeamLapInfo;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

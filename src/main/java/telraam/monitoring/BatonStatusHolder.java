@@ -4,6 +4,7 @@ import telraam.database.daos.BatonDAO;
 import telraam.database.daos.DetectionDAO;
 import telraam.database.models.Baton;
 import telraam.database.models.Detection;
+import telraam.monitoring.models.BatonStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;

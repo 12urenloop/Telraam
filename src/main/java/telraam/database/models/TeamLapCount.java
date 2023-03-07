@@ -1,5 +1,7 @@
 package telraam.database.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class TeamLapCount {
     private Integer lapSourceId;
     private Integer lapCount;

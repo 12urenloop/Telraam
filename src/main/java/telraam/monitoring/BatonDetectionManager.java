@@ -1,10 +1,9 @@
 package telraam.monitoring;
 
-import telraam.database.daos.BatonDAO;
 import telraam.database.daos.DetectionDAO;
 import telraam.database.daos.TeamDAO;
-import telraam.database.models.Baton;
 import telraam.database.models.Team;
+import telraam.monitoring.models.BatonDetection;
 
 import java.util.ArrayList;
 import java.util.HashMap;

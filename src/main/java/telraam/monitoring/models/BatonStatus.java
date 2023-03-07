@@ -1,4 +1,4 @@
-package telraam.monitoring;
+package telraam.monitoring.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
