@@ -3,7 +3,6 @@ package telraam.database.daos;
 import org.jdbi.v3.sqlobject.config.RegisterBeanMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
-import org.jdbi.v3.sqlobject.customizer.BindBeanList;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlBatch;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
@@ -55,4 +54,11 @@ public interface DetectionDAO extends DAO<Detection> {
     @SqlQuery("SELECT * FROM detection WHERE id > :id ORDER BY id LIMIT :limit")
     @RegisterBeanMapper(Detection.class)
     List<Detection> getSinceId(@Bind("id") int id, @Bind("limit") int limit);
+
+    @SqlQuery("""
+            WITH bso AS (SELECT teamid, newbatonid, timestamp AS current_timestamp, LEAD(timestamp) OVER (PARTITION BY teamid ORDER BY timestamp) next_baton_switch FROM batonswitchover)
+            SELECT baton_id, station_id, rssi, timestamp, teamid FROM detection d LEFT JOIN bso ON d.baton_id = bso.newbatonid AND d.timestamp BETWEEN bso.current_timestamp AND bso.next_baton_switch WHERE rssi > :minRssi
+            """)
+    @RegisterBeanMapper(Detection.class)
+    List<Detection> getAllWithTeamId(@Bind("minRssi") int minRssi);
 }

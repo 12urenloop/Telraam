@@ -6,6 +6,7 @@ public class Lap {
     private Integer id;
     private Integer teamId;
     private Integer lapSourceId;
+
     private Boolean manual;
     private Timestamp timestamp;
 
@@ -40,6 +41,14 @@ public class Lap {
 
     public void setLapSourceId(Integer lapSourceId) {
         this.lapSourceId = lapSourceId;
+    }
+
+    public Boolean getManual() {
+        return manual;
+    }
+
+    public void setManual(Boolean manual) {
+        this.manual = manual;
     }
 
     public Timestamp getTimestamp() {
