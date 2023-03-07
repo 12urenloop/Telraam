@@ -3,6 +3,7 @@ package telraam.logic.external;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -16,8 +17,11 @@ import java.util.List;
 public class ExternalLapperResource {
     private final ExternalLapper lapper;
 
+    private ExternalLapperStats externalLapperStats;
+
     public ExternalLapperResource(ExternalLapper lapper) {
         this.lapper = lapper;
+        this.externalLapperStats = new ExternalLapperStats();
     }
 
     @POST
@@ -27,19 +31,18 @@ public class ExternalLapperResource {
         this.lapper.saveLaps(teamLaps);
     }
 
-    //TODO: Give the lapper an option to publish some of its internal state for debugging.
-    //@GET
-    //@Path("/stats")
-    //@ApiOperation(value = "Get lapper statistics")
-    //public Map<Integer, Map<Integer, Integer>> getStats() {
-    //    //return this.lapper.getLapCounts();
-    //}
-//
-    //@POST
-    //@Path("/stats")
-    //@ApiOperation(value = "Post lapper statistics")
-    //public Map<Integer, Map<Integer, Integer>> postStats() {
-    //    return this.lapper.getLapCounts();
-    //}
+    @GET
+    @Path("/stats")
+    @ApiOperation(value = "Get lapper statistics")
+    public ExternalLapperStats getStats() {
+        return externalLapperStats;
+    }
+
+    @POST
+    @Path("/stats")
+    @ApiOperation(value = "Post lapper statistics")
+    public void postStats(ExternalLapperStats externalLapperStats) {
+        this.externalLapperStats = externalLapperStats;
+    }
 }
 

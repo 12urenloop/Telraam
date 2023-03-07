@@ -10,6 +10,7 @@ import telraam.database.models.LapSource;
 import telraam.logic.Lapper;
 
 import java.sql.Timestamp;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,18 +37,46 @@ public class ExternalLapper implements Lapper {
     }
 
     public void saveLaps(List<ExternalLapperTeamLaps> teamLaps) {
-        //TODO: Be less destructive on the database: Only delete and add the required laps.
-        lapDAO.deleteByLapSourceId(this.lapSourceId);
+        List<Lap> laps = lapDAO.getAllBySource(lapSourceId).stream().filter(l -> ! l.getManual()).toList();
 
-        LinkedList<Lap> laps = new LinkedList<>();
+        // Remember laps we have to take actions on
+        List<Lap> lapsToDelete = new LinkedList<>();
+        List<Lap> lapsToAdd = new LinkedList<>();
 
+        // Find which laps are no longer needed or have to be added
         for (ExternalLapperTeamLaps teamLap : teamLaps) {
-            for (ExternalLapperLap lap : teamLap.laps) {
-                laps.add(new Lap(teamLap.teamId, this.lapSourceId, new Timestamp((long) (lap.timestamp))));
+            List<Lap> lapsForTeam = laps.stream().filter(l -> l.getTeamId() == teamLap.teamId).sorted(Comparator.comparing(Lap::getTimestamp)).toList();
+            List<Lap> newLapsForTeam = teamLap.laps.stream().map(nl -> new Lap(teamLap.teamId, lapSourceId, new Timestamp((long) (nl.timestamp)))).sorted(Comparator.comparing(Lap::getTimestamp)).toList();
+
+            int lapsIndex = 0;
+            int newLapsIndex = 0;
+            while (lapsIndex != lapsForTeam.size() || newLapsIndex != newLapsForTeam.size()) {
+                if (lapsIndex != lapsForTeam.size() && newLapsIndex != newLapsForTeam.size()) {
+                    Lap lap = lapsForTeam.get(lapsIndex);
+                    Lap newLap = newLapsForTeam.get(newLapsIndex);
+                    if (lap.getTimestamp().before(newLap.getTimestamp())) {
+                        lapsToDelete.add(lap);
+                        lapsIndex++;
+                    } else if (lap.getTimestamp().after(newLap.getTimestamp())) {
+                        lapsToAdd.add(newLap);
+                        newLapsIndex++;
+                    } else { // Lap is present in both lists. Keep it.
+                        lapsIndex++;
+                        newLapsIndex++;
+                    }
+                } else if (lapsIndex != lapsForTeam.size()) {
+                    lapsToDelete.add(lapsForTeam.get(lapsIndex));
+                    lapsIndex++;
+                } else {
+                    lapsToAdd.add(newLapsForTeam.get(newLapsIndex));
+                    newLapsIndex++;
+                }
             }
         }
 
-        lapDAO.insertAll(laps.iterator());
+        // Do the required actions
+        lapDAO.deleteAllById(lapsToDelete.iterator());
+        lapDAO.insertAll(lapsToAdd.iterator());
     }
 
     @Override
