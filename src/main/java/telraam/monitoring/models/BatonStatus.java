@@ -7,6 +7,7 @@ import java.sql.Timestamp;
 
 public class BatonStatus {
     private String mac;
+    private Integer id;
     private String name;
     private Float battery;
     // Uptime in seconds
@@ -19,8 +20,9 @@ public class BatonStatus {
     @JsonProperty("last_detected_at_station")
     private Integer lastDetectedAtStation;
 
-    public BatonStatus(String mac, String name, float battery, long uptime, boolean rebooted, Timestamp lastSeen, Integer LDAS) {
+    public BatonStatus(String mac, Integer id, String name, float battery, long uptime, boolean rebooted, Timestamp lastSeen, Integer LDAS) {
         this.mac = mac;
+        this.id = id;
         this.name = name;
         this.battery = battery;
         this.uptime = uptime;
@@ -37,6 +39,14 @@ public class BatonStatus {
 
     public void setMac(String mac) {
         this.mac = mac;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getName() {

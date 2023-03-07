@@ -29,6 +29,7 @@ public class BatonStatusHolder {
         for (Baton baton : batons) {
             BatonStatus batonStatus = new BatonStatus(
                     baton.getMac().toLowerCase(),
+                    baton.getId(),
                     baton.getName(),
                     0,
                     0,
@@ -96,6 +97,7 @@ public class BatonStatusHolder {
         }
         BatonStatus batonStatus = new BatonStatus(
                 baton.get().getMac().toLowerCase(),
+                baton.get().getId(),
                 baton.get().getName(),
                 0,
                 0,

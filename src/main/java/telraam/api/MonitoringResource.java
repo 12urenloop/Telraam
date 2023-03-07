@@ -39,9 +39,17 @@ public class MonitoringResource {
     @GET
     @Path("/batons")
     @ApiOperation(value = "Get the status of all the batons, including unused batons which are toggleable via a parameter")
-    public List<BatonStatus> getBatonMetrics() {
-        // TODO: filter assigned parameter in request
-        return batonStatusHolder.GetAllBatonStatuses();
+    public List<BatonStatus> getBatonMetrics(@QueryParam("filter_assigned") boolean filterAssigned) {
+        List<BatonStatus> batonStatuses = batonStatusHolder.GetAllBatonStatuses();
+        if (filterAssigned) {
+            List<Team> teams = teamDAO.getAll();
+            Set<Integer> usedBatonIds = new HashSet<>();
+            for (Team team : teams) {
+                usedBatonIds.add(team.getBatonId());
+            }
+            return batonStatuses.stream().filter(batonStatus -> usedBatonIds.contains(batonStatus.getId())).toList();
+        }
+        return batonStatuses;
     }
 
     @GET
