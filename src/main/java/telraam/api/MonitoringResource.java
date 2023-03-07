@@ -2,16 +2,16 @@ package telraam.api;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import telraam.database.daos.BatonDAO;
-import telraam.database.daos.DetectionDAO;
-import telraam.database.daos.LapDAO;
-import telraam.database.daos.TeamDAO;
+import org.jdbi.v3.core.Jdbi;
+import telraam.database.daos.*;
 import telraam.database.models.Lap;
+import telraam.database.models.LapSource;
 import telraam.database.models.Team;
 import telraam.database.models.TeamLapCount;
 import telraam.monitoring.*;
 import telraam.monitoring.models.BatonDetection;
 import telraam.monitoring.models.BatonStatus;
+import telraam.monitoring.models.LapCountForTeam;
 import telraam.monitoring.models.TeamLapInfo;
 
 import javax.ws.rs.*;
@@ -26,12 +26,14 @@ public class MonitoringResource {
     private final BatonDetectionManager batonDetectionManager;
     private final TeamDAO teamDAO;
     private final LapDAO lapDAO;
+    private final LapSourceDAO lapSourceDAO;
 
-    public MonitoringResource(BatonDAO BDAO, DetectionDAO DDAO, TeamDAO TDAO, LapDAO LDAO) {
-        this.batonStatusHolder = new BatonStatusHolder(BDAO, DDAO);
-        this.batonDetectionManager = new BatonDetectionManager(DDAO, TDAO);
-        this.teamDAO = TDAO;
-        this.lapDAO = LDAO;
+    public MonitoringResource(Jdbi jdbi) {
+        this.teamDAO = jdbi.onDemand(TeamDAO.class);
+        this.lapDAO = jdbi.onDemand(LapDAO.class);
+        this.lapSourceDAO = jdbi.onDemand(LapSourceDAO.class);
+        this.batonStatusHolder = new BatonStatusHolder(jdbi.onDemand(BatonDAO.class), jdbi.onDemand(DetectionDAO.class));
+        this.batonDetectionManager = new BatonDetectionManager(jdbi.onDemand(DetectionDAO.class), this.teamDAO);
     }
 
     @GET
@@ -80,17 +82,19 @@ public class MonitoringResource {
     @GET
     @Path("/team-lap-counts")
     @ApiOperation(value = "Get monitoring data that can be used as grafana datasource")
-    public Map<String, Map<Integer, Integer>> getTeamLapCounts() {
+    public List<LapCountForTeam> getTeamLapCounts() {
         List<Team> teams = teamDAO.getAll();
-        Map<String, Map<Integer, Integer>> teamLapCounts = new HashMap<>();
+        List<LapSource> lapSources = lapSourceDAO.getAll();
+        List<LapCountForTeam> lapCountForTeams = new ArrayList<>();
         for (Team team : teams) {
             var teamLapsCount = lapDAO.getAllBySourceAndTeam(team.getId());
-            Map<Integer, Integer> lapCount = new HashMap<>();
+            Map<Integer, Integer> lapCounts = new HashMap<>();
+            lapSources.forEach(lapSource -> lapCounts.put(lapSource.getId(), 0));
             for (TeamLapCount teamLapCount : teamLapsCount) {
-                lapCount.put(teamLapCount.getLapSourceId(), teamLapCount.getLapCount());
+                lapCounts.put(teamLapCount.getLapSourceId(), teamLapCount.getLapCount());
             }
-            teamLapCounts.put(team.getName(), lapCount);
+            lapCountForTeams.add(new LapCountForTeam(team.getName(), lapCounts));
         }
-        return teamLapCounts;
+        return lapCountForTeams;
     }
 }
