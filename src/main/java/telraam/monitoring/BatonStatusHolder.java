@@ -6,6 +6,8 @@ import telraam.database.models.Baton;
 import telraam.database.models.Detection;
 import telraam.monitoring.models.BatonStatus;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +49,7 @@ public class BatonStatusHolder {
         var batons = batonDAO.getAll();
         for (Baton baton : batons) {
             var batonStatus = GetBatonStatus(baton.getId());
-            var detection = detectionDAO.latestDetectionByBatonId(baton.getId(), batonStatus.getLastSeen());
+            var detection = detectionDAO.latestDetectionByBatonId(baton.getId(), batonStatus.getLastSeen() == null ? Timestamp.from(Instant.ofEpochSecond(0)) : batonStatus.getLastSeen());
             detection.ifPresent(this::updateState);
         }
         return new ArrayList<>(batonStatusMap.values());
@@ -58,7 +60,6 @@ public class BatonStatusHolder {
         if (batonStatus == null) {
             batonStatus = createBatonStatus(msg.getBatonId());
             batonStatusMap.put(batonStatus.getMac(), batonStatus);
-            return;
         }
         if (batonStatus.getLastSeen() == null) {
             batonStatus.setLastSeen(msg.getTimestamp());
@@ -108,5 +109,13 @@ public class BatonStatusHolder {
         batonStatusMap.put(batonStatus.getMac(), batonStatus);
         batonIdToMac.put(batonId, batonStatus.getMac());
         return batonStatus;
+    }
+
+    public void resetRebooted(int batonId) {
+        var batonStatus = GetBatonStatus(batonId);
+        if (batonStatus == null) {
+            return;
+        }
+        batonStatus.setRebooted(false);
     }
 }

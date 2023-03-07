@@ -104,4 +104,10 @@ public class BatonStatus {
     public void setLastDetectedAtStation(Integer lastDetectedAtStation) {
         this.lastDetectedAtStation = lastDetectedAtStation;
     }
+
+    @Override
+    public String toString() {
+        return String.format("BatonStatus{mac='%s', id=%d, name='%s', battery=%f, uptime=%d, rebooted=%b, lastSeen=%s, lastSeenSecondsAgo=%d, lastDetectedAtStation=%d}",
+                mac, id, name, battery, uptime, rebooted, lastSeen, lastSeenSecondsAgo, lastDetectedAtStation);
+    }
 }

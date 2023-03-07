@@ -52,6 +52,13 @@ public class MonitoringResource {
         return batonStatuses;
     }
 
+    @POST
+    @Path("/reset-rebooted/{batonId}")
+    @ApiOperation(value = "Reset the rebooted flag of a baton")
+    public void resetRebooted(@PathParam("batonId") Integer batonId) {
+        batonStatusHolder.resetRebooted(batonId);
+    }
+
     @GET
     @Path("/team-detection-times")
     @ApiOperation(value = "A map of all detections per batons")
