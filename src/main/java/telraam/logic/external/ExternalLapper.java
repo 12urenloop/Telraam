@@ -37,7 +37,7 @@ public class ExternalLapper implements Lapper {
     }
 
     public void saveLaps(List<ExternalLapperTeamLaps> teamLaps) {
-        List<Lap> laps = lapDAO.getAllBySource(lapSourceId);
+        List<Lap> laps = lapDAO.getAllBySource(lapSourceId).stream().filter(l -> ! l.getManual()).toList();
 
         // Remember laps we have to take actions on
         List<Lap> lapsToDelete = new LinkedList<>();
