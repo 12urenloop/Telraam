@@ -10,6 +10,8 @@ import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.Lap;
 
+
+import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +46,10 @@ public interface LapDAO extends DAO<Lap> {
             "timestamp = :timestamp " +
             "WHERE id = :id")
     int update(@Bind("id") int id, @BindBean Lap modelObj);
+
+
+    @SqlUpdate("DELETE FROM lap WHERE team_id = :teamId AND timestamp = :timestamp")
+    void removeByTeamAndTimestamp(@Bind("teamId") int teamId, @Bind("timestamp") Timestamp timestamp);
 
     @SqlUpdate("DELETE FROM lap WHERE lap_source_id = :lapSourceId")
     void deleteByLapSourceId(@Bind("lapSourceId") int lapSourceId);

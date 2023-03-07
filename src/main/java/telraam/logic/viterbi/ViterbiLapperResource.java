@@ -8,7 +8,10 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Path("/lappers/viterbi")
 @Api("/lappers/viterbi")
@@ -28,10 +31,10 @@ public class ViterbiLapperResource {
     }
 
     @GET
-    @Path("/lapcounts")
-    @ApiOperation(value = "Get lapper estimated lap counts")
-    public Map<Integer, Map<Integer, Integer>> getLapCounts() {
-        return this.lapper.getLapCounts();
+    @Path("/lap-times")
+    @ApiOperation(value = "Get lapper estimated laps")
+    public Map<Integer, Map<Integer, Set<Timestamp>>> getLapTimes() {
+        return this.lapper.getLapTimes();
     }
 
     @GET
@@ -46,5 +49,13 @@ public class ViterbiLapperResource {
     @ApiOperation(value = "Get Viterbi model")
     public ViterbiModel<Integer, Integer> getModel() {
         return this.lapper.getModel();
+    }
+
+    @GET
+    @Path("/recalculate")
+    @ApiOperation(value = "Recalculate Viterbi rounds")
+    public String recalculateRounds() {
+        this.lapper.calculateLaps();
+        return "Recalculated rounds";
     }
 }
