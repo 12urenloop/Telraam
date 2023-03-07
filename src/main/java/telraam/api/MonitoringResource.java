@@ -2,18 +2,17 @@ package telraam.api;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.BatonDAO;
 import telraam.database.daos.DetectionDAO;
 import telraam.database.daos.LapDAO;
 import telraam.database.daos.TeamDAO;
 import telraam.database.models.Lap;
 import telraam.database.models.Team;
+import telraam.database.models.TeamLapCount;
 import telraam.monitoring.*;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.*;
 
@@ -74,5 +73,22 @@ public class MonitoringResource {
             teamLapInfos.get(lap.getTeamId()).add(new TeamLapInfo((lap.getTimestamp().getTime() - prevLap.getTimestamp().getTime()) / 1000, lap.getTimestamp().getTime() / 1000, lap.getTeamId(), team.getName()));
         }
         return teamLapInfos;
+    }
+
+    @GET
+    @Path("/team-lap-counts")
+    @ApiOperation(value = "Get monitoring data that can be used as grafana datasource")
+    public Map<String, Map<Integer, Integer>> getTeamLapCounts() {
+        List<Team> teams = teamDAO.getAll();
+        Map<String, Map<Integer, Integer>> teamLapCounts = new HashMap<>();
+        for (Team team : teams) {
+            var teamLapsCount = lapDAO.getAllBySourceAndTeam(team.getId());
+            Map<Integer, Integer> lapCount = new HashMap<>();
+            for (TeamLapCount teamLapCount : teamLapsCount) {
+                lapCount.put(teamLapCount.getLapSourceId(), teamLapCount.getLapCount());
+            }
+            teamLapCounts.put(team.getName(), lapCount);
+        }
+        return teamLapCounts;
     }
 }

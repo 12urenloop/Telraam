@@ -8,11 +8,13 @@ import org.jdbi.v3.sqlobject.statement.SqlBatch;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.Lap;
+import telraam.database.models.TeamLapCount;
 
 
 import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface LapDAO extends DAO<Lap> {
@@ -68,4 +70,8 @@ public interface LapDAO extends DAO<Lap> {
 
     @SqlBatch("DELETE FROM lap WHERE id = :id")
     void deleteAll(@BindBean Iterator<Lap> laps);
+
+    @SqlQuery("SELECT COUNT(*) as lapCount, lap_source_id FROM lap WHERE team_id = :teamId GROUP BY lap_source_id")
+    @RegisterBeanMapper(TeamLapCount.class)
+    List<TeamLapCount> getAllBySourceAndTeam(@Bind("teamId") int teamId);
 }
