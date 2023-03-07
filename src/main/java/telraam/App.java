@@ -94,7 +94,7 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new AcceptedLapsResource());
         jersey.register(new TimeResource());
         jersey.register(new LapCountResource(database.onDemand(TeamDAO.class)));
-        jersey.register(new MonitoringResource(database.onDemand(BatonDAO.class), database.onDemand(DetectionDAO.class)));
+        jersey.register(new MonitoringResource(database.onDemand(BatonDAO.class), database.onDemand(DetectionDAO.class), database.onDemand(TeamDAO.class), database.onDemand(LapDAO.class)));
         environment.healthChecks().register("template", new TemplateHealthCheck(configuration.getTemplate()));
 
 

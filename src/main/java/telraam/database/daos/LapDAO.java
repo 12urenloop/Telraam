@@ -25,6 +25,10 @@ public interface LapDAO extends DAO<Lap> {
     @RegisterBeanMapper(Lap.class)
     List<Lap> getAllBySource(@Bind("lapSourceId") Integer lapSourceId);
 
+    @SqlQuery("SELECT * FROM lap WHERE lap_source_id = :lapSourceId ORDER BY timestamp ASC")
+    @RegisterBeanMapper(Lap.class)
+    List<Lap> getAllBySourceSorted(@Bind("lapSourceId") Integer lapSourceId);
+
     @SqlUpdate("INSERT INTO lap (team_id, lap_source_id, timestamp) " +
             "VALUES (:teamId, :lapSourceId, :timestamp)")
     @GetGeneratedKeys({"id"})

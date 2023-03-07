@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class StatusHolder {
+public class BatonStatusHolder {
     // Map from batonMac to batonStatus
     private HashMap<String, BatonStatus> batonStatusMap = new HashMap<>();
     private HashMap<Integer, String> batonIdToMac = new HashMap<>();
@@ -17,7 +17,7 @@ public class StatusHolder {
     private BatonDAO batonDAO;
     private DetectionDAO detectionDAO;
 
-    public StatusHolder(BatonDAO BDAO, DetectionDAO DDAO) {
+    public BatonStatusHolder(BatonDAO BDAO, DetectionDAO DDAO) {
         batonDAO = BDAO;
         detectionDAO = DDAO;
         this.initStatus();
@@ -55,6 +55,7 @@ public class StatusHolder {
         BatonStatus batonStatus = GetBatonStatus(msg.getBatonId());
         if (batonStatus == null) {
             batonStatus = createBatonStatus(msg.getBatonId());
+            batonStatusMap.put(batonStatus.getMac(), batonStatus);
             return;
         }
         if (batonStatus.getLastSeen() == null) {
