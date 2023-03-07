@@ -12,7 +12,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 // Implement Lapper for easier use in App and Fetcher
 public class RobustLapper implements Lapper {
@@ -127,7 +126,7 @@ public class RobustLapper implements Lapper {
                 }
             }
             // Save result for team
-            teamLaps.put(entry.getKey(), lapTimes.stream().map(time -> new Lap(entry.getKey(), lapSourceId, time)).collect(Collectors.toList()));
+            teamLaps.put(entry.getKey(), lapTimes.stream().map(time -> new Lap(entry.getKey(), lapSourceId, time)).toList());
         }
 
         save();
@@ -147,7 +146,7 @@ public class RobustLapper implements Lapper {
     private void save() {
         // Get all the old laps and sort by team
         List<Lap> laps = lapDAO.getAllBySource(lapSourceId);
-        laps = laps.stream().filter(lap -> ! lap.getManual()).collect(Collectors.toList());
+        laps = laps.stream().filter(lap -> ! lap.getManual()).toList();
         Map<Integer, List<Lap>> oldLaps = new HashMap<>();
 
         for (Integer teamId : teamLaps.keySet()) {
