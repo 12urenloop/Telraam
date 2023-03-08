@@ -70,8 +70,8 @@ public class MonitoringResource {
 
     @GET
     @Path("/stations-latest-detection-time")
-    @ApiOperation(value = "Get the map of all station ID's to time since last detection")
-    public Map<Integer, Long> getStationIDToLatestDetectionTimeMap() {
+    @ApiOperation(value = "Get the map of all station name to time since last detection")
+    public Map<String, Long> getStationIDToLatestDetectionTimeMap() {
         return stationDetectionManager.timeSinceLastDetectionPerStation();
     }
 
