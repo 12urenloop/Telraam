@@ -17,7 +17,6 @@ import telraam.healthchecks.TemplateHealthCheck;
 import telraam.logic.Lapper;
 import telraam.logic.external.ExternalLapper;
 import telraam.logic.robustLapper.RobustLapper;
-import telraam.logic.viterbi.ViterbiLapper;
 import telraam.station.Fetcher;
 import telraam.util.AcceptedLapsUtil;
 
@@ -92,6 +91,7 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new AcceptedLapsResource());
         jersey.register(new TimeResource());
         jersey.register(new LapCountResource(database.onDemand(TeamDAO.class)));
+        jersey.register(new MonitoringResource(database));
         environment.healthChecks().register("template", new TemplateHealthCheck(configuration.getTemplate()));
 
 
