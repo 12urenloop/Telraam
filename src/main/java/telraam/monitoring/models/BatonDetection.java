@@ -1,6 +1,7 @@
 package telraam.monitoring.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.models.auth.In;
 
 public class BatonDetection {
     @JsonProperty("detected_time")
@@ -9,12 +10,15 @@ public class BatonDetection {
     private Integer rssi;
     @JsonProperty("team_id")
     private Integer teamId;
+    @JsonProperty("station_id")
+    private Integer stationId;
     @JsonProperty("team_name")
     private String teamName;
 
-    public BatonDetection(Integer detectionTime, Integer rssi, Integer teamId, String teamName) {
+    public BatonDetection(Integer detectionTime, Integer rssi, Integer stationId, Integer teamId, String teamName) {
         this.detectionTime = detectionTime;
         this.rssi = rssi;
+        this.stationId = stationId;
         this.teamId = teamId;
         this.teamName = teamName;
     }
@@ -36,6 +40,12 @@ public class BatonDetection {
     }
     public void setTeamId(Integer teamId) {
         this.teamId = teamId;
+    }
+    public Integer getStationId() {
+        return stationId;
+    }
+    public void setStationId(Integer stationId) {
+        this.stationId = stationId;
     }
     public String getTeamName() {
         return teamName;

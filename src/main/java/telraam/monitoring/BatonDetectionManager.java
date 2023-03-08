@@ -60,7 +60,7 @@ public class BatonDetectionManager {
             }
             var batonDetections = batonDetectionMap.get(batonId);
             var team = teamMap.get(batonTeamMap.get(batonId));
-            var batonDetection = new BatonDetection(Math.toIntExact(d.getTimestamp().getTime() / 1000), d.getRssi(), batonId, team.getName());
+            var batonDetection = new BatonDetection(Math.toIntExact(d.getTimestamp().getTime() / 1000), d.getRssi(),d.getStationId(), batonId, team.getName());
             batonDetections.add(batonDetection);
         });
         return batonDetectionMap;
