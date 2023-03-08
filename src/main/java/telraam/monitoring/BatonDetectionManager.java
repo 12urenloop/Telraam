@@ -3,6 +3,8 @@ package telraam.monitoring;
 import telraam.database.daos.BatonSwitchoverDAO;
 import telraam.database.daos.DetectionDAO;
 import telraam.database.daos.TeamDAO;
+import telraam.database.models.BatonSwitchover;
+import telraam.database.models.Detection;
 import telraam.database.models.Team;
 import telraam.monitoring.models.BatonDetection;
 
@@ -27,11 +29,21 @@ public class BatonDetectionManager {
     }
 
     public Map<Integer, List<BatonDetection>> getBatonDetections() {
-        var detections = detectionDAO.getSinceId(handledDetectionId, Integer.MAX_VALUE);
-        var batonSwitchOvers = batonSwitchoverDAO.getAll();
+        List<Detection> detections = detectionDAO.getSinceId(handledDetectionId, Integer.MAX_VALUE);
+        return getBatonDetections(detections, this.batonDetectionMap);
+    }
+
+    public Map<Integer, List<BatonDetection>> getBatonDetections(int seconds) {
+        Map<Integer, List<BatonDetection>> batonDetectionMap = new HashMap<>();
+        List<Detection> detections = detectionDAO.getSinceTimestamp(System.currentTimeMillis() - seconds*1000);
+        return getBatonDetections(detections, batonDetectionMap);
+    }
+
+    private Map<Integer, List<BatonDetection>> getBatonDetections(List<Detection> detections, Map<Integer, List<BatonDetection>> batonDetectionMap) {
+        List<BatonSwitchover> batonSwitchOvers = batonSwitchoverDAO.getAll();
         // Map of batonIds to team info
-        var teamMap = new HashMap<Integer, Team>();
-        var teams = teamDAO.getAll();
+        Map<Integer, Team> teamMap = new HashMap<Integer, Team>();
+        List<Team> teams = teamDAO.getAll();
         teams.forEach(t -> teamMap.put(t.getId(), t));
         detections.forEach(d -> {
             Map<Integer, Integer> batonTeamMap = new HashMap<>();
@@ -58,9 +70,9 @@ public class BatonDetectionManager {
             if (!batonDetectionMap.containsKey(batonId)) {
                 batonDetectionMap.put(batonId, new ArrayList<>());
             }
-            var batonDetections = batonDetectionMap.get(batonId);
-            var team = teamMap.get(batonTeamMap.get(batonId));
-            var batonDetection = new BatonDetection(Math.toIntExact(d.getTimestamp().getTime() / 1000), d.getRssi(),d.getStationId(), batonId, team.getName());
+            List<BatonDetection> batonDetections = batonDetectionMap.get(batonId);
+            Team team = teamMap.get(batonTeamMap.get(batonId));
+            BatonDetection batonDetection = new BatonDetection(Math.toIntExact(d.getTimestamp().getTime() / 1000), d.getRssi(),d.getStationId(), batonId, team.getName());
             batonDetections.add(batonDetection);
         });
         return batonDetectionMap;

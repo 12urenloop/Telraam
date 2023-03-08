@@ -64,8 +64,13 @@ public class MonitoringResource {
     @GET
     @Path("/team-detection-times")
     @ApiOperation(value = "A map of all detections per batons")
-    public Map<Integer, List<BatonDetection>> getTeamDetectionTimes() {
-        return batonDetectionManager.getBatonDetections();
+    public Map<Integer, List<BatonDetection>> getTeamDetectionTimes(@QueryParam("seconds") Integer seconds) {
+        if (seconds != null) {
+            if (seconds > 600) seconds = 600;
+            return batonDetectionManager.getBatonDetections(seconds);
+        } else {
+            return batonDetectionManager.getBatonDetections();
+        }
     }
 
     @GET
