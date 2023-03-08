@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class BatonDetection {
     @JsonProperty("detected_time")
     private Integer detectionTime;
+    @JsonProperty("rssi")
     private Integer rssi;
     @JsonProperty("team_id")
     private Integer teamId;
