@@ -24,6 +24,7 @@ import java.util.*;
 public class MonitoringResource {
     private final BatonStatusHolder batonStatusHolder;
     private final BatonDetectionManager batonDetectionManager;
+    private final StationDetectionManager stationDetectionManager;
     private final TeamDAO teamDAO;
     private final LapDAO lapDAO;
     private final LapSourceDAO lapSourceDAO;
@@ -34,6 +35,7 @@ public class MonitoringResource {
         this.lapSourceDAO = jdbi.onDemand(LapSourceDAO.class);
         this.batonStatusHolder = new BatonStatusHolder(jdbi.onDemand(BatonDAO.class), jdbi.onDemand(DetectionDAO.class));
         this.batonDetectionManager = new BatonDetectionManager(jdbi.onDemand(DetectionDAO.class), this.teamDAO, jdbi.onDemand(BatonSwitchoverDAO.class));
+        this.stationDetectionManager = new StationDetectionManager(jdbi.onDemand(DetectionDAO.class), jdbi.onDemand(StationDAO.class));
     }
 
     @GET
@@ -64,6 +66,13 @@ public class MonitoringResource {
     @ApiOperation(value = "A map of all detections per batons")
     public Map<Integer, List<BatonDetection>> getTeamDetectionTimes() {
         return batonDetectionManager.getBatonDetections();
+    }
+
+    @GET
+    @Path("/stations-latest-detection-time")
+    @ApiOperation(value = "Get the map of all station ID's to time since last detection")
+    public Map<Integer, Long> getStationIDToLatestDetectionTimeMap() {
+        return stationDetectionManager.timeSinceLastDetectionPerStation();
     }
 
     @GET
