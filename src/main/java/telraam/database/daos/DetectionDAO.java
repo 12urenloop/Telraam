@@ -57,7 +57,7 @@ public interface DetectionDAO extends DAO<Detection> {
     List<Detection> getSinceId(@Bind("id") int id, @Bind("limit") int limit);
 
 
-    @SqlQuery("SELECT * FROM detection WHERE baton_id = :batonId AND timestamp > :timestamp ORDER BY timestamp DESC LIMIT 1")
+    @SqlQuery("SELECT * FROM detection WHERE baton_id = :batonId AND timestamp >= :timestamp ORDER BY timestamp DESC LIMIT 1")
     @RegisterBeanMapper(Detection.class)
     Optional<Detection> latestDetectionByBatonId(@Bind("batonId") int batonId, @Bind("timestamp") Timestamp timestamp);
 
