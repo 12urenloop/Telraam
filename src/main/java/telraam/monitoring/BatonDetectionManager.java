@@ -8,6 +8,8 @@ import telraam.database.models.Detection;
 import telraam.database.models.Team;
 import telraam.monitoring.models.BatonDetection;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +37,7 @@ public class BatonDetectionManager {
 
     public Map<Integer, List<BatonDetection>> getBatonDetections(int seconds) {
         Map<Integer, List<BatonDetection>> batonDetectionMap = new HashMap<>();
-        List<Detection> detections = detectionDAO.getSinceTimestamp(System.currentTimeMillis() - seconds*1000);
+        List<Detection> detections = detectionDAO.getSinceTimestamp(Timestamp.from(Instant.ofEpochMilli(System.currentTimeMillis() - seconds*1000)));
         return getBatonDetections(detections, batonDetectionMap);
     }
 
