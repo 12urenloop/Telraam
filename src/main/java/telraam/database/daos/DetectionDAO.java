@@ -61,11 +61,6 @@ public interface DetectionDAO extends DAO<Detection> {
     @RegisterBeanMapper(Detection.class)
     Optional<Detection> latestDetectionByBatonId(@Bind("batonId") int batonId, @Bind("timestamp") Timestamp timestamp);
 
-    @SqlQuery("SELECT * FROM detection WHERE station_id = :stationId AND timestamp > :timestamp ORDER BY timestamp DESC LIMIT 1")
-    @RegisterBeanMapper(Detection.class)
-    Optional<Detection> latestDetectionByStationId(@Bind("stationId") int stationId, @Bind("timestamp") Timestamp timestamp);
-
-
     @SqlQuery("""
             WITH bso AS (SELECT teamid, newbatonid, timestamp AS current_timestamp, LEAD(timestamp) OVER (PARTITION BY teamid ORDER BY timestamp) next_baton_switch FROM batonswitchover)
             SELECT baton_id, station_id, rssi, timestamp, teamid FROM detection d LEFT JOIN bso ON d.baton_id = bso.newbatonid AND d.timestamp BETWEEN bso.current_timestamp AND bso.next_baton_switch WHERE rssi > :minRssi
