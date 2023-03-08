@@ -112,7 +112,7 @@ public class RobustLapper implements Lapper {
                 } else {
                     // We're in a new interval, use the detection with the highest RSSI to update trajectory
                     // Check if new station is more likely to be in front of the runner
-                    if (! (backwardPathDistance(lastStationPosition, currentStationPosition) <= 2)) {
+                    if (! (backwardPathDistance(lastStationPosition, currentStationPosition) <= 3)) {
                         if (isStartBetween(lastStationPosition, currentStationPosition)) {
                             // Add lap if we passed the start line
                             lapTimes.add(detection.getTimestamp());
