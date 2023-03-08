@@ -33,7 +33,7 @@ public class MonitoringResource {
         this.lapDAO = jdbi.onDemand(LapDAO.class);
         this.lapSourceDAO = jdbi.onDemand(LapSourceDAO.class);
         this.batonStatusHolder = new BatonStatusHolder(jdbi.onDemand(BatonDAO.class), jdbi.onDemand(DetectionDAO.class));
-        this.batonDetectionManager = new BatonDetectionManager(jdbi.onDemand(DetectionDAO.class), this.teamDAO);
+        this.batonDetectionManager = new BatonDetectionManager(jdbi.onDemand(DetectionDAO.class), this.teamDAO, jdbi.onDemand(BatonSwitchoverDAO.class));
     }
 
     @GET
