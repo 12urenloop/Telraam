@@ -19,17 +19,15 @@ public class StationDetectionManager {
         this.stationDAO = stationDAO;
     }
 
-    public Map<Integer, Long> timeSinceLastDetectionPerStation() {
+    public Map<String, Long> timeSinceLastDetectionPerStation() {
         List<Integer> stationIdList = stationDAO.getAll().stream().map(Station::getId).toList();
-        Map<Integer, Long> stationIdToTimeSinceLatestDetection = new HashMap<>();
+        Map<String, Long> stationIdToTimeSinceLatestDetection = new HashMap<>();
         for (Integer stationId : stationIdList) {
             Optional<Detection> maybeDetection = this.detectionDAO.latestDetectionByStationId(stationId);
-
-            if (maybeDetection.isPresent()) {
+            Optional<Station> maybeStation = this.stationDAO.getById(stationId);
+            if (maybeDetection.isPresent() && maybeStation.isPresent()) {
                 Long time = maybeDetection.get().getTimestamp().getTime();
-                stationIdToTimeSinceLatestDetection.put(stationId, (System.currentTimeMillis() - time)/1000);
-            } else {
-                stationIdToTimeSinceLatestDetection.put(stationId, null);
+                stationIdToTimeSinceLatestDetection.put(maybeStation.get().getName(), (System.currentTimeMillis() - time)/1000);
             }
         }
         return stationIdToTimeSinceLatestDetection;
