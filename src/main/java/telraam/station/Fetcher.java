@@ -1,6 +1,9 @@
 package telraam.station;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.jdbi.v3.core.Jdbi;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import telraam.database.daos.BatonDAO;
 import telraam.database.daos.DetectionDAO;
 import telraam.database.daos.StationDAO;
@@ -9,19 +12,14 @@ import telraam.database.models.Detection;
 import telraam.database.models.Station;
 import telraam.logic.Lapper;
 
-import java.io.IOException;
-import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpConnectTimeoutException;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.net.http.*;
 import java.sql.Timestamp;
-import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -57,7 +55,7 @@ public class Fetcher {
 
     public void fetch() {
         logger.info("Running Fetcher for station(" + this.station.getId() + ")");
-        JsonBodyHandler<RonnyResponse> bodyHandler = new JsonBodyHandler<>(RonnyResponse.class);
+        ObjectMapper mapper = new ObjectMapper();
 
         while (true) {
             //Update the station to account for possible changes in the database
@@ -76,7 +74,7 @@ public class Fetcher {
             //Create URL
             URI url;
             try {
-                url = new URI(station.getUrl() + "/detections/" + lastDetectionId);
+                url = new URI(station.getUrl() + "/ws");
             } catch (URISyntaxException ex) {
                 this.logger.severe(ex.getMessage());
                 try {
@@ -87,88 +85,54 @@ public class Fetcher {
                 continue;
             }
 
-            //Create request
-            HttpRequest request;
-            try {
-                request = HttpRequest.newBuilder()
-                        .uri(url)
-                        .version(HttpClient.Version.HTTP_1_1)
-                        .timeout(Duration.ofSeconds(Fetcher.REQUEST_TIMEOUT_S))
-                        .build();
-            } catch (IllegalArgumentException e) {
-                logger.severe(e.getMessage());
-                try {
-                    Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
-                } catch (InterruptedException ex) {
-                    logger.severe(ex.getMessage());
+            CompletableFuture<WebSocket> ws = this.client.newWebSocketBuilder().buildAsync(URI.create("ws://websocket.example.com"), new WebSocket.Listener() {
+                @Override
+                public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+                    //Fetch all batons and create a map by batonMAC
+                    Map<String, Baton> baton_mac_map = batonDAO.getAll().stream()
+                            .collect(Collectors.toMap(b -> b.getMac().toUpperCase(), Function.identity()));
+
+                    //Insert detections
+                    List<Detection> new_detections = new ArrayList<>();
+
+                    try {
+                        List<RonnyDetection> detections = Arrays.asList(mapper.readValue(data.toString(), RonnyDetection[].class));
+                        for (RonnyDetection detection : detections) {
+                            if (baton_mac_map.containsKey(detection.mac.toUpperCase())) {
+                                var baton = baton_mac_map.get(detection.mac.toUpperCase());
+                                new_detections.add(new Detection(
+                                        baton.getId(),
+                                        station.getId(),
+                                        detection.rssi,
+                                        detection.battery,
+                                        detection.uptimeMs,
+                                        detection.id,
+                                        new Timestamp((long) (detection.detectionTimestamp * 1000)),
+                                        new Timestamp(System.currentTimeMillis())
+                                ));
+                            }
+                        }
+                        if (!new_detections.isEmpty()) {
+                            detectionDAO.insertAll(new_detections);
+                            new_detections.forEach((detection) -> lappers.forEach((lapper) -> lapper.handle(detection)));
+                        }
+
+                        logger.finer("Fetched " + detections.size() + " detections from " + station.getName() + ", Saved " + new_detections.size());
+
+                        //If few detections are retrieved from the station, wait for some time.
+                        if (detections.size() < Fetcher.FULL_BATCH_SIZE) {
+                            try {
+                                Thread.sleep(Fetcher.IDLE_TIMEOUT_MS);
+                            } catch (InterruptedException e) {
+                                logger.severe(e.getMessage());
+                            }
+                        }
+                    } catch (JsonProcessingException e) {
+                        logger.severe(e.getMessage());
+                    }
+                    return null;
                 }
-                continue;
-            }
-
-            //Do request
-            HttpResponse<Supplier<RonnyResponse>> response;
-            try {
-                try {
-                    response = this.client.send(request, bodyHandler);
-                } catch (ConnectException | HttpConnectTimeoutException ex) {
-                    this.logger.severe("Could not connect to " + request.uri());
-                    Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
-                    continue;
-                } catch (IOException e) {
-                    logger.severe(e.getMessage());
-                    Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
-                    continue;
-                }
-            } catch (InterruptedException e) {
-                logger.severe(e.getMessage());
-                continue;
-            }
-
-            //Check response state
-            if (response.statusCode() != 200) {
-                this.logger.warning(
-                        "Unexpected status code(" + response.statusCode() + ") when requesting " + url + " for station(" + this.station.getName() + ")"
-                );
-                continue;
-            }
-
-            //Fetch all batons and create a map by batonMAC
-            Map<String, Baton> baton_mac_map = batonDAO.getAll().stream()
-                    .collect(Collectors.toMap(b -> b.getMac().toUpperCase(), Function.identity()));
-
-            //Insert detections
-            List<Detection> new_detections = new ArrayList<>();
-            List<RonnyDetection> detections = response.body().get().detections;
-            for (RonnyDetection detection : detections) {
-                if (baton_mac_map.containsKey(detection.mac.toUpperCase())) {
-                    var baton = baton_mac_map.get(detection.mac.toUpperCase());
-                    new_detections.add(new Detection(
-                            baton.getId(),
-                            station.getId(),
-                            detection.rssi,
-                            detection.battery,
-                            detection.uptimeMs,
-                            detection.id,
-                            new Timestamp((long) (detection.detectionTimestamp * 1000)),
-                            new Timestamp(System.currentTimeMillis())
-                    ));
-                }
-            }
-            if (!new_detections.isEmpty()) {
-                detectionDAO.insertAll(new_detections);
-                new_detections.forEach((detection) -> lappers.forEach((lapper) -> lapper.handle(detection)));
-            }
-
-            this.logger.finer("Fetched " + detections.size() + " detections from " + station.getName() + ", Saved " + new_detections.size());
-
-            //If few detections are retrieved from the station, wait for some time.
-            if (detections.size() < Fetcher.FULL_BATCH_SIZE) {
-                try {
-                    Thread.sleep(Fetcher.IDLE_TIMEOUT_MS);
-                } catch (InterruptedException e) {
-                    logger.severe(e.getMessage());
-                }
-            }
+            });
         }
     }
 }
