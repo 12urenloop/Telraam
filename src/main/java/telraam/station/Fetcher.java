@@ -1,7 +1,6 @@
 package telraam.station;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.jdbi.v3.core.Jdbi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import telraam.database.daos.BatonDAO;
@@ -43,6 +42,13 @@ public class Fetcher {
     //Timeout when result has less than a full batch of detections.
     private final static int IDLE_TIMEOUT_MS = 4000; // Wait 4 seconds
 
+    private class InitWSMessage {
+        public int lastId;
+        public InitWSMessage(int lastId) {
+            this.lastId = lastId;
+        }
+    }
+
 
     public Fetcher(Jdbi database, Station station, Set<Lapper> lappers) {
         this.batonDAO = database.onDemand(BatonDAO.class);
@@ -71,6 +77,8 @@ public class Fetcher {
                 lastDetectionId = lastDetection.get().getRemoteId();
             }
 
+            InitWSMessage wsMessage = new InitWSMessage(lastDetectionId);
+
             //Create URL
             URI url;
             try {
@@ -85,7 +93,16 @@ public class Fetcher {
                 continue;
             }
 
-            CompletableFuture<WebSocket> ws = this.client.newWebSocketBuilder().buildAsync(URI.create("ws://websocket.example.com"), new WebSocket.Listener() {
+            CompletableFuture<WebSocket> ws = this.client.newWebSocketBuilder().buildAsync(url, new WebSocket.Listener() {
+                @Override
+                public void onOpen(WebSocket webSocket) {
+                    try {
+                        webSocket.sendText(mapper.writeValueAsString(wsMessage), true);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
                 @Override
                 public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
                     //Fetch all batons and create a map by batonMAC
@@ -118,15 +135,6 @@ public class Fetcher {
                         }
 
                         logger.finer("Fetched " + detections.size() + " detections from " + station.getName() + ", Saved " + new_detections.size());
-
-                        //If few detections are retrieved from the station, wait for some time.
-                        if (detections.size() < Fetcher.FULL_BATCH_SIZE) {
-                            try {
-                                Thread.sleep(Fetcher.IDLE_TIMEOUT_MS);
-                            } catch (InterruptedException e) {
-                                logger.severe(e.getMessage());
-                            }
-                        }
                     } catch (JsonProcessingException e) {
                         logger.severe(e.getMessage());
                     }
