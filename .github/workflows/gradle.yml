@@ -33,7 +33,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build
-      run: ./gradlew build
+      run: ./gradlew compileJava compileTestJava
 
     - name: Test
       run: ./gradlew test
