@@ -8,6 +8,8 @@ import telraam.database.models.Baton;
 import telraam.database.models.Detection;
 import telraam.database.models.Station;
 import telraam.logic.Lapper;
+import telraam.station.models.RonnyDetection;
+import telraam.station.models.RonnyResponse;
 
 import java.io.IOException;
 import java.net.ConnectException;

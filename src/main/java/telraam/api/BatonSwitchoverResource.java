@@ -2,11 +2,8 @@ package telraam.api;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import telraam.database.daos.BatonDAO;
 import telraam.database.daos.BatonSwitchoverDAO;
-import telraam.database.models.Baton;
 import telraam.database.models.BatonSwitchover;
-import telraam.database.models.LapSourceSwitchover;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;

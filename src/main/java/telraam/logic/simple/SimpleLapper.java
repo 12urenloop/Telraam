@@ -1,10 +1,11 @@
-package telraam.logic;
+package telraam.logic.simple;
 
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.LapDAO;
 import telraam.database.daos.LapSourceDAO;
 import telraam.database.models.*;
+import telraam.logic.Lapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,7 +67,8 @@ public class SimpleLapper implements Lapper {
     }
 
     @Override
-    public void registerAPI(JerseyEnvironment jersey) {}
+    public void registerAPI(JerseyEnvironment jersey) {
+    }
 
     private void generateLap(List<Detection> detections) {
         Detection first = detections.get(0);

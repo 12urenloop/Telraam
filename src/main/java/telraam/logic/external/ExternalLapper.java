@@ -8,6 +8,7 @@ import telraam.database.models.Detection;
 import telraam.database.models.Lap;
 import telraam.database.models.LapSource;
 import telraam.logic.Lapper;
+import telraam.logic.external.models.ExternalLapperTeamLaps;
 
 import java.sql.Timestamp;
 import java.util.Comparator;
@@ -37,7 +38,7 @@ public class ExternalLapper implements Lapper {
     }
 
     public void saveLaps(List<ExternalLapperTeamLaps> teamLaps) {
-        List<Lap> laps = lapDAO.getAllBySource(lapSourceId).stream().filter(l -> ! l.getManual()).toList();
+        List<Lap> laps = lapDAO.getAllBySource(lapSourceId).stream().filter(l -> !l.getManual()).toList();
 
         // Remember laps we have to take actions on
         List<Lap> lapsToDelete = new LinkedList<>();

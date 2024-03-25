@@ -193,3 +193,5 @@ flycheck_*.el
 !gradle-wrapper.jar
 
 node_modules/
+
+.idea

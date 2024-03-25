@@ -3,7 +3,6 @@ package telraam.api;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import telraam.database.daos.LapSourceSwitchoverDAO;
-import telraam.database.models.LapSource;
 import telraam.database.models.LapSourceSwitchover;
 
 import javax.ws.rs.Path;

@@ -1,4 +1,4 @@
-package telraam.station;
+package telraam.station.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

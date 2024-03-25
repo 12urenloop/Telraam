@@ -9,7 +9,8 @@ public class LapSourceSwitchover {
     private Timestamp timestamp;
 
     // DO NOT REMOVE
-    public LapSourceSwitchover() {}
+    public LapSourceSwitchover() {
+    }
 
     public LapSourceSwitchover(Integer newLapSource, Timestamp timestamp) {
         this.newLapSource = newLapSource;

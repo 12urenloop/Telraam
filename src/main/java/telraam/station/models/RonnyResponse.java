@@ -1,8 +1,8 @@
-package telraam.station;
-
-import java.util.List;
+package telraam.station.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 public class RonnyResponse {
     public List<RonnyDetection> detections;

@@ -2,6 +2,8 @@ package telraam.logic.external;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import telraam.logic.external.models.ExternalLapperStats;
+import telraam.logic.external.models.ExternalLapperTeamLaps;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;

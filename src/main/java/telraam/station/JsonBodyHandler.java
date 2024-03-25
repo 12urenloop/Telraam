@@ -27,8 +27,8 @@ public class JsonBodyHandler<T> implements HttpResponse.BodyHandler<Supplier<T>>
         HttpResponse.BodySubscriber<InputStream> upstream = HttpResponse.BodySubscribers.ofInputStream();
 
         return HttpResponse.BodySubscribers.mapping(
-            upstream,
-            inputStream -> toSupplierOfType(inputStream, targetType));
+                upstream,
+                inputStream -> toSupplierOfType(inputStream, targetType));
     }
 
     public static <W> Supplier<W> toSupplierOfType(InputStream inputStream, Class<W> targetType) {

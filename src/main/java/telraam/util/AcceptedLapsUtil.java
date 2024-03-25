@@ -23,8 +23,8 @@ public class AcceptedLapsUtil {
 
     public static void createInstance(Jdbi jdbi) {
         instance = new AcceptedLapsUtil(
-            jdbi.onDemand(LapDAO.class),
-            jdbi.onDemand(LapSourceSwitchoverDAO.class)
+                jdbi.onDemand(LapDAO.class),
+                jdbi.onDemand(LapSourceSwitchoverDAO.class)
         );
     }
 

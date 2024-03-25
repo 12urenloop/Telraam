@@ -16,7 +16,7 @@ import telraam.database.models.Station;
 import telraam.healthchecks.TemplateHealthCheck;
 import telraam.logic.Lapper;
 import telraam.logic.external.ExternalLapper;
-import telraam.logic.robustLapper.RobustLapper;
+import telraam.logic.robust.RobustLapper;
 import telraam.station.Fetcher;
 import telraam.util.AcceptedLapsUtil;
 
@@ -106,7 +106,7 @@ public class App extends Application<AppConfiguration> {
         // Add URL mapping
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
-        if (! testing) {
+        if (!testing) {
             // Set up lapper algorithms
             Set<Lapper> lappers = new HashSet<>();
 
