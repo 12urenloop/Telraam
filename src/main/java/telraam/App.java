@@ -1,13 +1,15 @@
 package telraam;
 
-import io.dropwizard.Application;
+import io.dropwizard.core.Application;
 import io.dropwizard.jdbi3.JdbiFactory;
 import io.dropwizard.jdbi3.bundles.JdbiExceptionsBundle;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
+import io.dropwizard.core.setup.Bootstrap;
+import io.dropwizard.core.setup.Environment;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.FilterRegistration;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
@@ -20,8 +22,6 @@ import telraam.logic.robust.RobustLapper;
 import telraam.station.Fetcher;
 import telraam.util.AcceptedLapsUtil;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashSet;

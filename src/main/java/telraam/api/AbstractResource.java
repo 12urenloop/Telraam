@@ -1,12 +1,13 @@
 package telraam.api;
 
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 import telraam.database.daos.DAO;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 import java.util.Optional;
 
 public abstract class AbstractResource<T> implements Resource<T> {
@@ -19,16 +20,14 @@ public abstract class AbstractResource<T> implements Resource<T> {
 
     @Override
     // TODO Validate model and return 405 for wrong input
-    public int create(@ApiParam(required = true) T t) {
+    public int create(@Parameter(required = true) T t) {
         return dao.insert(t);
     }
 
     @Override
-    @ApiResponses(value = {
-            @ApiResponse(code = 400, message = "Invalid or no ID supplied"), // TODO validate ID, return 400 on wrong ID format
-            @ApiResponse(code = 404, message = "Entity with specified ID not found")
-    })
-    public T get(@ApiParam(value = "ID of entity that needs to be fetched", required = true) Optional<Integer> id) {
+    @ApiResponse(responseCode = "400", description = "Invalid or no ID supplied") // TODO validate ID, return 400 on wrong ID format
+    @ApiResponse(responseCode = "404", description = "Entity with specified ID not found")
+    public T get(@Parameter(description = "ID of entity that needs to be fetched", required = true) Optional<Integer> id) {
         if (id.isPresent()) {
             Optional<T> optional = dao.getById(id.get());
             if (optional.isPresent()) {
@@ -42,12 +41,11 @@ public abstract class AbstractResource<T> implements Resource<T> {
     }
 
     @Override
-    @ApiResponses(value = {
-            @ApiResponse(code = 400, message = "Invalid or no ID supplied"), // TODO validate ID, return 400 on wrong ID format
-            @ApiResponse(code = 404, message = "Entity with specified ID not found"),
-            @ApiResponse(code = 405, message = "Validation exception")}) // TODO validate input, 405 on wrong input
-    public T update(@ApiParam(value = "Entity object that needs to be updated in the database", required = true) T t,
-                    @ApiParam(value = "ID of entity that needs to be fetched", required = true) Optional<Integer> id) {
+    @ApiResponse(responseCode = "400", description = "Invalid or no ID supplied") // TODO validate ID, return 400 on wrong ID format
+    @ApiResponse(responseCode = "404", description = "Entity with specified ID not found")
+    @ApiResponse(responseCode = "405", description = "Validation exception") // TODO validate input, 405 on wrong input
+    public T update(@Parameter(description = "Entity object that needs to be updated in the database", required = true) T t,
+                    @Parameter(description = "ID of entity that needs to be fetched", required = true) Optional<Integer> id) {
         if (id.isPresent()) {
             Optional<T> optionalBaton = dao.getById(id.get());
             if (optionalBaton.isPresent()) {
@@ -63,10 +61,10 @@ public abstract class AbstractResource<T> implements Resource<T> {
 
     @Override
     @ApiResponses(value = {
-            @ApiResponse(code = 400, message = "Invalid or no ID supplied"), // TODO validate ID, return 400 on wrong ID format
+            @ApiResponse(responseCode = "400", description = "Invalid or no ID supplied"), // TODO validate ID, return 400 on wrong ID format
     })
     public boolean delete(
-            @ApiParam(value = "ID of entity that needs to be deleted", required = true) Optional<Integer> id) {
+            @Parameter(description = "ID of entity that needs to be deleted", required = true) Optional<Integer> id) {
         if (id.isPresent()) {
             return dao.deleteById(id.get()) == 1;
         } else {

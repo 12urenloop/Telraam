@@ -1,8 +1,8 @@
 package telraam;
 
+import io.dropwizard.core.setup.Environment;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.db.ManagedDataSource;
-import io.dropwizard.setup.Environment;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit5.DropwizardAppExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
@@ -34,6 +34,7 @@ public abstract class DatabaseTest {
         flyway = Flyway.configure()
                 .dataSource(ds)
                 .schemas()
+                .cleanDisabled(false)
                 .load();
         jdbi = ((App) APP_EXTENSION.getApplication()).getDatabase();
     }
