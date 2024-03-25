@@ -8,6 +8,7 @@ import telraam.database.models.Detection;
 import telraam.database.models.Lap;
 import telraam.database.models.LapSource;
 import telraam.logic.Lapper;
+import telraam.logic.external.models.ExternalLapperTeamLaps;
 
 import java.sql.Timestamp;
 import java.util.Comparator;

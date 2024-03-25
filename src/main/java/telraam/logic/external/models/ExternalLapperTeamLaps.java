@@ -1,4 +1,4 @@
-package telraam.logic.external;
+package telraam.logic.external.models;
 
 import java.util.List;
 
