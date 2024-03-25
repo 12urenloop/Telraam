@@ -1,7 +1,6 @@
 package telraam.api;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.*;
 import telraam.database.models.Lap;
@@ -16,12 +15,11 @@ import telraam.monitoring.models.BatonStatus;
 import telraam.monitoring.models.LapCountForTeam;
 import telraam.monitoring.models.TeamLapInfo;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import java.util.*;
 
 @Path("/monitoring")
-@Api("/monitoring")
 @Produces(MediaType.APPLICATION_JSON)
 public class MonitoringResource {
     private final BatonStatusHolder batonStatusHolder;
@@ -42,7 +40,7 @@ public class MonitoringResource {
 
     @GET
     @Path("/batons")
-    @ApiOperation(value = "Get the status of all the batons, including unused batons which are toggleable via a parameter")
+    @Operation(summary = "Get the status of all the batons, including unused batons which are toggleable via a parameter")
     public List<BatonStatus> getBatonMetrics(@QueryParam("filter_assigned") boolean filterAssigned) {
         List<BatonStatus> batonStatuses = batonStatusHolder.GetAllBatonStatuses();
         if (filterAssigned) {
@@ -58,28 +56,28 @@ public class MonitoringResource {
 
     @POST
     @Path("/reset-rebooted/{batonId}")
-    @ApiOperation(value = "Reset the rebooted flag of a baton")
+    @Operation(summary = "Reset the rebooted flag of a baton")
     public void resetRebooted(@PathParam("batonId") Integer batonId) {
         batonStatusHolder.resetRebooted(batonId);
     }
 
     @GET
     @Path("/team-detection-times")
-    @ApiOperation(value = "A map of all detections per batons")
+    @Operation(summary = "A map of all detections per batons")
     public Map<Integer, List<BatonDetection>> getTeamDetectionTimes() {
         return batonDetectionManager.getBatonDetections();
     }
 
     @GET
     @Path("/stations-latest-detection-time")
-    @ApiOperation(value = "Get the map of all station name to time since last detection")
+    @Operation(summary = "Get the map of all station name to time since last detection")
     public Map<String, Long> getStationIDToLatestDetectionTimeMap() {
         return stationDetectionManager.timeSinceLastDetectionPerStation();
     }
 
     @GET
     @Path("/team-lap-times/{lapperId}")
-    @ApiOperation(value = "Get monitoring data that can be used as grafana datasource")
+    @Operation(summary = "Get monitoring data that can be used as grafana datasource")
     public Map<Integer, List<TeamLapInfo>> getTeamLapTimes(@PathParam("lapperId") Integer id) {
         List<Lap> laps = lapDAO.getAllBySourceSorted(id);
         List<Team> teams = teamDAO.getAll();
@@ -107,7 +105,7 @@ public class MonitoringResource {
 
     @GET
     @Path("/team-lap-counts")
-    @ApiOperation(value = "Get monitoring data that can be used as grafana datasource")
+    @Operation(summary = "Get monitoring data that can be used as grafana datasource")
     public List<LapCountForTeam> getTeamLapCounts() {
         List<Team> teams = teamDAO.getAll();
         List<LapSource> lapSources = lapSourceDAO.getAll();

@@ -1,5 +1,6 @@
 package telraam.api;
 
+import jakarta.ws.rs.WebApplicationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import telraam.DatabaseTest;
@@ -9,7 +10,6 @@ import telraam.database.models.Baton;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import javax.ws.rs.WebApplicationException;
 
 import static org.junit.jupiter.api.Assertions.*;
 

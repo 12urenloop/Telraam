@@ -1,22 +1,20 @@
 package telraam.api;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 import telraam.database.models.Lap;
 import telraam.util.AcceptedLapsUtil;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 @Path("/accepted-laps")
-@Api("/accepted-laps")
 @Produces(MediaType.APPLICATION_JSON)
 public class AcceptedLapsResource {
     @GET
-    @ApiOperation("Get all accepted laps")
+    @Operation(summary = "Get all accepted laps")
     public List<Lap> getLaps() {
         return AcceptedLapsUtil.getInstance().getAcceptedLaps();
     }
