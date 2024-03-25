@@ -1,4 +1,4 @@
-package telraam.logic;
+package telraam.logic.simple;
 
 import org.jdbi.v3.core.Jdbi;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,6 +8,7 @@ import telraam.database.daos.LapSourceDAO;
 import telraam.database.models.Detection;
 import telraam.database.models.Lap;
 import telraam.database.models.LapSource;
+import telraam.logic.Lapper;
 import telraam.logic.simple.SimpleLapper;
 
 import java.sql.Timestamp;
