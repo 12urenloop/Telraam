@@ -82,9 +82,6 @@ test {
     testLogging {
         events "passed", "skipped", "failed"
     }
-    finalizedBy {
-        jacocoTestReport
-    }
 }
 
 def prodProps = new Properties()
