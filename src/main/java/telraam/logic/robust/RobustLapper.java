@@ -1,4 +1,4 @@
-package telraam.logic.robustLapper;
+package telraam.logic.robust;
 
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import org.jdbi.v3.core.Jdbi;

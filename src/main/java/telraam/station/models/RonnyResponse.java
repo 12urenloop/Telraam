@@ -1,4 +1,4 @@
-package telraam.station;
+package telraam.station.models;
 
 import java.util.List;
 

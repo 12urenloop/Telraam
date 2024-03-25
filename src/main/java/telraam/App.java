@@ -16,7 +16,7 @@ import telraam.database.models.Station;
 import telraam.healthchecks.TemplateHealthCheck;
 import telraam.logic.Lapper;
 import telraam.logic.external.ExternalLapper;
-import telraam.logic.robustLapper.RobustLapper;
+import telraam.logic.robust.RobustLapper;
 import telraam.station.Fetcher;
 import telraam.util.AcceptedLapsUtil;
 

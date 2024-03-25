@@ -8,6 +8,7 @@ import telraam.database.daos.LapSourceDAO;
 import telraam.database.models.Detection;
 import telraam.database.models.Lap;
 import telraam.database.models.LapSource;
+import telraam.logic.simple.SimpleLapper;
 
 import java.sql.Timestamp;
 import java.util.Optional;
