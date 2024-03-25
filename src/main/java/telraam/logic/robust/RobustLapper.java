@@ -2,8 +2,14 @@ package telraam.logic.robust;
 
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import org.jdbi.v3.core.Jdbi;
-import telraam.database.daos.*;
-import telraam.database.models.*;
+import telraam.database.daos.DetectionDAO;
+import telraam.database.daos.LapDAO;
+import telraam.database.daos.LapSourceDAO;
+import telraam.database.daos.StationDAO;
+import telraam.database.models.Detection;
+import telraam.database.models.Lap;
+import telraam.database.models.LapSource;
+import telraam.database.models.Station;
 import telraam.logic.Lapper;
 
 import java.sql.Timestamp;
@@ -112,7 +118,7 @@ public class RobustLapper implements Lapper {
                 } else {
                     // We're in a new interval, use the detection with the highest RSSI to update trajectory
                     // Check if new station is more likely to be in front of the runner
-                    if (! (backwardPathDistance(lastStationPosition, currentStationPosition) <= 3)) {
+                    if (!(backwardPathDistance(lastStationPosition, currentStationPosition) <= 3)) {
                         if (isStartBetween(lastStationPosition, currentStationPosition)) {
                             // Add lap if we passed the start line
                             lapTimes.add(detection.getTimestamp());
@@ -146,7 +152,7 @@ public class RobustLapper implements Lapper {
     private void save() {
         // Get all the old laps and sort by team
         List<Lap> laps = lapDAO.getAllBySource(lapSourceId);
-        laps = laps.stream().filter(lap -> ! lap.getManual()).toList();
+        laps = laps.stream().filter(lap -> !lap.getManual()).toList();
         Map<Integer, List<Lap>> oldLaps = new HashMap<>();
 
         for (Integer teamId : teamLaps.keySet()) {
@@ -169,7 +175,7 @@ public class RobustLapper implements Lapper {
             // Go over each lap and compare timestamp
             while (i < oldLapsTeam.size() && i < newLapsTeam.size()) {
                 // Update the timestamp if it isn't equal
-                if (! oldLapsTeam.get(i).getTimestamp().equals(newLapsTeam.get(i).getTimestamp())) {
+                if (!oldLapsTeam.get(i).getTimestamp().equals(newLapsTeam.get(i).getTimestamp())) {
                     oldLapsTeam.get(i).setTimestamp(newLapsTeam.get(i).getTimestamp());
                     lapsToUpdate.add(oldLapsTeam.get(i));
                 }

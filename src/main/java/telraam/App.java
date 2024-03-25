@@ -106,7 +106,7 @@ public class App extends Application<AppConfiguration> {
         // Add URL mapping
         cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 
-        if (! testing) {
+        if (!testing) {
             // Set up lapper algorithms
             Set<Lapper> lappers = new HashSet<>();
 

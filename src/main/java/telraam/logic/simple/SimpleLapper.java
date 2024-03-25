@@ -67,7 +67,8 @@ public class SimpleLapper implements Lapper {
     }
 
     @Override
-    public void registerAPI(JerseyEnvironment jersey) {}
+    public void registerAPI(JerseyEnvironment jersey) {
+    }
 
     private void generateLap(List<Detection> detections) {
         Detection first = detections.get(0);

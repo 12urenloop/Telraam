@@ -11,7 +11,8 @@ public class BatonSwitchover {
     private Timestamp timestamp;
 
     // DO NOT REMOVE
-    public BatonSwitchover() {}
+    public BatonSwitchover() {
+    }
 
     public BatonSwitchover(Integer teamId, Integer previousBatonId, Integer newBatonId, Timestamp timestamp) {
         this.teamId = teamId;

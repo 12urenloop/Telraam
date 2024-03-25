@@ -10,11 +10,9 @@ import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.Lap;
 import telraam.database.models.TeamLapCount;
 
-
 import java.sql.Timestamp;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public interface LapDAO extends DAO<Lap> {

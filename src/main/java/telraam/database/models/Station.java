@@ -10,7 +10,7 @@ public class Station {
     private Double coordY;
 
     public Station() {
-      this.isBroken = false;
+        this.isBroken = false;
     }
 
     public Station(String name, String url) {
@@ -59,7 +59,9 @@ public class Station {
         return isBroken;
     }
 
-    public void setBroken(Boolean isBroken) { this.isBroken = isBroken; }
+    public void setBroken(Boolean isBroken) {
+        this.isBroken = isBroken;
+    }
 
     public String getUrl() {
         return this.url;
@@ -69,13 +71,19 @@ public class Station {
         this.url = url;
     }
 
-    public Double getCoordX() { return this.coordX; };
+    public Double getCoordX() {
+        return this.coordX;
+    }
+
+    ;
 
     public void setCoordX(Double coordX) {
         this.coordX = coordX;
     }
 
-    public Double getCoordY() { return this.coordY; }
+    public Double getCoordY() {
+        return this.coordY;
+    }
 
     public void setCoordY(Double coordY) {
         this.coordY = coordY;

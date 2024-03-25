@@ -1,7 +1,5 @@
 package telraam.database.models;
 
-import telraam.database.daos.BatonSwitchoverDAO;
-
 public class Team {
     private Integer id;
     private String name;

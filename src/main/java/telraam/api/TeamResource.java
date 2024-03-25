@@ -22,6 +22,7 @@ import java.util.Optional;
 @Produces(MediaType.APPLICATION_JSON)
 public class TeamResource extends AbstractListableResource<Team> {
     BatonSwitchoverDAO batonSwitchoverDAO;
+
     public TeamResource(TeamDAO teamDAO, BatonSwitchoverDAO batonSwitchoverDAO) {
         super(teamDAO);
         this.batonSwitchoverDAO = batonSwitchoverDAO;
@@ -67,10 +68,10 @@ public class TeamResource extends AbstractListableResource<Team> {
 
         if (!Objects.equals(previousTeam.getBatonId(), team.getBatonId())) {
             this.batonSwitchoverDAO.insert(new BatonSwitchover(
-                team.getId(),
-                previousTeam.getBatonId(),
-                team.getBatonId(),
-                Timestamp.from(Instant.now())
+                    team.getId(),
+                    previousTeam.getBatonId(),
+                    team.getBatonId(),
+                    Timestamp.from(Instant.now())
             ));
         }
 
