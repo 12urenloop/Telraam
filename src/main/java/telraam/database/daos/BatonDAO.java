@@ -28,6 +28,10 @@ public interface BatonDAO extends DAO<Baton> {
     @RegisterBeanMapper(Baton.class)
     Optional<Baton> getById(@Bind("id") int id);
 
+    @SqlQuery("SELECT * FROM baton WHERE mac = :mac")
+    @RegisterBeanMapper(Baton.class)
+    Optional<Baton> getByMac(@Bind("mac") String mac);
+
     @Override
     @SqlUpdate("DELETE FROM baton WHERE id = :id")
     @RegisterBeanMapper(Baton.class)

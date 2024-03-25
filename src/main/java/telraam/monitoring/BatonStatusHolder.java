@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 public class BatonStatusHolder {
     // Map from batonMac to batonStatus
@@ -43,6 +44,30 @@ public class BatonStatusHolder {
             );
             batonStatusMap.put(baton.getMac().toLowerCase(), batonStatus);
         }
+    }
+
+    private BatonStatus getStatusForBaton(String batonMac) {
+        BatonStatus batonStatus = batonStatusMap.get(batonMac);
+        if (batonStatus == null) {
+            Optional<Baton> optionalBaton  = batonDAO.getByMac(batonMac);
+            if (optionalBaton.isEmpty()) {
+                return null;
+            }
+            Baton baton = optionalBaton.get();
+
+            batonStatus = new BatonStatus(
+                    baton.getMac().toLowerCase(),
+                    baton.getId(),
+                    baton.getName(),
+                    0,
+                    0,
+                    false,
+                    null,
+                    -1
+            );
+            batonStatusMap.put(baton.getMac().toLowerCase(), batonStatus);
+        }
+        return batonStatus;
 
     }
 
@@ -87,14 +112,14 @@ public class BatonStatusHolder {
             baton.ifPresent(value -> batonIdToMac.put(batonId, value.getMac().toLowerCase()));
         }
         String batonMac = batonIdToMac.get(batonId);
-        return batonStatusMap.get(batonMac);
+        return getStatusForBaton(batonMac);
     }
 
     public BatonStatus createBatonStatus(Integer batonId) {
         this.initStatus();
         String batonMac = batonIdToMac.get(batonId);
         if (batonMac != null) {
-            return batonStatusMap.get(batonMac);
+            return getStatusForBaton(batonMac);
         }
         var baton = batonDAO.getById(batonId);
         if (baton.isEmpty()) {
