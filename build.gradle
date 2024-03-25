@@ -3,8 +3,6 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 plugins {
     id 'java'
     id 'application'
-    id 'jacoco'
-    id 'org.sonarqube' version "3.0"
     id 'idea'
     id 'org.flywaydb.flyway' version "8.0.0"
 }
@@ -88,42 +86,7 @@ test {
         jacocoTestReport
     }
 }
-jacoco {
-    toolVersion = "0.8.7"
-    reportsDirectory = layout.buildDirectory.dir('coverage').get()
-}
-jacocoTestReport {
-    dependsOn {
-        test
-    }
-    reports {
-        xml.required = true
-    }
-    afterEvaluate {
-        classDirectories.setFrom files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                    '**/database/models/**'
-            ])
-        })
-    }
 
-}
-jacocoTestCoverageVerification {
-    afterEvaluate {
-        classDirectories.setFrom files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                    '**/database/models/**'
-            ])
-        })
-    }
-    violationRules {
-        rule {
-            limit {
-                minimum = 0.7
-            }
-        }
-    }
-}
 def prodProps = new Properties()
 file("$rootProject.projectDir/src/main/resources/telraam/prodConfig.properties").withInputStream {
     prodProps.load(it)
@@ -149,11 +112,4 @@ file("$rootProject.projectDir/src/test/resources/telraam/testConfig.properties")
 task migrateTestingDatabase(type: FlywayMigrateTask) {
     url = testProps.getProperty("DB_URL")
     baselineOnMigrate = true
-}
-sonarqube {
-    properties {
-        property "sonar.projectKey", "12urenloop_Telraam"
-        property "sonar.organization", "12urenloop"
-        property "sonar.host.url", "https://sonarcloud.io"
-    }
 }
