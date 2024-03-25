@@ -20,30 +20,10 @@ public class BatonStatusHolder {
 
     private BatonDAO batonDAO;
     private DetectionDAO detectionDAO;
-    private boolean initialized = false;
 
     public BatonStatusHolder(BatonDAO BDAO, DetectionDAO DDAO) {
         batonDAO = BDAO;
         detectionDAO = DDAO;
-    }
-
-    private void initStatus() {
-        if (initialized) return;
-        initialized = true;
-        var batons = batonDAO.getAll();
-        for (Baton baton : batons) {
-            BatonStatus batonStatus = new BatonStatus(
-                    baton.getMac().toLowerCase(),
-                    baton.getId(),
-                    baton.getName(),
-                    0,
-                    0,
-                    false,
-                    null,
-                    -1
-            );
-            batonStatusMap.put(baton.getMac().toLowerCase(), batonStatus);
-        }
     }
 
     private BatonStatus getStatusForBaton(String batonMac) {
@@ -72,7 +52,6 @@ public class BatonStatusHolder {
     }
 
     public List<BatonStatus> GetAllBatonStatuses() {
-        this.initStatus();
         // For each baton, fetch latest detection
         var batons = batonDAO.getAll();
         for (Baton baton : batons) {
@@ -106,7 +85,6 @@ public class BatonStatusHolder {
     }
 
     public BatonStatus GetBatonStatus(Integer batonId) {
-        this.initStatus();
         if (!batonIdToMac.containsKey(batonId)) {
             var baton = batonDAO.getById(batonId);
             baton.ifPresent(value -> batonIdToMac.put(batonId, value.getMac().toLowerCase()));
@@ -116,7 +94,6 @@ public class BatonStatusHolder {
     }
 
     public BatonStatus createBatonStatus(Integer batonId) {
-        this.initStatus();
         String batonMac = batonIdToMac.get(batonId);
         if (batonMac != null) {
             return getStatusForBaton(batonMac);
@@ -142,7 +119,6 @@ public class BatonStatusHolder {
     }
 
     public void resetRebooted(int batonId) {
-        this.initStatus();
         var batonStatus = GetBatonStatus(batonId);
         if (batonStatus == null) {
             return;
