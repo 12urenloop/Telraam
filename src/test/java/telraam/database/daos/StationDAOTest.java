@@ -34,7 +34,7 @@ class StationDAOTest extends DatabaseTest {
         Station station = stationOptional.get();
         assertEquals("teststation", station.getName());
         assertEquals(1d, station.getDistanceFromStart());
-        assertEquals(false, station.getIsBroken());
+        assertEquals(false, station.getBroken());
         assertEquals("localhost:8000", station.getUrl());
     }
 
@@ -83,7 +83,8 @@ class StationDAOTest extends DatabaseTest {
         testStation.setId(testid);
         testStation.setName("postUpdate");
         testStation.setDistanceFromStart(2d);
-        testStation.setIsBroken(true);
+        testStation.setCoordY(0.69);
+        testStation.setBroken(true);
         testStation.setUrl("localhost:8001");
         int updatedRows = stationDAO.update(testid, testStation);
         assertEquals(1, updatedRows);
@@ -92,7 +93,8 @@ class StationDAOTest extends DatabaseTest {
         assertFalse(dbStation.isEmpty());
         assertEquals("postUpdate", dbStation.get().getName());
         assertEquals(2d, dbStation.get().getDistanceFromStart());
-        assertEquals(true, dbStation.get().getIsBroken());
+        assertEquals(true, dbStation.get().getBroken());
+        assertEquals(0.69, dbStation.get().getCoordY());
         assertEquals("localhost:8001", dbStation.get().getUrl());
     }
 
