@@ -1,22 +1,18 @@
 package telraam.api;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import telraam.database.daos.TeamDAO;
 import telraam.database.models.Lap;
 import telraam.database.models.Team;
 import telraam.util.AcceptedLapsUtil;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 @Path("/lap-counts")
-@Api("/lap-counts")
 @Produces(MediaType.APPLICATION_JSON)
 public class LapCountResource {
     TeamDAO teamDAO;
@@ -26,7 +22,7 @@ public class LapCountResource {
     }
 
     @GET
-    @ApiOperation("Get the current lap counts per team")
+    @Operation(summary = "Get the current lap counts per team")
     public Map<String, Integer> getLapCounts() {
         Map<Integer, Integer> perId = new HashMap<>();
         for (Lap lap : AcceptedLapsUtil.getInstance().getAcceptedLaps()) {
