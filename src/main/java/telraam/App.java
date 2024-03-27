@@ -9,6 +9,8 @@ import io.dropwizard.setup.Environment;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
+import org.eclipse.jetty.websocket.server.WebSocketUpgradeFilter;
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
 import telraam.database.daos.*;
@@ -22,6 +24,7 @@ import telraam.util.AcceptedLapsUtil;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
+import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -68,7 +71,7 @@ public class App extends Application<AppConfiguration> {
     }
 
     @Override
-    public void run(AppConfiguration configuration, Environment environment) throws IOException {
+    public void run(AppConfiguration configuration, Environment environment) throws IOException, ServletException {
         this.config = configuration;
         this.environment = environment;
         // Add database
@@ -77,6 +80,12 @@ public class App extends Application<AppConfiguration> {
 
         // Initialize AcceptedLapUtil
         AcceptedLapsUtil.createInstance(this.database);
+
+        // Register websocket endpoint
+        WebSocketServerFactory wsHandlerFactory = new WebSocketServerFactory();
+        wsHandlerFactory.register(WebSocketHandler.class);
+        WebSocketUpgradeFilter wsFilter = WebSocketUpgradeFilter.configure(environment.getApplicationContext());
+        wsFilter.addMapping("/ws", wsHandlerFactory);
 
         // Add api resources
         JerseyEnvironment jersey = environment.jersey();
@@ -93,7 +102,6 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new LapCountResource(database.onDemand(TeamDAO.class)));
         jersey.register(new MonitoringResource(database));
         environment.healthChecks().register("template", new TemplateHealthCheck(configuration.getTemplate()));
-
 
         // Enable CORS
         final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
