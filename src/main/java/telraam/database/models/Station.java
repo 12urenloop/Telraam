@@ -34,12 +34,4 @@ public class Station {
         this.name = name;
         this.isBroken = isBroken;
     }
-
-    // These are overridden, otherwise the updateDoesUpdate test fails for some reason?
-    public void setIsBroken(boolean isBroken) {
-        this.isBroken = isBroken;
-    }
-    public void setBroken(boolean isBroken) {
-        this.isBroken = isBroken;
-    }
 }

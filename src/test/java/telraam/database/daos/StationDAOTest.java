@@ -83,7 +83,7 @@ class StationDAOTest extends DatabaseTest {
         testStation.setId(testid);
         testStation.setName("postUpdate");
         testStation.setDistanceFromStart(2d);
-        testStation.setBroken(true);
+        testStation.setIsBroken(true);
         testStation.setUrl("localhost:8001");
         int updatedRows = stationDAO.update(testid, testStation);
         assertEquals(1, updatedRows);
