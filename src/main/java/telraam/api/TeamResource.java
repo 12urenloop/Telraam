@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import telraam.websocket.WebSocketMessageSingleton;
+
 
 @Path("/team")
 @Tag(name="Team")
@@ -47,6 +49,14 @@ public class TeamResource extends AbstractListableResource<Team> {
                     Timestamp.from(Instant.now())
             ));
         }
+
+        WebSocketMessageSingleton.getInstance().sendToAll(
+                "new team (%s, %s, %s)".formatted(
+                        team.getName(),
+                        team.getId(),
+                        team.getBatonId()
+                )
+        );
 
         return ret;
     }
