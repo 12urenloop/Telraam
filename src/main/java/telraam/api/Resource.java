@@ -1,7 +1,8 @@
 package telraam.api;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+
 import java.util.Optional;
 
 public interface Resource<T> {

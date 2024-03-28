@@ -1,6 +1,6 @@
 package telraam.api;
 
-import javax.ws.rs.GET;
+import jakarta.ws.rs.GET;
 import java.util.List;
 
 /**
