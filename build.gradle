@@ -75,7 +75,7 @@ dependencies {
     implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.5'
 
     // Swagger-UI
-    implementation('com.smoketurner:dropwizard-swagger:' + dropwizardVersion)
+    implementation('com.smoketurner:dropwizard-swagger:4.0.5-1')
 
     // Getter & Setter via annotations
     compileOnly 'org.projectlombok:lombok:1.18.32'
