@@ -1,6 +1,7 @@
 package telraam.api;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Path("/baton") // dropwizard
+@Tag(name = "Baton")
 @Produces(MediaType.APPLICATION_JSON)
 public class BatonResource extends AbstractListableResource<Baton> {
     public BatonResource(BatonDAO dao) {

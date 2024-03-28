@@ -1,6 +1,7 @@
 package telraam.api;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.Produces;
 import telraam.database.daos.DAO;
 import telraam.database.models.Station;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Path("/station")
+@Tag(name="Station")
 @Produces(MediaType.APPLICATION_JSON)
 public class StationResource extends AbstractListableResource<Station> {
     public StationResource(DAO<Station> dao) {

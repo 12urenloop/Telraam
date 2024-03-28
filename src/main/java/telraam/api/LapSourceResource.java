@@ -1,6 +1,7 @@
 package telraam.api;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import telraam.database.daos.DAO;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Path("/lap-source")
+@Tag(name = "Lap Source")
 @Produces(MediaType.APPLICATION_JSON)
 public class LapSourceResource extends AbstractListableResource<LapSource> {
     public LapSourceResource(DAO<LapSource> dao) {

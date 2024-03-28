@@ -1,6 +1,7 @@
 package telraam.api;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.Produces;
 import telraam.database.daos.BatonSwitchoverDAO;
 import telraam.database.daos.TeamDAO;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 
 @Path("/team")
+@Tag(name="Team")
 @Produces(MediaType.APPLICATION_JSON)
 public class TeamResource extends AbstractListableResource<Team> {
     BatonSwitchoverDAO batonSwitchoverDAO;

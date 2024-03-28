@@ -1,6 +1,7 @@
 package telraam.api;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import telraam.database.daos.DetectionDAO;
@@ -11,6 +12,7 @@ import java.util.Optional;
 
 @Path("/detection")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name="Detection")
 public class DetectionResource extends AbstractListableResource<Detection> {
 
     private final DetectionDAO detectionDAO;

@@ -1,6 +1,7 @@
 package telraam.api;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.*;
 import telraam.database.models.Lap;
@@ -17,9 +18,11 @@ import telraam.monitoring.models.TeamLapInfo;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+
 import java.util.*;
 
 @Path("/monitoring")
+@Tag(name = "Monitoring")
 @Produces(MediaType.APPLICATION_JSON)
 public class MonitoringResource {
     private final BatonStatusHolder batonStatusHolder;

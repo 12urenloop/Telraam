@@ -1,6 +1,7 @@
 package telraam.api;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import telraam.database.daos.TeamDAO;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Path("/lap-counts")
+@Tag(name="Lap Counts")
 @Produces(MediaType.APPLICATION_JSON)
 public class LapCountResource {
     TeamDAO teamDAO;
