@@ -11,6 +11,7 @@ import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterRegistration;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import org.jdbi.v3.core.Jdbi;
 import telraam.api.*;
 import telraam.database.daos.*;
@@ -21,6 +22,7 @@ import telraam.logic.external.ExternalLapper;
 import telraam.logic.robust.RobustLapper;
 import telraam.station.Fetcher;
 import telraam.util.AcceptedLapsUtil;
+import telraam.websocket.WebSocketConnection;
 
 import java.io.IOException;
 import java.util.EnumSet;
@@ -78,6 +80,15 @@ public class App extends Application<AppConfiguration> {
         // Initialize AcceptedLapUtil
         AcceptedLapsUtil.createInstance(this.database);
 
+        // Register websocket endpoint
+        JettyWebSocketServletContainerInitializer.configure(
+            environment.getApplicationContext(),
+            (servletContext, wsContainer) -> {
+                wsContainer.setMaxTextMessageSize(65535);
+                wsContainer.addMapping("/ws", (req, res) -> new WebSocketConnection());
+            }
+        );
+
         // Add api resources
         JerseyEnvironment jersey = environment.jersey();
         jersey.register(new BatonResource(database.onDemand(BatonDAO.class)));
@@ -93,7 +104,6 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new LapCountResource(database.onDemand(TeamDAO.class)));
         jersey.register(new MonitoringResource(database));
         environment.healthChecks().register("template", new TemplateHealthCheck(configuration.getTemplate()));
-
 
         // Enable CORS
         final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
