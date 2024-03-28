@@ -1,43 +1,20 @@
 package telraam.database.models;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.sql.Timestamp;
 import java.util.Objects;
 
+@Getter @Setter @NoArgsConstructor
 public class LapSourceSwitchover {
     private Integer id;
     private Integer newLapSource;
     private Timestamp timestamp;
 
-    // DO NOT REMOVE
-    public LapSourceSwitchover() {
-    }
-
     public LapSourceSwitchover(Integer newLapSource, Timestamp timestamp) {
         this.newLapSource = newLapSource;
-        this.timestamp = timestamp;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getNewLapSource() {
-        return newLapSource;
-    }
-
-    public void setNewLapSource(Integer newLapSource) {
-        this.newLapSource = newLapSource;
-    }
-
-    public Timestamp getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
 

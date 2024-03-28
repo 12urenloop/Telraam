@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class SimpleLapper implements Lapper {
     // Needs to be the same as in the lap_source database table.
-    static final String SOURCE_NAME = "simple-lapper";
+    public static final String SOURCE_NAME = "simple-lapper";
     private static final int MAX_SPEED = 50;
 
     private final LapSource source;

@@ -1,15 +1,16 @@
 package telraam.database.models;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.Objects;
 
+@Getter @Setter @NoArgsConstructor
 public class Baton {
     private Integer id;
     private String name;
     private String mac;
-
-    // DO NOT REMOVE
-    public Baton() {
-    }
 
     public Baton(String name) {
         this.name = name;
@@ -17,30 +18,6 @@ public class Baton {
 
     public Baton(String name, String mac) {
         this.name = name;
-        this.mac = mac;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getMac() {
-        return mac;
-    }
-
-    public void setMac(String mac) {
         this.mac = mac;
     }
 
