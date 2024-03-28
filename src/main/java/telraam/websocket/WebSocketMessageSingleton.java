@@ -31,7 +31,7 @@ public class WebSocketMessageSingleton {
     }
 
     public void sendToAll(String s) {
-        logger.info("Sending \"%s\" to all registered WebSocketConnection instances".formatted(s));
+        logger.finest("Sending \"%s\" to all registered WebSocketConnection instances".formatted(s));
         registeredConnections.forEach(conn -> conn.send(s));
     }
 }
