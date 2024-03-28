@@ -1,5 +1,11 @@
 import org.flywaydb.gradle.task.FlywayMigrateTask
 
+buildscript {
+    dependencies {
+        classpath("org.flywaydb:flyway-database-postgresql:10.10.0")
+    }
+}
+
 plugins {
     id 'java'
     id 'application'
