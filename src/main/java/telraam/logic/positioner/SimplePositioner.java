@@ -1,4 +1,4 @@
-package telraam.logic.positioners;
+package telraam.logic.positioner;
 
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.BatonSwitchoverDAO;

@@ -1,4 +1,4 @@
-package telraam.logic;
+package telraam.logic.lapper;
 
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import telraam.database.models.Detection;

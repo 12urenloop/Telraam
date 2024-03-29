@@ -1,4 +1,4 @@
-package telraam.logic.external.models;
+package telraam.logic.lapper.external.models;
 
 import lombok.Getter;
 import lombok.Setter;
