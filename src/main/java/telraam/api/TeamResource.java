@@ -2,14 +2,14 @@ package telraam.api;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 import telraam.database.daos.BatonSwitchoverDAO;
 import telraam.database.daos.TeamDAO;
 import telraam.database.models.BatonSwitchover;
 import telraam.database.models.Team;
 
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.MediaType;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;

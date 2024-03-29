@@ -21,6 +21,7 @@ sourceCompatibility = 17
 // Set our project variables
 project.ext {
     dropwizardVersion = '4.0.5'
+    jettyVersion = '11.0.19'
 }
 
 repositories {
@@ -62,6 +63,8 @@ dependencies {
             'io.dropwizard:dropwizard-hibernate:' + dropwizardVersion,
             'io.dropwizard:dropwizard-auth:' + dropwizardVersion,
             'io.dropwizard:dropwizard-jdbi3:' + dropwizardVersion,
+            'org.eclipse.jetty.websocket:websocket-jetty-api:' + jettyVersion,
+            'org.eclipse.jetty.websocket:websocket-jetty-server:' + jettyVersion,
     )
     // Database
     implementation('com.h2database:h2:2.2.220')
