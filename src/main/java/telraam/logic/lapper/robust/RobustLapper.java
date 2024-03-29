@@ -1,4 +1,4 @@
-package telraam.logic.robust;
+package telraam.logic.lapper.robust;
 
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import org.jdbi.v3.core.Jdbi;
@@ -10,7 +10,7 @@ import telraam.database.models.Detection;
 import telraam.database.models.Lap;
 import telraam.database.models.LapSource;
 import telraam.database.models.Station;
-import telraam.logic.Lapper;
+import telraam.logic.lapper.Lapper;
 
 import java.sql.Timestamp;
 import java.util.*;

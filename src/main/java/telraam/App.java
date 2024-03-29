@@ -17,9 +17,11 @@ import telraam.api.*;
 import telraam.database.daos.*;
 import telraam.database.models.Station;
 import telraam.healthchecks.TemplateHealthCheck;
-import telraam.logic.Lapper;
-import telraam.logic.external.ExternalLapper;
-import telraam.logic.robust.RobustLapper;
+import telraam.logic.lapper.Lapper;
+import telraam.logic.lapper.external.ExternalLapper;
+import telraam.logic.lapper.robust.RobustLapper;
+import telraam.logic.positioner.Positioner;
+import telraam.logic.positioner.simple.SimplePositioner;
 import telraam.station.Fetcher;
 import telraam.util.AcceptedLapsUtil;
 import telraam.websocket.WebSocketConnection;
@@ -131,10 +133,15 @@ public class App extends Application<AppConfiguration> {
                 lapper.registerAPI(jersey);
             }
 
+            // Set up positioners
+            Set<Positioner> positioners = new HashSet<>();
+
+            positioners.add(new SimplePositioner(this.database));
+
             // Start fetch thread for each station
             StationDAO stationDAO = this.database.onDemand(StationDAO.class);
             for (Station station : stationDAO.getAll()) {
-                new Thread(() -> new Fetcher(this.database, station, lappers).fetch()).start();
+                new Thread(() -> new Fetcher(this.database, station, lappers, positioners).fetch()).start();
             }
         }
 

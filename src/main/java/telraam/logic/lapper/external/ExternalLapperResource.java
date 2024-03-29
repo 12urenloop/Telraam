@@ -1,10 +1,10 @@
-package telraam.logic.external;
+package telraam.logic.lapper.external;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import telraam.logic.external.models.ExternalLapperStats;
-import telraam.logic.external.models.ExternalLapperTeamLaps;
+import telraam.logic.lapper.external.models.ExternalLapperStats;
+import telraam.logic.lapper.external.models.ExternalLapperTeamLaps;
 
 import java.util.List;
 

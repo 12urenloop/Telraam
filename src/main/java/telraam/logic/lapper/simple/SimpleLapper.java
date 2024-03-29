@@ -1,11 +1,11 @@
-package telraam.logic.simple;
+package telraam.logic.lapper.simple;
 
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.LapDAO;
 import telraam.database.daos.LapSourceDAO;
 import telraam.database.models.*;
-import telraam.logic.Lapper;
+import telraam.logic.lapper.Lapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
