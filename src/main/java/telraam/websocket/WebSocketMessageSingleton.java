@@ -1,8 +1,6 @@
 package telraam.websocket;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +15,7 @@ public class WebSocketMessageSingleton {
 
     @Getter
     private static final WebSocketMessageSingleton instance = new WebSocketMessageSingleton();
-    private static final Set<WebSocketConnection> registeredConnections = new HashSet<>();
+    private final Set<WebSocketConnection> registeredConnections = new HashSet<>();
     private final ObjectMapper mapper = new ObjectMapper();
 
     public void registerConnection(WebSocketConnection conn) {

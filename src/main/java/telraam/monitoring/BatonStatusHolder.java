@@ -15,15 +15,15 @@ import java.util.Optional;
 
 public class BatonStatusHolder {
     // Map from batonMac to batonStatus
-    private HashMap<String, BatonStatus> batonStatusMap = new HashMap<>();
-    private HashMap<Integer, String> batonIdToMac = new HashMap<>();
+    private final HashMap<String, BatonStatus> batonStatusMap = new HashMap<>();
+    private final HashMap<Integer, String> batonIdToMac = new HashMap<>();
 
-    private BatonDAO batonDAO;
-    private DetectionDAO detectionDAO;
+    private final BatonDAO batonDAO;
+    private final DetectionDAO detectionDAO;
 
-    public BatonStatusHolder(BatonDAO BDAO, DetectionDAO DDAO) {
-        batonDAO = BDAO;
-        detectionDAO = DDAO;
+    public BatonStatusHolder(BatonDAO batonDAO, DetectionDAO detectionDAO) {
+        this.batonDAO = batonDAO;
+        this.detectionDAO = detectionDAO;
     }
 
     private BatonStatus getStatusForBaton(String batonMac) {

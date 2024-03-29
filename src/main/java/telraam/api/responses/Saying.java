@@ -1,30 +1,16 @@
 package telraam.api.responses;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Saying {
     private long id;
 
     @Length(max = 3)
     private String content;
-
-    public Saying() {
-        // Jackson deserialization
-    }
-
-    public Saying(long id, String content) {
-        this.id = id;
-        this.content = content;
-    }
-
-    @JsonProperty
-    public long getId() {
-        return id;
-    }
-
-    @JsonProperty
-    public String getContent() {
-        return content;
-    }
 }

@@ -10,6 +10,8 @@ import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterRegistration;
+import lombok.Getter;
+import lombok.Setter;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import org.jdbi.v3.core.Jdbi;
@@ -33,10 +35,18 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 public class App extends Application<AppConfiguration> {
-    private static Logger logger = Logger.getLogger(App.class.getName());
+    private static final Logger logger = Logger.getLogger(App.class.getName());
+
+    @Getter
     private AppConfiguration config;
+
+    @Getter
     private Environment environment;
+
+    @Getter
     private Jdbi database;
+
+    @Setter
     private boolean testing;
 
     public static void main(String[] args) throws Exception {
@@ -47,10 +57,6 @@ public class App extends Application<AppConfiguration> {
 
     public App() {
         testing = true;
-    }
-
-    public void setTesting(boolean testing) {
-        this.testing = testing;
     }
 
     @Override
@@ -72,7 +78,7 @@ public class App extends Application<AppConfiguration> {
     }
 
     @Override
-    public void run(AppConfiguration configuration, Environment environment) throws IOException {
+    public void run(AppConfiguration configuration, Environment environment) {
         this.config = configuration;
         this.environment = environment;
         // Add database
@@ -122,9 +128,6 @@ public class App extends Application<AppConfiguration> {
             // Set up lapper algorithms
             Set<Lapper> lappers = new HashSet<>();
 
-            // Old viterbi lapper is disabled
-            //lappers.add(new ViterbiLapper(this.database));
-
             lappers.add(new ExternalLapper(this.database));
             lappers.add(new RobustLapper(this.database));
 
@@ -146,17 +149,5 @@ public class App extends Application<AppConfiguration> {
         }
 
         logger.info("Up and running!");
-    }
-
-    public AppConfiguration getConfig() {
-        return config;
-    }
-
-    public Environment getEnvironment() {
-        return environment;
-    }
-
-    public Jdbi getDatabase() {
-        return database;
     }
 }
