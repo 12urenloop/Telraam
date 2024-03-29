@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class WebSocketMessage {
+public class WebSocketMessage<T> {
     private String topic;
-    private String data;
+    private T data;
 }

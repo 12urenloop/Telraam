@@ -18,7 +18,7 @@ public class WebSocketMessageSingleton {
     @Getter
     private static final WebSocketMessageSingleton instance = new WebSocketMessageSingleton();
     private static final Set<WebSocketConnection> registeredConnections = new HashSet<>();
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public void registerConnection(WebSocketConnection conn) {
         boolean modified = registeredConnections.add(conn);
@@ -39,7 +39,7 @@ public class WebSocketMessageSingleton {
         registeredConnections.forEach(conn -> conn.send(s));
     }
 
-    public void sendToAll(WebSocketMessage message) {
+    public void sendToAll(WebSocketMessage<?> message) {
         try {
             String json = mapper.writeValueAsString(message);
             this.sendToAll(json);
