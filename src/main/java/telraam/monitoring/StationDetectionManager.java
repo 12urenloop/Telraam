@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.Optional;
 
 public class StationDetectionManager {
-    private DetectionDAO detectionDAO;
+    private final DetectionDAO detectionDAO;
 
-    private StationDAO stationDAO;
+    private final StationDAO stationDAO;
 
     public StationDetectionManager(DetectionDAO detectionDAO, StationDAO stationDAO) {
         this.detectionDAO = detectionDAO;
@@ -27,7 +27,7 @@ public class StationDetectionManager {
             Optional<Detection> maybeDetection = this.detectionDAO.latestDetectionByStationId(stationId);
             Optional<Station> maybeStation = this.stationDAO.getById(stationId);
             if (maybeDetection.isPresent() && maybeStation.isPresent()) {
-                Long time = maybeDetection.get().getTimestamp().getTime();
+                long time = maybeDetection.get().getTimestamp().getTime();
                 stationIdToTimeSinceLatestDetection.put(maybeStation.get().getName(), (System.currentTimeMillis() - time) / 1000);
             }
         }

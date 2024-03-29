@@ -54,9 +54,9 @@ public class Fetcher {
         this.batonDAO = database.onDemand(BatonDAO.class);
         this.detectionDAO = database.onDemand(DetectionDAO.class);
         this.stationDAO = database.onDemand(StationDAO.class);
+
         this.lappers = lappers;
         this.positioners = positioners;
-
         this.station = station;
     }
 

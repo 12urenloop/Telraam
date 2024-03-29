@@ -12,12 +12,12 @@ import java.util.List;
 import java.util.Map;
 
 public class BatonDetectionManager {
-    private DetectionDAO detectionDAO;
-    private TeamDAO teamDAO;
-    private BatonSwitchoverDAO batonSwitchoverDAO;
+    private final DetectionDAO detectionDAO;
+    private final TeamDAO teamDAO;
+    private final BatonSwitchoverDAO batonSwitchoverDAO;
 
     // Map of a baton id to it's detections
-    private Map<Integer, List<BatonDetection>> batonDetectionMap = new HashMap<>();
+    private final Map<Integer, List<BatonDetection>> batonDetectionMap = new HashMap<>();
     private Integer handledDetectionId = 0;
 
     public BatonDetectionManager(DetectionDAO detectionDAO, TeamDAO teamDAO, BatonSwitchoverDAO batonSwitchoverDAO) {
@@ -60,7 +60,7 @@ public class BatonDetectionManager {
             }
             var batonDetections = batonDetectionMap.get(batonId);
             var team = teamMap.get(batonTeamMap.get(batonId));
-            var batonDetection = new BatonDetection(Math.toIntExact(d.getTimestamp().getTime() / 1000), d.getRssi(), d.getStationId(), batonId, team.getName());
+            var batonDetection = new BatonDetection(Math.toIntExact(d.getTimestamp().getTime() / 1000), d.getRssi(), batonId /* FIXME: BatonDetection expects a teamId here? */, d.getStationId(), team.getName());
             batonDetections.add(batonDetection);
         });
         return batonDetectionMap;
