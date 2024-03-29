@@ -1,0 +1,1 @@
+alter table batonswitchover alter column newbatonid drop not null;
