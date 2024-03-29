@@ -8,6 +8,7 @@ import telraam.database.models.Baton;
 import telraam.database.models.Detection;
 import telraam.database.models.Station;
 import telraam.logic.lapper.Lapper;
+import telraam.logic.positioner.Positioner;
 import telraam.station.models.RonnyDetection;
 import telraam.station.models.RonnyResponse;
 
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 
 public class Fetcher {
     private final Set<Lapper> lappers;
+    private final Set<Positioner> positioners;
     private Station station;
 
     private final BatonDAO batonDAO;
@@ -48,11 +50,12 @@ public class Fetcher {
     private final static int IDLE_TIMEOUT_MS = 4000; // Wait 4 seconds
 
 
-    public Fetcher(Jdbi database, Station station, Set<Lapper> lappers) {
+    public Fetcher(Jdbi database, Station station, Set<Lapper> lappers, Set<Positioner> positioners) {
         this.batonDAO = database.onDemand(BatonDAO.class);
         this.detectionDAO = database.onDemand(DetectionDAO.class);
         this.stationDAO = database.onDemand(StationDAO.class);
         this.lappers = lappers;
+        this.positioners = positioners;
 
         this.station = station;
     }
@@ -158,7 +161,10 @@ public class Fetcher {
             }
             if (!new_detections.isEmpty()) {
                 detectionDAO.insertAll(new_detections);
-                new_detections.forEach((detection) -> lappers.forEach((lapper) -> lapper.handle(detection)));
+                new_detections.forEach((detection) -> {
+                    lappers.forEach((lapper) -> lapper.handle(detection));
+                    positioners.forEach((positioner) -> positioner.handle(detection));
+                });
             }
 
             this.logger.finer("Fetched " + detections.size() + " detections from " + station.getName() + ", Saved " + new_detections.size());
