@@ -66,6 +66,11 @@ dependencies {
             'org.eclipse.jetty.websocket:websocket-jetty-api:' + jettyVersion,
             'org.eclipse.jetty.websocket:websocket-jetty-server:' + jettyVersion,
     )
+
+    // Websocket client libs
+    compileOnly 'jakarta.websocket:jakarta.websocket-client-api:2.2.0-M1'
+    implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:2.2.0-M1'
+
     // Database
     implementation('com.h2database:h2:2.2.220')
     implementation('org.postgresql:postgresql:42.7.3')

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import telraam.database.daos.BatonDAO;
 import telraam.database.daos.DetectionDAO;
 import telraam.database.daos.StationDAO;
-import telraam.database.models.Baton;
 import telraam.database.models.Detection;
 import telraam.database.models.Station;
 import telraam.logic.lapper.Lapper;
@@ -18,13 +17,11 @@ import java.net.URISyntaxException;
 import java.net.http.*;
 import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.function.Function;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class Fetcher {
+    //Timeout to wait for before sending the next request after an error.
+    private final static int ERROR_TIMEOUT_MS = 2000;
     private final Set<Lapper> lappers;
     private final Set<Positioner> positioners;
     private Station station;
@@ -35,23 +32,6 @@ public class Fetcher {
 
     private final HttpClient client = HttpClient.newHttpClient();
     private final Logger logger = Logger.getLogger(Fetcher.class.getName());
-
-    //Timeout to wait for before sending the next request after an error.
-    private final static int ERROR_TIMEOUT_MS = 2000;
-    //Timeout for a request to a station.
-    private final static int REQUEST_TIMEOUT_S = 10;
-    //Full batch size, if this number of detections is reached, more are probably available immediately.
-    private final static int FULL_BATCH_SIZE = 1000;
-    //Timeout when result has less than a full batch of detections.
-    private final static int IDLE_TIMEOUT_MS = 4000; // Wait 4 seconds
-
-    private class InitWSMessage {
-        public int lastId;
-        public InitWSMessage(int lastId) {
-            this.lastId = lastId;
-        }
-    }
-
 
     public Fetcher(Jdbi database, Station station, Set<Lapper> lappers, Set<Positioner> positioners) {
         this.batonDAO = database.onDemand(BatonDAO.class);
@@ -67,84 +47,95 @@ public class Fetcher {
         logger.info("Running Fetcher for station(" + this.station.getId() + ")");
         ObjectMapper mapper = new ObjectMapper();
 
-        while (true) {
-            //Update the station to account for possible changes in the database
-            this.stationDAO.getById(station.getId()).ifPresentOrElse(
-                    station -> this.station = station,
-                    () -> this.logger.severe("Can't update station from database.")
-            );
+        //Update the station to account for possible changes in the database
+        this.stationDAO.getById(station.getId()).ifPresentOrElse(
+                station -> this.station = station,
+                () -> this.logger.severe("Can't update station from database.")
+        );
 
-            //Get last detection id
-            int lastDetectionId = 0;
-            Optional<Detection> lastDetection = detectionDAO.latestDetectionByStationId(this.station.getId());
-            if (lastDetection.isPresent()) {
-                lastDetectionId = lastDetection.get().getRemoteId();
-            }
+        //Get last detection id
+        int lastDetectionId = 0;
+        Optional<Detection> lastDetection = detectionDAO.latestDetectionByStationId(this.station.getId());
+        if (lastDetection.isPresent()) {
+            lastDetectionId = lastDetection.get().getRemoteId();
+        }
 
-            InitWSMessage wsMessage = new InitWSMessage(lastDetectionId);
-
-            //Create URL
-            URI url;
+        InitWSMessage wsMessage = new InitWSMessage(lastDetectionId);
+        String wsMessageEncoded;
+        try {
+            wsMessageEncoded = mapper.writeValueAsString(wsMessage);
+        } catch (JsonProcessingException e) {
+            logger.severe(e.getMessage());
             try {
-                url = new URI(station.getUrl() + "/ws");
-            } catch (URISyntaxException ex) {
-                this.logger.severe(ex.getMessage());
-                try {
-                    Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
-                } catch (InterruptedException e) {
-                    logger.severe(e.getMessage());
-                }
-                continue;
+                Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
+            } catch (InterruptedException ex) {
+                logger.severe(ex.getMessage());
             }
+            this.fetch();
+            return;
+        }
 
-            CompletableFuture<WebSocket> ws = this.client.newWebSocketBuilder().buildAsync(url, new WebSocket.Listener() {
-                @Override
-                public void onOpen(WebSocket webSocket) {
-                    try {
-                        webSocket.sendText(mapper.writeValueAsString(wsMessage), true);
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e);
-                    }
+        //Create URL
+        URI url;
+        try {
+            URI stationUrl = URI.create(station.getUrl());
+            url = new URI("ws", stationUrl.getHost(), "/detections", "");
+        } catch (URISyntaxException ex) {
+            this.logger.severe(ex.getMessage());
+            try {
+                Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
+            } catch (InterruptedException e) {
+                logger.severe(e.getMessage());
+            }
+            this.fetch();
+            return;
+        }
+
+        WebsocketClient websocketClient = new WebsocketClient(url);
+        websocketClient.addOnOpenHandler(() -> {
+            websocketClient.sendMessage(wsMessageEncoded);
+        });
+        websocketClient.addMessageHandler((String msg) -> {
+            //Insert detections
+            List<Detection> new_detections = new ArrayList<>();
+            List<String> detection_mac_addresses = new ArrayList<>();
+            logger.info("Received message on WS");
+
+            try {
+                List<RonnyDetection> detections = Arrays.asList(mapper.readValue(msg, RonnyDetection[].class));
+                for (RonnyDetection detection : detections) {
+                    new_detections.add(new Detection(
+                            0,
+                            station.getId(),
+                            detection.rssi,
+                            detection.battery,
+                            detection.uptimeMs,
+                            detection.id,
+                            new Timestamp((long) (detection.detectionTimestamp * 1000)),
+                            new Timestamp(System.currentTimeMillis())
+                    ));
+                    detection_mac_addresses.add(detection.mac);
+                }
+                if (!new_detections.isEmpty()) {
+                    detectionDAO.insertAllWithoutBaton(new_detections, detection_mac_addresses);
+                    new_detections.forEach((detection) -> {
+                        lappers.forEach((lapper) -> lapper.handle(detection));
+                        positioners.forEach(positioner -> positioner.handle(detection));
+                    });
                 }
 
-                @Override
-                public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-                    //Fetch all batons and create a map by batonMAC
-                    Map<String, Baton> baton_mac_map = batonDAO.getAll().stream()
-                            .collect(Collectors.toMap(b -> b.getMac().toUpperCase(), Function.identity()));
+                logger.finer("Fetched " + detections.size() + " detections from " + station.getName() + ", Saved " + new_detections.size());
+            } catch (JsonProcessingException e) {
+                logger.severe(e.getMessage());
+            }
+        });
+    }
 
-                    //Insert detections
-                    List<Detection> new_detections = new ArrayList<>();
+    private class InitWSMessage {
+        public int lastId;
 
-                    try {
-                        List<RonnyDetection> detections = Arrays.asList(mapper.readValue(data.toString(), RonnyDetection[].class));
-                        for (RonnyDetection detection : detections) {
-                            if (baton_mac_map.containsKey(detection.mac.toUpperCase())) {
-                                var baton = baton_mac_map.get(detection.mac.toUpperCase());
-                                new_detections.add(new Detection(
-                                        baton.getId(),
-                                        station.getId(),
-                                        detection.rssi,
-                                        detection.battery,
-                                        detection.uptimeMs,
-                                        detection.id,
-                                        new Timestamp((long) (detection.detectionTimestamp * 1000)),
-                                        new Timestamp(System.currentTimeMillis())
-                                ));
-                            }
-                        }
-                        if (!new_detections.isEmpty()) {
-                            detectionDAO.insertAll(new_detections);
-                            new_detections.forEach((detection) -> lappers.forEach((lapper) -> lapper.handle(detection)));
-                        }
-
-                        logger.finer("Fetched " + detections.size() + " detections from " + station.getName() + ", Saved " + new_detections.size());
-                    } catch (JsonProcessingException e) {
-                        logger.severe(e.getMessage());
-                    }
-                    return null;
-                }
-            });
+        public InitWSMessage(int lastId) {
+            this.lastId = lastId;
         }
     }
 }
