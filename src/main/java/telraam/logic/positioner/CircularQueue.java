@@ -14,7 +14,7 @@ public class CircularQueue<T> extends LinkedList<T> {
     @Override
     public boolean add(T e) {
         if (this.size >= this.maxSize) {
-            super.removeFirst();
+            removeFirst();
             this.size--;
         }
 
