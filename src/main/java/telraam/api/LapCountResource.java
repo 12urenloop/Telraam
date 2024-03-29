@@ -1,5 +1,6 @@
 package telraam.api;
 
+import telraam.database.daos.LapDAO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.*;
@@ -9,7 +10,10 @@ import telraam.database.models.Lap;
 import telraam.database.models.Team;
 import telraam.util.AcceptedLapsUtil;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -18,9 +22,11 @@ import java.util.Optional;
 @Produces(MediaType.APPLICATION_JSON)
 public class LapCountResource {
     TeamDAO teamDAO;
+    LapDAO lapDAO;
 
-    public LapCountResource(TeamDAO teamDAO) {
+    public LapCountResource(TeamDAO teamDAO, LapDAO lapDAO) {
         this.teamDAO = teamDAO;
+        this.lapDAO = lapDAO;
     }
 
     @GET
@@ -52,5 +58,17 @@ public class LapCountResource {
         }
 
         return perName;
+    }
+
+    // EndTimestamp should be a ISO formatted date timestamp
+    @GET
+    @Path("/{lapSourceId}/{teamId}")
+    public Integer getLapCountForLapSource(@PathParam("lapSourceId") Integer id, @PathParam("teamId") Integer teamId, @QueryParam("end") Optional<String> endTimestamp) {
+        LocalDateTime dateTime = LocalDateTime.now();
+        if (endTimestamp.isPresent()) {
+            dateTime = LocalDateTime.parse(endTimestamp.get());
+        }
+        List<Lap> laps = lapDAO.getAllForTeamBeforeTime(id, teamId, Timestamp.valueOf(dateTime));
+        return laps.size();
     }
 }
