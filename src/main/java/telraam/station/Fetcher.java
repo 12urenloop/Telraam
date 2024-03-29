@@ -11,5 +11,4 @@ public interface Fetcher {
     int IDLE_TIMEOUT_MS = 4000; // Wait 4 seconds
 
     void fetch();
-
 }
