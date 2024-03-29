@@ -46,8 +46,8 @@ public class ExternalLapper implements Lapper {
 
         // Find which laps are no longer needed or have to be added
         for (ExternalLapperTeamLaps teamLap : teamLaps) {
-            List<Lap> lapsForTeam = laps.stream().filter(l -> l.getTeamId() == teamLap.teamId).sorted(Comparator.comparing(Lap::getTimestamp)).toList();
-            List<Lap> newLapsForTeam = teamLap.laps.stream().map(nl -> new Lap(teamLap.teamId, lapSourceId, new Timestamp((long) (nl.timestamp)))).sorted(Comparator.comparing(Lap::getTimestamp)).toList();
+            List<Lap> lapsForTeam = laps.stream().filter(l -> l.getTeamId() == teamLap.getTeamId()).sorted(Comparator.comparing(Lap::getTimestamp)).toList();
+            List<Lap> newLapsForTeam = teamLap.getLaps().stream().map(nl -> new Lap(teamLap.getTeamId(), lapSourceId, new Timestamp((long) (nl.getTimestamp())))).sorted(Comparator.comparing(Lap::getTimestamp)).toList();
 
             int lapsIndex = 0;
             int newLapsIndex = 0;
