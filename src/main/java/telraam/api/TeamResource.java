@@ -29,12 +29,6 @@ public class TeamResource extends AbstractListableResource<Team> {
     }
 
     @Override
-    @Operation(summary = "Find all teams")
-    public List<Team> getListOf() {
-        return super.getListOf();
-    }
-
-    @Override
     @Operation(summary = "Add a new team to the database")
     public int create(Team team) {
         int ret = super.create(team);
@@ -49,12 +43,6 @@ public class TeamResource extends AbstractListableResource<Team> {
         }
 
         return ret;
-    }
-
-    @Override
-    @Operation(summary = "Find team by ID")
-    public Team get(Optional<Integer> id) {
-        return super.get(id);
     }
 
     @Override
@@ -76,11 +64,5 @@ public class TeamResource extends AbstractListableResource<Team> {
         }
 
         return ret;
-    }
-
-    @Override
-    @Operation(summary = "Delete an existing team")
-    public boolean delete(Optional<Integer> id) {
-        return super.delete(id);
     }
 }

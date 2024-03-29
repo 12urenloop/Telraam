@@ -11,7 +11,7 @@ import jakarta.ws.rs.core.MediaType;
 @Tag(name = "Time")
 @Produces(MediaType.APPLICATION_JSON)
 public class TimeResource {
-    static class TimeResponse {
+    public static class TimeResponse {
         public long timestamp;
 
         public TimeResponse() {

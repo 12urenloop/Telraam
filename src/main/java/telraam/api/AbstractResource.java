@@ -1,11 +1,13 @@
 package telraam.api;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.checkerframework.checker.units.qual.C;
 import telraam.database.daos.DAO;
 
 import java.util.Optional;
@@ -19,12 +21,14 @@ public abstract class AbstractResource<T> implements Resource<T> {
     }
 
     @Override
+    @Operation(summary = "Add new to the database")
     // TODO Validate model and return 405 for wrong input
     public int create(@Parameter(required = true) T t) {
         return dao.insert(t);
     }
 
     @Override
+    @Operation(summary = "Find by ID")
     @ApiResponse(responseCode = "400", description = "Invalid or no ID supplied") // TODO validate ID, return 400 on wrong ID format
     @ApiResponse(responseCode = "404", description = "Entity with specified ID not found")
     public T get(@Parameter(description = "ID of entity that needs to be fetched", required = true) Optional<Integer> id) {
@@ -41,6 +45,7 @@ public abstract class AbstractResource<T> implements Resource<T> {
     }
 
     @Override
+    @Operation(summary = "Update an existing")
     @ApiResponse(responseCode = "400", description = "Invalid or no ID supplied") // TODO validate ID, return 400 on wrong ID format
     @ApiResponse(responseCode = "404", description = "Entity with specified ID not found")
     @ApiResponse(responseCode = "405", description = "Validation exception") // TODO validate input, 405 on wrong input
@@ -60,6 +65,7 @@ public abstract class AbstractResource<T> implements Resource<T> {
     }
 
     @Override
+    @Operation(summary = "Delete an existing")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Invalid or no ID supplied"), // TODO validate ID, return 400 on wrong ID format
     })
