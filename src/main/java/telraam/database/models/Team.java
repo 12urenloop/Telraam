@@ -9,6 +9,7 @@ public class Team {
     private Integer id;
     private String name;
     private Integer batonId;
+    private Integer jacketNr;
 
     public Team(String name) {
         this.name = name;

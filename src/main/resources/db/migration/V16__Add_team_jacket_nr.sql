@@ -1,0 +1,1 @@
+alter table team add jacket_nr integer default 0 not null;

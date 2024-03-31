@@ -103,12 +103,14 @@ class TeamDAOTest extends DatabaseTest {
         int testid = teamDAO.insert(testTeam);
         testTeam.setId(testid);
         testTeam.setName("postupdate");
+        testTeam.setJacketNr(10);
         int updatedRows = teamDAO.update(testid, testTeam);
         assertEquals(1, updatedRows);
 
         Optional<Team> dbTeam = teamDAO.getById(testid);
         assertFalse(dbTeam.isEmpty());
         assertEquals("postupdate", dbTeam.get().getName());
+        assertEquals(10, dbTeam.get().getJacketNr());
     }
 
     @Test
