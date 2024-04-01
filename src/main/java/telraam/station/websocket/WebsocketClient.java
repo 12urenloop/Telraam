@@ -1,4 +1,4 @@
-package telraam.station;
+package telraam.station.websocket;
 
 import jakarta.websocket.*;
 

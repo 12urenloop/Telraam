@@ -24,7 +24,8 @@ import telraam.logic.lapper.external.ExternalLapper;
 import telraam.logic.lapper.robust.RobustLapper;
 import telraam.logic.positioner.Positioner;
 import telraam.logic.positioner.simple.SimplePositioner;
-import telraam.station.Fetcher;
+import telraam.station.FetcherFactory;
+import telraam.station.websocket.WebsocketFetcher;
 import telraam.util.AcceptedLapsUtil;
 import telraam.websocket.WebSocketConnection;
 
@@ -142,9 +143,10 @@ public class App extends Application<AppConfiguration> {
             positioners.add(new SimplePositioner(this.database));
 
             // Start fetch thread for each station
+            FetcherFactory fetcherFactory = new FetcherFactory(this.database, lappers, positioners);
             StationDAO stationDAO = this.database.onDemand(StationDAO.class);
             for (Station station : stationDAO.getAll()) {
-                new Thread(() -> new Fetcher(this.database, station, lappers, positioners).fetch()).start();
+                new Thread(() -> fetcherFactory.create(station).fetch()).start();
             }
         }
 
