@@ -8,7 +8,6 @@ import telraam.database.models.BatonSwitchover;
 import telraam.database.models.Detection;
 import telraam.database.models.Station;
 import telraam.database.models.Team;
-import telraam.logic.positioner.CircularQueue;
 import telraam.logic.positioner.Position;
 import telraam.logic.positioner.PositionSender;
 import telraam.logic.positioner.Positioner;
@@ -61,7 +60,7 @@ public class SimplePositioner implements Positioner {
         stations = stationList.stream().map(Station::getId).toList();
     }
 
-    public void calculatePositions() {
+    private void calculatePositions() {
         logger.info("SimplePositioner: Calculating positions...");
         for (Map.Entry<Integer, CircularQueue<Detection>> entry : teamDetections.entrySet()) {
             List<Detection> detections = teamDetections.get(entry.getKey());

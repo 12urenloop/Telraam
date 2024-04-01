@@ -1,4 +1,4 @@
-package telraam.logic.positioner;
+package telraam.logic.positioner.simple;
 
 import java.util.LinkedList;
 
