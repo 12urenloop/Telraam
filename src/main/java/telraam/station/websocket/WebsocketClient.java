@@ -69,7 +69,6 @@ public class WebsocketClient {
     }
 
     public void sendMessage(String message) {
-
         this.session.getAsyncRemote().sendText(message);
     }
 }
