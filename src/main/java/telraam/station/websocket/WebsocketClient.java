@@ -17,7 +17,7 @@ public class WebsocketClient {
     private MessageHandler messageHandler;
     private OnOpenHandler onOpenHandler;
 
-    public WebsocketClient(URI endpointURI) {
+    public WebsocketClient(URI endpointURI) throws RuntimeException {
         try {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             container.connectToServer(this, endpointURI);
