@@ -1,1 +1,1 @@
-alter table team add jacket_nr integer default 0 not null;
+alter table team add jacket_nr varchar(255) default '0' not null;
