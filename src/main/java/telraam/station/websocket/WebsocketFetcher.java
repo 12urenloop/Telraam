@@ -90,7 +90,23 @@ public class WebsocketFetcher implements Fetcher {
             return;
         }
 
-        WebsocketClient websocketClient = new WebsocketClient(url);
+
+        WebsocketClient websocketClient;
+
+        try {
+            websocketClient = new WebsocketClient(url);
+        } catch (RuntimeException ex) {
+            this.logger.severe(ex.getMessage());
+            try {
+                Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
+            } catch (InterruptedException e) {
+                logger.severe(e.getMessage());
+            }
+            this.fetch();
+            return;
+        }
+
+
         websocketClient.addOnOpenHandler(() -> {
             websocketClient.sendMessage(wsMessageEncoded);
         });
