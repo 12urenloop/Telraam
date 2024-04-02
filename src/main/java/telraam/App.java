@@ -22,6 +22,7 @@ import telraam.healthchecks.TemplateHealthCheck;
 import telraam.logic.lapper.Lapper;
 import telraam.logic.lapper.external.ExternalLapper;
 import telraam.logic.lapper.robust.RobustLapper;
+import telraam.logic.lapper.slapper.Slapper;
 import telraam.logic.positioner.Positioner;
 import telraam.logic.positioner.simple.SimplePositioner;
 import telraam.station.Fetcher;
@@ -130,6 +131,7 @@ public class App extends Application<AppConfiguration> {
 
             lappers.add(new ExternalLapper(this.database));
             lappers.add(new RobustLapper(this.database));
+            lappers.add(new Slapper(this.database));
 
             // Enable lapper APIs
             for (Lapper lapper : lappers) {
