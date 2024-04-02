@@ -77,8 +77,7 @@ public class WebsocketFetcher implements Fetcher {
         //Create URL
         URI url;
         try {
-            URI stationUrl = URI.create(station.getUrl());
-            url = new URI("ws", stationUrl.getHost(), "/detections", "");
+            url = new URI(station.getUrl());
         } catch (URISyntaxException ex) {
             this.logger.severe(ex.getMessage());
             try {
@@ -91,30 +90,23 @@ public class WebsocketFetcher implements Fetcher {
         }
 
 
-        WebsocketClient websocketClient;
-
-        try {
-            websocketClient = new WebsocketClient(url);
-        } catch (RuntimeException ex) {
-            this.logger.severe(ex.getMessage());
+        WebsocketClient websocketClient = new WebsocketClient(url);
+        websocketClient.addOnOpenHandler(() -> {
+            websocketClient.sendMessage(wsMessageEncoded);
+        });
+        websocketClient.addOnCloseHandler(() -> {
+            this.logger.severe(String.format("Websocket for station %s got closed", station.getName()));
             try {
                 Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
             } catch (InterruptedException e) {
                 logger.severe(e.getMessage());
             }
             this.fetch();
-            return;
-        }
-
-
-        websocketClient.addOnOpenHandler(() -> {
-            websocketClient.sendMessage(wsMessageEncoded);
         });
         websocketClient.addMessageHandler((String msg) -> {
             //Insert detections
             List<Detection> new_detections = new ArrayList<>();
             List<String> detection_mac_addresses = new ArrayList<>();
-            logger.info("Received message on WS");
 
             try {
                 List<RonnyDetection> detections = Arrays.asList(mapper.readValue(msg, RonnyDetection[].class));
@@ -144,6 +136,19 @@ public class WebsocketFetcher implements Fetcher {
                 logger.severe(e.getMessage());
             }
         });
+
+        try {
+            websocketClient.listen();
+        } catch (RuntimeException ex) {
+            this.logger.severe(ex.getMessage());
+            try {
+                Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
+            } catch (InterruptedException e) {
+                logger.severe(e.getMessage());
+            }
+            this.fetch();
+            return;
+        }
     }
 
     private class InitWSMessage {

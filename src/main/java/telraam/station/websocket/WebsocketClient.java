@@ -9,18 +9,24 @@ public class WebsocketClient {
     public interface MessageHandler {
         void handleMessage(String message);
     }
-    public interface OnOpenHandler {
-        void handleMsgOpen();
+    public interface onStateChangeHandler {
+        void handleChange();
     }
 
-    Session session = null;
+    private URI endpoint;
+    private Session session = null;
     private MessageHandler messageHandler;
-    private OnOpenHandler onOpenHandler;
+    private onStateChangeHandler onOpenHandler;
+    private onStateChangeHandler onCloseHandler;
 
     public WebsocketClient(URI endpointURI) throws RuntimeException {
+        this.endpoint = endpointURI;
+    }
+
+    public void listen() throws  RuntimeException {
         try {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-            container.connectToServer(this, endpointURI);
+            container.connectToServer(this, endpoint);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -29,12 +35,17 @@ public class WebsocketClient {
     @OnOpen
     public void onOpen(Session session) {
         this.session = session;
+        if (this.onOpenHandler != null) {
+            this.onOpenHandler.handleChange();
+        }
     }
 
     @OnClose
     public void onClose(Session userSession, CloseReason reason) {
-        System.out.println("closing websocket");
         this.session = null;
+        if (this.onCloseHandler != null) {
+            this.onCloseHandler.handleChange();
+        }
     }
 
     @OnMessage
@@ -44,8 +55,12 @@ public class WebsocketClient {
         }
     }
 
-    public void addOnOpenHandler(OnOpenHandler openHandler) {
+    public void addOnOpenHandler(onStateChangeHandler openHandler) {
         this.onOpenHandler = openHandler;
+    }
+
+    public void addOnCloseHandler(onStateChangeHandler openHandler) {
+        this.onCloseHandler = openHandler;
     }
 
     public void addMessageHandler(MessageHandler msgHandler) {
@@ -53,6 +68,7 @@ public class WebsocketClient {
     }
 
     public void sendMessage(String message) {
+
         this.session.getAsyncRemote().sendText(message);
     }
 }
