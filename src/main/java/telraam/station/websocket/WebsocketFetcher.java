@@ -124,11 +124,17 @@ public class WebsocketFetcher implements Fetcher {
                     detection_mac_addresses.add(detection.mac);
                 }
                 if (!new_detections.isEmpty()) {
-                    detectionDAO.insertAllWithoutBaton(new_detections, detection_mac_addresses);
-                    new_detections.forEach((detection) -> {
+                    List<Detection> db_detections = detectionDAO.insertAllWithoutBaton(new_detections, detection_mac_addresses);
+                    for(int i = 0; i < new_detections.size(); i++) {
+                        Detection detection = new_detections.get(i);
+                        Detection db_detection = db_detections.get(i);
+
+                        detection.setBatonId(db_detection.getBatonId());
+                        detection.setId(db_detection.getId());
+
                         lappers.forEach((lapper) -> lapper.handle(detection));
                         positioners.forEach(positioner -> positioner.handle(detection));
-                    });
+                    }
                 }
 
                 logger.finer("Fetched " + detections.size() + " detections from " + station.getName() + ", Saved " + new_detections.size());

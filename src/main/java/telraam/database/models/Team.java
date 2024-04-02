@@ -4,7 +4,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter @Setter @NoArgsConstructor
+import java.util.Objects;
+
+@Getter
+@Setter
+@NoArgsConstructor
 public class Team {
     private Integer id;
     private String name;
@@ -18,5 +22,9 @@ public class Team {
     public Team(String name, int batonId) {
         this.name = name;
         this.batonId = batonId;
+    }
+
+    public boolean equals(Team obj) {
+        return Objects.equals(id, obj.getId());
     }
 }

@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SimplePositioner implements Positioner {
@@ -31,9 +32,9 @@ public class SimplePositioner implements Positioner {
     private static final Logger logger = Logger.getLogger(SimplePositioner.class.getName());
     private final PositionSender positionSender;
     private final Map<Integer, Team> batonIdToTeam;
-    private final Map<Team, CircularQueue<Detection>> teamDetections;
+    private final Map<Integer, CircularQueue<Detection>> teamDetections;
     private final List<Integer> stations;
-    private final Map<Team, Position> teamPositions;
+    private final Map<Integer, Position> teamPositions;
 
     public SimplePositioner(Jdbi jdbi) {
         this.debounceScheduled = false;
@@ -46,8 +47,8 @@ public class SimplePositioner implements Positioner {
         TeamDAO teamDAO = jdbi.onDemand(TeamDAO.class);
         List<Team> teams = teamDAO.getAll();
         for (Team team: teams) {
-            teamDetections.put(team, new CircularQueue<>(QUEUE_SIZE));
-            teamPositions.put(team, new Position(team.getId()));
+            teamDetections.put(team.getId(), new CircularQueue<>(QUEUE_SIZE));
+            teamPositions.put(team.getId(), new Position(team.getId()));
         }
         List<BatonSwitchover> switchovers = jdbi.onDemand(BatonSwitchoverDAO.class).getAll();
         switchovers.sort(Comparator.comparing(BatonSwitchover::getTimestamp));
@@ -63,7 +64,7 @@ public class SimplePositioner implements Positioner {
 
     public void calculatePositions() {
         logger.info("SimplePositioner: Calculating positions...");
-        for (Map.Entry<Team, CircularQueue<Detection>> entry: teamDetections.entrySet()) {
+        for (Map.Entry<Integer, CircularQueue<Detection>> entry: teamDetections.entrySet()) {
             List<Detection> detections = teamDetections.get(entry.getKey());
             detections.sort(Comparator.comparing(Detection::getTimestamp));
 
@@ -86,7 +87,7 @@ public class SimplePositioner implements Positioner {
 
     public void handle(Detection detection) {
         Team team = batonIdToTeam.get(detection.getBatonId());
-        teamDetections.get(team).add(detection);
+        teamDetections.get(team.getId()).add(detection);
 
         if (! debounceScheduled) {
             debounceScheduled = true;
@@ -94,7 +95,7 @@ public class SimplePositioner implements Positioner {
                 try {
                     calculatePositions();
                 } catch (Exception e) {
-                    logger.severe(e.getMessage());
+                    logger.log(Level.SEVERE, e.getMessage(), e);
                 }
                 debounceScheduled = false;
             }, DEBOUNCE_TIMEOUT, TimeUnit.SECONDS);

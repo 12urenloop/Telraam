@@ -35,10 +35,11 @@ public interface DetectionDAO extends DAO<Detection> {
 
     @SqlBatch("""
             INSERT INTO detection (station_id, baton_id, timestamp, rssi, battery, remote_id, uptime_ms, timestamp_ingestion) \
-            VALUES (:stationId, (SELECT id FROM baton WHERE :batonMac), :timestamp, :rssi, :battery, :remoteId, :uptimeMs, :timestampIngestion)
+            VALUES (:stationId, (SELECT id FROM baton WHERE mac = :batonMac), :timestamp, :rssi, :battery, :remoteId, :uptimeMs, :timestampIngestion)
             """)
-    @GetGeneratedKeys({"id"})
-    int insertAllWithoutBaton(@BindBean List<Detection> detection, @Bind("batonMac") List<String> batonMac);
+    @GetGeneratedKeys({"id", "baton_id"})
+    @RegisterBeanMapper(Detection.class)
+    List<Detection> insertAllWithoutBaton(@BindBean List<Detection> detection, @Bind("batonMac") List<String> batonMac);
 
     @SqlQuery("SELECT * FROM detection WHERE id = :id")
     @RegisterBeanMapper(Detection.class)
