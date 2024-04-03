@@ -9,7 +9,7 @@ public class Team {
     private Integer id;
     private String name;
     private Integer batonId;
-    private String jacketNr = "0";
+    private String jacketNr = "INVALID";
 
     public Team(String name) {
         this.name = name;
