@@ -8,6 +8,7 @@ import org.jdbi.v3.sqlobject.statement.SqlBatch;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 import telraam.database.models.Lap;
+import telraam.database.models.LapCount;
 import telraam.database.models.TeamLapCount;
 
 import java.sql.Timestamp;
@@ -28,6 +29,10 @@ public interface LapDAO extends DAO<Lap> {
     @SqlQuery("SELECT * FROM lap WHERE lap_source_id = :lapSourceId ORDER BY timestamp ASC")
     @RegisterBeanMapper(Lap.class)
     List<Lap> getAllBySourceSorted(@Bind("lapSourceId") Integer lapSourceId);
+
+    @SqlQuery("SELECT t.id as team_id, (SELECT COUNT(*) FROM lap WHERE lap_source_id = :lapSourceId AND timestamp <= :timestamp and team_id = t.id) as count FROM team t")
+    @RegisterBeanMapper(LapCount.class)
+    List<LapCount> getAllBeforeTime(@Bind("lapSourceId") Integer lapSourceId, @Bind("timestamp") Timestamp timestamp);
 
     @SqlQuery("SELECT * FROM lap WHERE lap_source_id = :lapSourceId AND timestamp <= :timestamp AND team_id = :teamId")
     @RegisterBeanMapper(Lap.class)

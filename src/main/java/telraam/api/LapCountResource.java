@@ -7,6 +7,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import telraam.database.daos.TeamDAO;
 import telraam.database.models.Lap;
+import telraam.database.models.LapCount;
 import telraam.database.models.Team;
 import telraam.util.AcceptedLapsUtil;
 
@@ -58,6 +59,17 @@ public class LapCountResource {
         }
 
         return perName;
+    }
+    
+    @GET
+    @Path("/{lapSourceId}")
+    public List<LapCount> getLapCountForLapSource(@PathParam("lapSourceId") Integer id, @QueryParam("end") Optional<String> endTimestamp) {
+        LocalDateTime dateTime = LocalDateTime.now();
+        if (endTimestamp.isPresent()) {
+            dateTime = LocalDateTime.parse(endTimestamp.get());
+        }
+        List<LapCount> laps = lapDAO.getAllBeforeTime(id, Timestamp.valueOf(dateTime));
+        return laps;
     }
 
     // EndTimestamp should be a ISO formatted date timestamp
