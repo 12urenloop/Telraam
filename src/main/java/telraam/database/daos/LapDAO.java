@@ -34,9 +34,9 @@ public interface LapDAO extends DAO<Lap> {
     @RegisterBeanMapper(LapCount.class)
     List<LapCount> getAllBeforeTime(@Bind("lapSourceId") Integer lapSourceId, @Bind("timestamp") Timestamp timestamp);
 
-    @SqlQuery("SELECT * FROM lap WHERE lap_source_id = :lapSourceId AND timestamp <= :timestamp AND team_id = :teamId")
-    @RegisterBeanMapper(Lap.class)
-    List<Lap> getAllForTeamBeforeTime(@Bind("lapSourceId") Integer lapSourceId, @Bind("teamId") Integer teamId, @Bind("timestamp") Timestamp timestamp);
+    @SqlQuery("SELECT t.id as team_id, (SELECT COUNT(*) FROM lap WHERE lap_source_id = :lapSourceId AND timestamp <= :timestamp and team_id = t.id) as count FROM team t where id = :teamId")
+    @RegisterBeanMapper(LapCount.class)
+    LapCount getAllForTeamBeforeTime(@Bind("lapSourceId") Integer lapSourceId, @Bind("teamId") Integer teamId, @Bind("timestamp") Timestamp timestamp);
 
     @SqlUpdate("INSERT INTO lap (team_id, lap_source_id, timestamp) " +
             "VALUES (:teamId, :lapSourceId, :timestamp)")

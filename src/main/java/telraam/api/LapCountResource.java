@@ -80,7 +80,7 @@ public class LapCountResource {
         if (endTimestamp.isPresent()) {
             dateTime = LocalDateTime.parse(endTimestamp.get());
         }
-        List<Lap> laps = lapDAO.getAllForTeamBeforeTime(id, teamId, Timestamp.valueOf(dateTime));
-        return laps.size();
+        LapCount lapInfo = lapDAO.getAllForTeamBeforeTime(id, teamId, Timestamp.valueOf(dateTime));
+        return lapInfo.getCount();
     }
 }
