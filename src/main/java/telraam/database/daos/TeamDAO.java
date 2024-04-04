@@ -19,7 +19,7 @@ public interface TeamDAO extends DAO<Team> {
     List<Team> getAll();
 
     @Override
-    @SqlUpdate("INSERT INTO team (name, baton_id) VALUES (:name, :batonId)")
+    @SqlUpdate("INSERT INTO team (name, baton_id, jacket_nr) VALUES (:name, :batonId, :jacketNr)")
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Team team);
 
@@ -33,9 +33,6 @@ public interface TeamDAO extends DAO<Team> {
     int deleteById(@Bind("id") int id);
 
     @Override
-    @SqlUpdate("UPDATE team SET " +
-            "name = :name," +
-            "baton_id = :batonId " +
-            "WHERE id = :id")
+    @SqlUpdate("UPDATE team SET name = :name, baton_id = :batonId, jacket_nr = :jacketNr WHERE id = :id")
     int update(@Bind("id") int id, @BindBean Team modelObj);
 }

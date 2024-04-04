@@ -1,0 +1,1 @@
+alter table team add jacket_nr varchar(255) default 'INVALID' not null;
