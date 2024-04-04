@@ -22,8 +22,8 @@ import java.util.Optional;
 @Tag(name="Lap Counts")
 @Produces(MediaType.APPLICATION_JSON)
 public class LapCountResource {
-    TeamDAO teamDAO;
-    LapDAO lapDAO;
+    private TeamDAO teamDAO;
+    private LapDAO lapDAO;
 
     public LapCountResource(TeamDAO teamDAO, LapDAO lapDAO) {
         this.teamDAO = teamDAO;
