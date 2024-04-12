@@ -17,17 +17,18 @@ import java.util.stream.Collectors;
 
 public class Nostradamus implements Positioner {
     private static final Logger logger = Logger.getLogger(Nostradamus.class.getName());
-    private final int INTERVAL_CALCULATE = 500; // How often to handle new detections
-    private final int INTERVAL_FETCH = 60000; // Interval between fetching all stations, teams, ...
-    private final int INTERVAL_DETECTIONS = 1; // Amount of seconds to group detections by
+    private final int INTERVAL_CALCULATE_MS = 500; // How often to handle new detections
+    private final int INTERVAL_FETCH_MS = 60000; // Interval between fetching all stations, teams, ...
+    private final int INTERVAL_DETECTIONS_MS = 1000; // Amount of seconds to group detections by
     private final int AVERAGE_AMOUNT = 10; // Calculate the average running speed the last x intervals
+    private final double AVERAGE_SPRINTING_SPEED_M_S = 6.84; // Average sprinting speed m / s
     private final int MIN_RSSI = -84;
     private final Jdbi jdbi;
     private final List<Detection> newDetections; // Contains not yet handled detections
     private final Lock detectionLock;
     private final Lock dataLock;
-    private Map<Integer, Team> batonToTeam; // Baton ID to Team
-    private Map<Team, TeamData> teamData; // All team data
+    private Map<Integer, Integer> batonToTeam; // Baton ID to Team ID
+    private Map<Integer, TeamData> teamData; // All team data
     private final PositionSender positionSender;
 
     public Nostradamus(Jdbi jdbi) {
@@ -42,8 +43,8 @@ public class Nostradamus implements Positioner {
 
         this.positionSender = new PositionSender();
 
-        new Thread(this::fetch);
-        new Thread(this::calculatePosition);
+        new Thread(this::fetch).start();
+        new Thread(this::calculatePosition).start();
     }
 
     private void setTeamData() {
@@ -51,19 +52,20 @@ public class Nostradamus implements Positioner {
         List<Team> teams = jdbi.onDemand(TeamDAO.class).getAll();
 
         teamData = teams.stream().collect(Collectors.toMap(
-                team -> team,
-                team -> new TeamData(team.getId(), INTERVAL_DETECTIONS, stations, AVERAGE_AMOUNT)
+                Team::getId,
+                team -> new TeamData(team.getId(), INTERVAL_DETECTIONS_MS, stations, AVERAGE_AMOUNT, AVERAGE_SPRINTING_SPEED_M_S)
         ));
     }
 
     private void fetch() {
         List<BatonSwitchover> switchovers = jdbi.onDemand(BatonSwitchoverDAO.class).getAll();
-        List<Team> teams = jdbi.onDemand(TeamDAO.class).getAll();
 
-        Map<Integer, Team> teamIdToTeam = teams.stream().collect(Collectors.toMap(Team::getId, team -> team));
-        Map<Integer, Team> batonToTeam = switchovers.stream().collect(Collectors.toMap(
+        Map<Integer, Integer> batonToTeam = switchovers.stream().sorted(
+                Comparator.comparing(BatonSwitchover::getTimestamp)
+        ).collect(Collectors.toMap(
                 BatonSwitchover::getNewBatonId,
-                switchover -> teamIdToTeam.get(switchover.getTeamId())
+                BatonSwitchover::getTeamId,
+                (existing, replacement) -> replacement
         ));
 
         if (!this.batonToTeam.equals(batonToTeam)) {
@@ -74,23 +76,23 @@ public class Nostradamus implements Positioner {
 
         // zzzzzzzz
         try {
-            Thread.sleep(INTERVAL_FETCH);
+            Thread.sleep(INTERVAL_FETCH_MS);
         } catch (InterruptedException e) {
             logger.severe(e.getMessage());
         }
     }
 
     private void calculatePosition() {
-        Set<Team> changedTeams = new HashSet<>(); // List of teams that have changed station
+        Set<Integer> changedTeams = new HashSet<>(); // List of teams that have changed station
         while (true) {
             dataLock.lock();
             changedTeams.clear();
             detectionLock.lock();
             for (Detection detection: newDetections) {
                 if (batonToTeam.containsKey(detection.getBatonId())) {
-                    Team team = batonToTeam.get(detection.getBatonId());
-                    if (teamData.get(team).addDetection(detection)) {
-                        changedTeams.add(team);
+                    Integer teamId = batonToTeam.get(detection.getBatonId());
+                    if (teamData.get(teamId).addDetection(detection)) {
+                        changedTeams.add(teamId);
                     }
                 }
             }
@@ -99,8 +101,8 @@ public class Nostradamus implements Positioner {
 
             if (!changedTeams.isEmpty()) {
                 // Update
-                for (Team team: changedTeams) {
-                    teamData.get(team).updatePosition();
+                for (Integer teamId: changedTeams) {
+                    teamData.get(teamId).updatePosition();
                 }
 
                 // Send new data to the websocket
@@ -113,7 +115,7 @@ public class Nostradamus implements Positioner {
 
             // zzzzzzzz
             try {
-                Thread.sleep(INTERVAL_CALCULATE);
+                Thread.sleep(INTERVAL_CALCULATE_MS);
             } catch (InterruptedException e) {
                 logger.severe(e.getMessage());
             }

@@ -24,6 +24,7 @@ import telraam.logic.lapper.external.ExternalLapper;
 import telraam.logic.lapper.robust.RobustLapper;
 import telraam.logic.lapper.slapper.Slapper;
 import telraam.logic.positioner.Positioner;
+import telraam.logic.positioner.nostradamus.Nostradamus;
 import telraam.logic.positioner.simple.SimplePositioner;
 import telraam.station.FetcherFactory;
 import telraam.station.websocket.WebsocketFetcher;
@@ -142,7 +143,8 @@ public class App extends Application<AppConfiguration> {
             // Set up positioners
             Set<Positioner> positioners = new HashSet<>();
 
-            positioners.add(new SimplePositioner(this.database));
+//            positioners.add(new SimplePositioner(this.database));
+            positioners.add(new Nostradamus(this.database));
 
             // Start fetch thread for each station
             FetcherFactory fetcherFactory = new FetcherFactory(this.database, lappers, positioners);
