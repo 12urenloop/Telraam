@@ -51,7 +51,7 @@ public class TeamData {
     public boolean addDetection(Detection e) {
         boolean newStation = detections.add(e);
 
-        if (newStation) {
+        if ((newStation && isForwardStation()) || currentStation.getId() == -10) {
             previousStation = currentStation;
             currentStation = idToStation.get(e.getStationId());
             if (isNextStation()) {
@@ -67,8 +67,16 @@ public class TeamData {
         return newStation;
     }
 
+    private int getStationDiff() {
+        return (stations.indexOf(currentStation) - stations.indexOf(previousStation) + stations.size()) % stations.size();
+    }
+
+    private boolean isForwardStation() {
+        return getStationDiff() > 0;
+    }
+
     private boolean isNextStation() {
-        return (stations.indexOf(currentStation) - stations.indexOf(previousStation) + stations.size()) % stations.size() == 1;
+        return getStationDiff() == 1;
     }
 
     // TODO: Smoothen out
@@ -77,11 +85,17 @@ public class TeamData {
         Station nextStation = stations.get((stations.indexOf(currentStation) + 1) % stations.size());
 //        double distance = (nextStation.getDistanceFromStart() - currentStation.getDistanceFromStart() + totalDistance) % totalDistance;
         double speed = (((nextStation.getDistanceFromStart() / totalDistance) - progress + 1) % 1) / getAverage(); // Progress / second
+//        if (Double.isInfinite(speed)) {
+//            System.out.println("aiaiaia");
+//            System.out.println("Averages");
+//            averageTimes.get(currentStation).forEach(time -> System.out.println("Time: " + time));
+//            System.out.println("Average: " + getAverage());
+//        }
 
         position.update(progress, speed);
     }
 
     private double getAverage() {
-        return averageTimes.get(currentStation).stream().mapToDouble(time -> time).average().orElse(0.1);
+        return averageTimes.get(currentStation).stream().mapToDouble(time -> time).average().getAsDouble();
     }
 }
