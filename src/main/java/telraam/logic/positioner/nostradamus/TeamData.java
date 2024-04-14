@@ -28,7 +28,7 @@ public class TeamData {
         this.idToStation = stations.stream().collect(Collectors.toMap(Station::getId, station -> station));
 //        this.averageTimes = stations.stream().collect(Collectors.toMap(station -> station, station -> new CircularQueue<>(averageAmount)));
         this.previousStationArrival = System.currentTimeMillis();
-        this.currentStation = new Station(-10); // Will never trigger `isNextStation` for the first station
+        this.currentStation = new Station(-1); // Will never trigger `isNextStation` for the first station
         this.totalDistance = this.stations.get(this.stations.size() - 1).getDistanceFromStart(); //  Requires last station to be located at the start
         this.position = new Position(teamId);
         this.averageTimes = getAverageTimes(averageAmount, sprintingSpeed);
@@ -51,7 +51,7 @@ public class TeamData {
     public boolean addDetection(Detection e) {
         boolean newStation = detections.add(e);
 
-        if ((newStation && isForwardStation()) || currentStation.getId() == -10) {
+        if ((newStation && isForwardStation(currentStation, idToStation.get(e.getStationId()))) || currentStation.getId() == -1) {
             previousStation = currentStation;
             currentStation = idToStation.get(e.getStationId());
             if (isNextStation()) {
@@ -62,35 +62,31 @@ public class TeamData {
                 }
             }
             previousStationArrival = System.currentTimeMillis() / 1000;
+
+            return true;
         }
 
-        return newStation;
+        return false;
     }
 
-    private int getStationDiff() {
-        return (stations.indexOf(currentStation) - stations.indexOf(previousStation) + stations.size()) % stations.size();
+    private int getStationDiff(Station oldStation, Station newStation) {
+        return (stations.indexOf(newStation) - stations.indexOf(oldStation) + stations.size()) % stations.size();
     }
 
-    private boolean isForwardStation() {
-        return getStationDiff() > 0;
+    private boolean isForwardStation(Station oldStation, Station newStation) {
+        int stationDiff = getStationDiff(oldStation, newStation);
+        return stationDiff > 0 && stationDiff < 3;
     }
 
     private boolean isNextStation() {
-        return getStationDiff() == 1;
+        return getStationDiff(previousStation, currentStation) == 1;
     }
 
     // TODO: Smoothen out
     public void updatePosition() {
         double progress = currentStation.getDistanceFromStart() / totalDistance;
         Station nextStation = stations.get((stations.indexOf(currentStation) + 1) % stations.size());
-//        double distance = (nextStation.getDistanceFromStart() - currentStation.getDistanceFromStart() + totalDistance) % totalDistance;
         double speed = (((nextStation.getDistanceFromStart() / totalDistance) - progress + 1) % 1) / getAverage(); // Progress / second
-//        if (Double.isInfinite(speed)) {
-//            System.out.println("aiaiaia");
-//            System.out.println("Averages");
-//            averageTimes.get(currentStation).forEach(time -> System.out.println("Time: " + time));
-//            System.out.println("Average: " + getAverage());
-//        }
 
         position.update(progress, speed);
     }
