@@ -1,6 +1,7 @@
 package telraam.station.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.AllArgsConstructor;
 import org.jdbi.v3.core.Jdbi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import telraam.database.daos.BatonDAO;
@@ -157,11 +158,8 @@ public class WebsocketFetcher implements Fetcher {
         }
     }
 
-    private class InitWSMessage {
+    @AllArgsConstructor
+    private static class InitWSMessage {
         public int lastId;
-
-        public InitWSMessage(int lastId) {
-            this.lastId = lastId;
-        }
     }
 }
