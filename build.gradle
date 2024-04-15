@@ -69,7 +69,8 @@ dependencies {
 
     // Websocket client libs
     compileOnly 'jakarta.websocket:jakarta.websocket-client-api:2.2.0-M1'
-    implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:2.2.0-M1'
+    // Impl for jakarta websocket clients
+    implementation 'org.eclipse.jetty.websocket:websocket-jakarta-client:11.0.20'
 
     // Database
     implementation('com.h2database:h2:2.2.220')
