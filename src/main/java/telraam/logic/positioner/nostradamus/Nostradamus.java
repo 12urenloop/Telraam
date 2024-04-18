@@ -19,7 +19,7 @@ public class Nostradamus implements Positioner {
     private static final Logger logger = Logger.getLogger(Nostradamus.class.getName());
     private final int INTERVAL_CALCULATE_MS = 500; // How often to handle new detections
     private final int INTERVAL_FETCH_MS = 60000; // Interval between fetching all stations, teams, ...
-    private final int INTERVAL_DETECTIONS_MS = 1000; // Amount of seconds to group detections by
+    private final int INTERVAL_DETECTIONS_MS = 3000; // Amount of milliseconds to group detections by
     private final int AVERAGE_AMOUNT = 10; // Calculate the average running speed the last x intervals
     private final double AVERAGE_SPRINTING_SPEED_M_S = 6.84; // Average sprinting speed m / s
     private final int MIN_RSSI = -84;

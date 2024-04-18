@@ -7,10 +7,10 @@ import lombok.Setter;
 
 @Getter @Setter @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Position {
-    private int teamId;
+    private final int teamId;
     private double progress; // Progress of the lap. Between 0-1
     private double speed; // Current speed. progress / second
-    private long timestamp;
+    private double timestamp;
 
     public Position(int teamId) {
         this.teamId = teamId;
@@ -22,6 +22,6 @@ public class Position {
     public void update(double progress, double speed) {
         this.progress = progress;
         this.speed = speed;
-        this.timestamp = System.currentTimeMillis() / 1000L;;
+        this.timestamp = System.currentTimeMillis() / 1000D;
     }
 }

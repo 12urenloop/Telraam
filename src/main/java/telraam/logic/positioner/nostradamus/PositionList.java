@@ -24,10 +24,6 @@ public class PositionList extends ArrayList<Detection> {
         this.newestDetection = new Timestamp(0);
     }
 
-    /**
-     * @param e element to add
-     * @return True if the current position has changed
-     */
     @Override
     public boolean add(Detection e) {
         super.add(e);
