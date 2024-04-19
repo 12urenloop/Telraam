@@ -21,7 +21,7 @@ public class Nostradamus implements Positioner {
     private final int INTERVAL_FETCH_MS = 60000; // Interval between fetching all stations, teams, ...
     private final int INTERVAL_DETECTIONS_MS = 3000; // Amount of milliseconds to group detections by
     private final int AVERAGE_AMOUNT = 10; // Calculate the average running speed the last x intervals
-    private final double AVERAGE_SPRINTING_SPEED_M_S = 6.84; // Average sprinting speed m / s
+    private final double AVERAGE_SPRINTING_SPEED_M_MS = 0.00684; // Average sprinting speed m / ms
     private final int MIN_RSSI = -84;
     private final Jdbi jdbi;
     private final List<Detection> newDetections; // Contains not yet handled detections
@@ -53,7 +53,7 @@ public class Nostradamus implements Positioner {
 
         teamData = teams.stream().collect(Collectors.toMap(
                 Team::getId,
-                team -> new TeamData(team.getId(), INTERVAL_DETECTIONS_MS, stations, AVERAGE_AMOUNT, AVERAGE_SPRINTING_SPEED_M_S)
+                team -> new TeamData(team.getId(), INTERVAL_DETECTIONS_MS, stations, AVERAGE_AMOUNT, AVERAGE_SPRINTING_SPEED_M_MS)
         ));
     }
 

@@ -10,7 +10,7 @@ public class Position {
     private final int teamId;
     private double progress; // Progress of the lap. Between 0-1
     private double speed; // Current speed. progress / second
-    private double timestamp;
+    private long timestamp;
 
     public Position(int teamId) {
         this.teamId = teamId;
@@ -22,6 +22,6 @@ public class Position {
     public void update(double progress, double speed) {
         this.progress = progress;
         this.speed = speed;
-        this.timestamp = System.currentTimeMillis() / 1000D;
+        this.timestamp = System.currentTimeMillis();
     }
 }
