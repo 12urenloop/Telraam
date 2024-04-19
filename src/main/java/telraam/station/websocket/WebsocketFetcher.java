@@ -122,7 +122,7 @@ public class WebsocketFetcher implements Fetcher {
                             new Timestamp((long) (detection.detectionTimestamp * 1000)),
                             new Timestamp(System.currentTimeMillis())
                     ));
-                    detection_mac_addresses.add(detection.mac);
+                    detection_mac_addresses.add(detection.mac.toUpperCase());
                 }
                 if (!new_detections.isEmpty()) {
                     List<Detection> db_detections = detectionDAO.insertAllWithoutBaton(new_detections, detection_mac_addresses);
