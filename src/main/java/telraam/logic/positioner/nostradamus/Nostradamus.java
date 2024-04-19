@@ -23,6 +23,7 @@ public class Nostradamus implements Positioner {
     private final int AVERAGE_AMOUNT = 10; // Calculate the average running speed the last x intervals
     private final double AVERAGE_SPRINTING_SPEED_M_MS = 0.00684; // Average sprinting speed m / ms
     private final int MIN_RSSI = -84;
+    private final  int FINISH_OFFSET = 0;
     private final Jdbi jdbi;
     private final List<Detection> newDetections; // Contains not yet handled detections
     private final Lock detectionLock;
@@ -49,11 +50,12 @@ public class Nostradamus implements Positioner {
 
     private void setTeamData() {
         List<Station> stations = jdbi.onDemand(StationDAO.class).getAll();
+        stations.sort(Comparator.comparing(Station::getDistanceFromStart));
         List<Team> teams = jdbi.onDemand(TeamDAO.class).getAll();
 
         teamData = teams.stream().collect(Collectors.toMap(
                 Team::getId,
-                team -> new TeamData(team.getId(), INTERVAL_DETECTIONS_MS, stations, AVERAGE_AMOUNT, AVERAGE_SPRINTING_SPEED_M_MS)
+                team -> new TeamData(team.getId(), INTERVAL_DETECTIONS_MS, stations, AVERAGE_AMOUNT, AVERAGE_SPRINTING_SPEED_M_MS, FINISH_OFFSET)
         ));
     }
 

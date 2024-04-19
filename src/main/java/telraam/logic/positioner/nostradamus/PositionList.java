@@ -24,6 +24,7 @@ public class PositionList extends ArrayList<Detection> {
         this.newestDetection = new Timestamp(0);
     }
 
+    // Returns True if it's a new station
     @Override
     public boolean add(Detection e) {
         super.add(e);
