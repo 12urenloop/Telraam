@@ -51,9 +51,6 @@ public class TeamResource extends AbstractListableResource<Team> {
         Team previousTeam = this.get(id);
         Team ret = super.update(team, id);
 
-        System.out.println(previousTeam.getBatonId());
-        System.out.println(team.getBatonId());
-
         if (!Objects.equals(previousTeam.getBatonId(), team.getBatonId())) {
             this.batonSwitchoverDAO.insert(new BatonSwitchover(
                     team.getId(),

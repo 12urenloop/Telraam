@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class PositionList extends ArrayList<Detection> {
+public class DetectionList extends ArrayList<Detection> {
 
     private final int interval;
     private final List<Integer> stations;
@@ -17,7 +17,7 @@ public class PositionList extends ArrayList<Detection> {
     private Detection currentPosition;
     private Timestamp newestDetection;
 
-    public PositionList(int interval, List<Station> stations) {
+    public DetectionList(int interval, List<Station> stations) {
         this.interval = interval;
         this.stations = stations.stream().sorted(Comparator.comparing(Station::getDistanceFromStart)).map(Station::getId).toList();
         this.currentPosition = new Detection(-1, 0, -100);

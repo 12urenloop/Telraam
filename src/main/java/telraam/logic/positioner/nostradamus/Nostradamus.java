@@ -1,11 +1,13 @@
 package telraam.logic.positioner.nostradamus;
 
 import org.jdbi.v3.core.Jdbi;
-import telraam.database.daos.BatonDAO;
 import telraam.database.daos.BatonSwitchoverDAO;
 import telraam.database.daos.StationDAO;
 import telraam.database.daos.TeamDAO;
-import telraam.database.models.*;
+import telraam.database.models.BatonSwitchover;
+import telraam.database.models.Detection;
+import telraam.database.models.Station;
+import telraam.database.models.Team;
 import telraam.logic.positioner.PositionSender;
 import telraam.logic.positioner.Positioner;
 

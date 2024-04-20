@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class TeamData {
-    private final PositionList detections; // List with all relevant detections
+    private final DetectionList detections; // List with all relevant detections
     private final Map<Integer, StationData> stations;  // Station list
     private long previousStationArrival; // Arrival time of previous station. Used to calculate the average times
     private StationData currentStation; // Current station location
@@ -17,7 +17,7 @@ public class TeamData {
     private final int totalDistance; // Total distance of the track
     @Getter
     private final Position position; // Data to send to the websocket
-    private final double maxDeviance; // Maximum deviance the animation can have from the reality
+    private final float maxDeviance; // Maximum deviance the animation can have from the reality
 
 
     public TeamData(int teamId, int interval, List<Station> stations, int averageAmount, double sprintingSpeed, int finishOffset) {
@@ -33,18 +33,18 @@ public class TeamData {
                 )
         ));
         // Pre-populate with some data
-        this.stations.forEach((stationId, stationData) -> stationData.averageTimes().add(
+        this.stations.forEach((stationId, stationData) -> stationData.times().add(
                 (long) (((stationData.nextStation().getDistanceFromStart() - stationData.station().getDistanceFromStart() + totalDistance) % totalDistance) / sprintingSpeed)
         ));
-        this.detections = new PositionList(interval, stations);
+        this.detections = new DetectionList(interval, stations);
         this.previousStationArrival = System.currentTimeMillis();
-        this.currentStation = new StationData(new Station(-10), new Station(-9), new CircularQueue<>(0), -10, -10, -10); // Will never trigger `isNextStation` for the first station
+        this.currentStation = new StationData(); // Will never trigger `isNextStation` for the first station
         this.position = new Position(teamId);
-        this.maxDeviance = (double) 1 / stations.size();
+        this.maxDeviance = (float) 1 / stations.size();
     }
 
     // Add a new detection
-    // Returns true if the team is at a next station
+    // Returns true if the team is at a new station
     public boolean addDetection(Detection e) {
         boolean newStation = detections.add(e);
 
@@ -55,7 +55,7 @@ public class TeamData {
             long now = System.currentTimeMillis();
             if (isNextStation()) {
                 // Only add the time if it goes forward by exactly one station
-                previousStation.averageTimes().add(now - previousStationArrival);
+                previousStation.times().add(now - previousStationArrival);
             }
             previousStationArrival = now;
 
@@ -67,7 +67,7 @@ public class TeamData {
 
     private boolean isForwardStation(int oldStation, int newStation) {
         int stationDiff = (newStation - oldStation + stations.size()) % stations.size();
-        return stationDiff > 0 && stationDiff < 3;
+        return stationDiff < 3;
     }
 
     private boolean isNextStation() {
@@ -83,16 +83,17 @@ public class TeamData {
         double theoreticalProgress = (position.getProgress() + (position.getSpeed() * milliSecondsSince)) % 1;
 
         // Arrive at next station at timestamp y and progress z
-        long nextStationArrival = currentTime + getMedian();
+        double median = getMedian(currentStation.times());
+        double nextStationArrival = currentTime + median;
         double goalProgress = currentStation.nextProgress();
 
         double speed, progress;
         // Determine whether to speed up / slow down the animation or teleport it
         double difference = (currentStation.currentProgress() - theoreticalProgress + 1) % 1;
-        if ((difference >= maxDeviance && difference <= 1 - maxDeviance) || currentStation.averageTimes().size() < 3) {
+        if ((difference >= maxDeviance && difference <= 1 - maxDeviance)) {
             // Animation was too far behind or ahead so teleport
             progress = currentStation.currentProgress();
-            speed = ((currentStation.nextProgress() - progress + 1) % 1) / getMedian();
+            speed = ((currentStation.nextProgress() - progress + 1) % 1) / median;
         } else {
             // Animation is close enough, adjust so that we're synced at the next station
             progress = theoreticalProgress;
@@ -103,13 +104,11 @@ public class TeamData {
     }
 
     // Get the medium of the average times
-    private long getMedian() {
-        List<Long> sortedList = new ArrayList<>(currentStation.averageTimes());
+    private long getMedian(List<Long> times) {
+        List<Long> sortedList = new ArrayList<>(times);
         Collections.sort(sortedList);
 
         int size = sortedList.size();
         return size % 2 == 0 ? (sortedList.get(size / 2 - 1) + sortedList.get(size / 2)) / 2 : (sortedList.get(size / 2));
     }
 }
-
-// TODO: Possible problem: Might arrive to early at station -> Move backwards stations by 5 meter
