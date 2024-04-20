@@ -8,6 +8,7 @@ import telraam.database.models.BatonSwitchover;
 import telraam.database.models.Detection;
 import telraam.database.models.Station;
 import telraam.database.models.Team;
+import telraam.logic.positioner.Position;
 import telraam.logic.positioner.PositionSender;
 import telraam.logic.positioner.Positioner;
 
@@ -26,6 +27,7 @@ public class Nostradamus implements Positioner {
     private final double AVERAGE_SPRINTING_SPEED_M_MS = 0.00684; // Average sprinting speed m / ms
     private final int MIN_RSSI = -84;
     private final  int FINISH_OFFSET = 0;
+    private final int MAX_NO_DATA_MS = 30000;
     private final Jdbi jdbi;
     private final List<Detection> newDetections; // Contains not yet handled detections
     private final Lock detectionLock;
@@ -102,6 +104,7 @@ public class Nostradamus implements Positioner {
             }
             newDetections.clear();
             detectionLock.unlock(); // Use lock as short as possible
+            dataLock.unlock();
 
             if (!changedTeams.isEmpty()) {
                 // Update
@@ -115,7 +118,17 @@ public class Nostradamus implements Positioner {
                 );
             }
 
-            dataLock.unlock();
+            long now = System.currentTimeMillis();
+            for (Map.Entry<Integer, TeamData> entry: teamData.entrySet()) {
+                if (now - entry.getValue().getPreviousStationArrival() > MAX_NO_DATA_MS) {
+                    positionSender.send(
+                            Collections.singletonList(new Position(
+                                    entry.getKey(),
+                                    entry.getValue().getPosition().getProgress()
+                            ))
+                    );
+                }
+            }
 
             // zzzzzzzz
             try {

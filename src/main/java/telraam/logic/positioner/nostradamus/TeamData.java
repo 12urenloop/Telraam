@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 public class TeamData {
     private final DetectionList detections; // List with all relevant detections
     private final Map<Integer, StationData> stations;  // Station list
+    @Getter
     private long previousStationArrival; // Arrival time of previous station. Used to calculate the average times
     private StationData currentStation; // Current station location
     private StationData previousStation; // Previous station location
@@ -74,13 +75,17 @@ public class TeamData {
         return Objects.equals(previousStation.nextStation().getId(), currentStation.station().getId());
     }
 
+    private double normalize(double number) {
+        return (number + 1) % 1;
+    }
+
     // Update the position data
     public void updatePosition() {
         long currentTime = System.currentTimeMillis();
 
         // Animation is currently at progress x
         long milliSecondsSince = currentTime - position.getTimestamp();
-        double theoreticalProgress = (position.getProgress() + (position.getSpeed() * milliSecondsSince)) % 1;
+        double theoreticalProgress = normalize(position.getProgress() + (position.getSpeed() * milliSecondsSince));
 
         // Arrive at next station at timestamp y and progress z
         double median = getMedian(currentStation.times());
@@ -89,18 +94,18 @@ public class TeamData {
 
         double speed, progress;
         // Determine whether to speed up / slow down the animation or teleport it
-        double difference = (currentStation.currentProgress() - theoreticalProgress + 1) % 1;
+        double difference = normalize(currentStation.currentProgress() - theoreticalProgress);
         if ((difference >= maxDeviance && difference <= 1 - maxDeviance)) {
             // Animation was too far behind or ahead so teleport
             progress = currentStation.currentProgress();
-            speed = ((currentStation.nextProgress() - progress + 1) % 1) / median;
+            speed = normalize(currentStation.nextProgress() - progress) / median;
         } else {
             // Animation is close enough, adjust so that we're synced at the next station
             progress = theoreticalProgress;
-            speed = ((goalProgress - theoreticalProgress + 1) % 1) / (nextStationArrival - currentTime);
+            speed = normalize(goalProgress - theoreticalProgress) / (nextStationArrival - currentTime);
         }
 
-        position.update(progress, speed);
+        position.update(progress, speed, currentTime);
     }
 
     // Get the medium of the average times
