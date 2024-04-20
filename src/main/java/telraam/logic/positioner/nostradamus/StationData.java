@@ -5,6 +5,7 @@ import telraam.database.models.Station;
 import java.util.ArrayList;
 import java.util.List;
 
+// Record containing all data necessary for TeamData
 public record StationData(
         Station station, // The station
         Station nextStation, // The next station

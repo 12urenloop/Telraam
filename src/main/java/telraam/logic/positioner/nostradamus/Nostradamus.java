@@ -20,21 +20,21 @@ import java.util.stream.Collectors;
 
 public class Nostradamus implements Positioner {
     private static final Logger logger = Logger.getLogger(Nostradamus.class.getName());
-    private final int INTERVAL_CALCULATE_MS = 500; // How often to handle new detections
-    private final int INTERVAL_FETCH_MS = 60000; // Interval between fetching all stations, teams, ...
+    private final int INTERVAL_CALCULATE_MS = 500; // How often to handle new detections (in milliseconds)
+    private final int INTERVAL_FETCH_MS = 60000; // Interval between fetching baton switchovers (in milliseconds)
     private final int INTERVAL_DETECTIONS_MS = 3000; // Amount of milliseconds to group detections by
-    private final int AVERAGE_AMOUNT = 10; // Calculate the average running speed the last x intervals
-    private final double AVERAGE_SPRINTING_SPEED_M_MS = 0.00684; // Average sprinting speed m / ms
-    private final int MIN_RSSI = -84;
-    private final  int FINISH_OFFSET = 0;
-    private final int MAX_NO_DATA_MS = 30000;
+    private final int MAX_NO_DATA_MS = 30000; // Send a stationary position after receiving no station update for x amount of milliseconds
+    private final int AVERAGE_AMOUNT = 10; // Calculate the median running speed of the last x intervals
+    private final double AVERAGE_SPRINTING_SPEED_M_MS = 0.00684; // Average sprinting speed meters / milliseconds
+    private final int MIN_RSSI = -84; // Minimum rssi strength for a detection
+    private final int FINISH_OFFSET_M = 0; // Distance between the last station and the finish in meters
     private final Jdbi jdbi;
     private final List<Detection> newDetections; // Contains not yet handled detections
+    private Map<Integer, Integer> batonToTeam; // Baton ID to Team ID
+    private final Map<Integer, TeamData> teamData; // All team data
+    private final PositionSender positionSender;
     private final Lock detectionLock;
     private final Lock dataLock;
-    private Map<Integer, Integer> batonToTeam; // Baton ID to Team ID
-    private Map<Integer, TeamData> teamData; // All team data
-    private final PositionSender positionSender;
 
     public Nostradamus(Jdbi jdbi) {
         this.jdbi = jdbi;
@@ -44,7 +44,7 @@ public class Nostradamus implements Positioner {
 
         // Will be filled by fetch
         this.batonToTeam = new HashMap<>();
-        setTeamData();
+        this.teamData = getTeamData();
 
         this.positionSender = new PositionSender();
 
@@ -52,17 +52,19 @@ public class Nostradamus implements Positioner {
         new Thread(this::calculatePosition).start();
     }
 
-    private void setTeamData() {
+    // Initiate the team data map
+    private Map<Integer, TeamData> getTeamData() {
         List<Station> stations = jdbi.onDemand(StationDAO.class).getAll();
         stations.sort(Comparator.comparing(Station::getDistanceFromStart));
         List<Team> teams = jdbi.onDemand(TeamDAO.class).getAll();
 
-        teamData = teams.stream().collect(Collectors.toMap(
+        return teams.stream().collect(Collectors.toMap(
                 Team::getId,
-                team -> new TeamData(team.getId(), INTERVAL_DETECTIONS_MS, stations, AVERAGE_AMOUNT, AVERAGE_SPRINTING_SPEED_M_MS, FINISH_OFFSET)
+                team -> new TeamData(team.getId(), INTERVAL_DETECTIONS_MS, stations, AVERAGE_AMOUNT, AVERAGE_SPRINTING_SPEED_M_MS, FINISH_OFFSET_M)
         ));
     }
 
+    // Fetch all baton switchovers and replace the current one if there are any changes
     private void fetch() {
         List<BatonSwitchover> switchovers = jdbi.onDemand(BatonSwitchoverDAO.class).getAll();
 
@@ -80,7 +82,7 @@ public class Nostradamus implements Positioner {
             dataLock.unlock();
         }
 
-        // zzzzzzzz
+        // Sleep tight
         try {
             Thread.sleep(INTERVAL_FETCH_MS);
         } catch (InterruptedException e) {
@@ -88,11 +90,12 @@ public class Nostradamus implements Positioner {
         }
     }
 
+    // handle all new detections and update positions accordingly
     private void calculatePosition() {
         Set<Integer> changedTeams = new HashSet<>(); // List of teams that have changed station
         while (true) {
-            dataLock.lock();
             changedTeams.clear();
+            dataLock.lock();
             detectionLock.lock();
             for (Detection detection: newDetections) {
                 if (batonToTeam.containsKey(detection.getBatonId())) {
@@ -118,6 +121,7 @@ public class Nostradamus implements Positioner {
                 );
             }
 
+            // Send a stationary position if no new station data was received recently
             long now = System.currentTimeMillis();
             for (Map.Entry<Integer, TeamData> entry: teamData.entrySet()) {
                 if (now - entry.getValue().getPreviousStationArrival() > MAX_NO_DATA_MS) {
@@ -130,7 +134,7 @@ public class Nostradamus implements Positioner {
                 }
             }
 
-            // zzzzzzzz
+            // Goodnight
             try {
                 Thread.sleep(INTERVAL_CALCULATE_MS);
             } catch (InterruptedException e) {

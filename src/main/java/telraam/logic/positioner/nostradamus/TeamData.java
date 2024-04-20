@@ -11,14 +11,14 @@ import java.util.stream.Collectors;
 public class TeamData {
     private final DetectionList detections; // List with all relevant detections
     private final Map<Integer, StationData> stations;  // Station list
-    @Getter
-    private long previousStationArrival; // Arrival time of previous station. Used to calculate the average times
     private StationData currentStation; // Current station location
     private StationData previousStation; // Previous station location
+    @Getter
+    private long previousStationArrival; // Arrival time of previous station. Used to calculate the average times
     private final int totalDistance; // Total distance of the track
+    private final float maxDeviance; // Maximum deviance the animation can have from the reality
     @Getter
     private final Position position; // Data to send to the websocket
-    private final float maxDeviance; // Maximum deviance the animation can have from the reality
 
 
     public TeamData(int teamId, int interval, List<Station> stations, int averageAmount, double sprintingSpeed, int finishOffset) {
@@ -33,7 +33,7 @@ public class TeamData {
                         totalDistance
                 )
         ));
-        // Pre-populate with some data
+        // Pre-populate with some default values
         this.stations.forEach((stationId, stationData) -> stationData.times().add(
                 (long) (((stationData.nextStation().getDistanceFromStart() - stationData.station().getDistanceFromStart() + totalDistance) % totalDistance) / sprintingSpeed)
         ));
@@ -88,7 +88,7 @@ public class TeamData {
         double theoreticalProgress = normalize(position.getProgress() + (position.getSpeed() * milliSecondsSince));
 
         // Arrive at next station at timestamp y and progress z
-        double median = getMedian(currentStation.times());
+        double median = getMedian();
         double nextStationArrival = currentTime + median;
         double goalProgress = currentStation.nextProgress();
 
@@ -109,8 +109,8 @@ public class TeamData {
     }
 
     // Get the medium of the average times
-    private long getMedian(List<Long> times) {
-        List<Long> sortedList = new ArrayList<>(times);
+    private long getMedian() {
+        List<Long> sortedList = new ArrayList<>(currentStation.times());
         Collections.sort(sortedList);
 
         int size = sortedList.size();

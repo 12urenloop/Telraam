@@ -2,6 +2,7 @@ package telraam.logic.positioner.nostradamus;
 
 import java.util.LinkedList;
 
+// LinkedList with a maximum length
 public class CircularQueue<T> extends LinkedList<T> {
 
     private final int maxSize;

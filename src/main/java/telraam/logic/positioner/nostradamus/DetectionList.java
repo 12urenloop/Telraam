@@ -24,7 +24,7 @@ public class DetectionList extends ArrayList<Detection> {
         this.newestDetection = new Timestamp(0);
     }
 
-    // Returns True if it's a new station
+    // Returns True if the added detection results in a new station
     @Override
     public boolean add(Detection e) {
         super.add(e);
