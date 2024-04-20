@@ -23,6 +23,5 @@ public class Position {
         this.progress = progress;
         this.speed = speed;
         this.timestamp = System.currentTimeMillis();
-        System.out.println("Progress: " + progress + " | Speed: " + speed + " | Timestamp: " + timestamp);
     }
 }

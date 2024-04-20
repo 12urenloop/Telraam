@@ -52,7 +52,6 @@ public class TeamData {
             // Is at a new station that is in front of the previous one.
             previousStation = currentStation;
             currentStation = stations.get(e.getStationId());
-            System.out.println("Station: " + currentStation.index());
             long now = System.currentTimeMillis();
             if (isNextStation()) {
                 // Only add the time if it goes forward by exactly one station
@@ -91,18 +90,11 @@ public class TeamData {
         // Determine whether to speed up / slow down the animation or teleport it
         double difference = (currentStation.currentProgress() - theoreticalProgress + 1) % 1;
         if ((difference >= maxDeviance && difference <= 1 - maxDeviance) || currentStation.averageTimes().size() < 3) {
-            System.out.println("Too fast");
-            System.out.println("Size: " + currentStation.averageTimes().size());
-            System.out.print("Average times: ");
-            currentStation.averageTimes().forEach(time -> System.out.print(" | " + time));
-            System.out.println("");
-            System.out.println("Goal: " + currentStation.currentProgress() + " Theoretical: " + theoreticalProgress + " Difference: " + (currentStation.currentProgress() - theoreticalProgress + 1) % 1);
             // Animation was too far behind or ahead so teleport
             progress = currentStation.currentProgress();
             speed = ((currentStation.nextProgress() - progress + 1) % 1) / getMedian();
         } else {
             // Animation is close enough, adjust so that we're synced at the next station
-            System.out.println("Good");
             progress = theoreticalProgress;
             speed = ((goalProgress - theoreticalProgress + 1) % 1) / (nextStationArrival - currentTime);
         }
