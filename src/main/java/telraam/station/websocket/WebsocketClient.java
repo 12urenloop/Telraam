@@ -26,6 +26,7 @@ public class WebsocketClient {
     public void listen() throws  RuntimeException {
         try {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+            container.setDefaultMaxTextMessageBufferSize(100 * 1048576);  // 100Mb
             container.connectToServer(this, endpoint);
         } catch (Exception e) {
             throw new RuntimeException(e);
