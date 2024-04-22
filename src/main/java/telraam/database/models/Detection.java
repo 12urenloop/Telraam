@@ -6,7 +6,9 @@ import lombok.Setter;
 
 import java.sql.Timestamp;
 
-@Setter @Getter @NoArgsConstructor
+@Setter
+@Getter
+@NoArgsConstructor
 public class Detection {
     private Integer id;
     private Integer batonId;

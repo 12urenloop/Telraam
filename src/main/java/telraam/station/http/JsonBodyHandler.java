@@ -1,4 +1,4 @@
-package telraam.station;
+package telraam.station.http;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -17,12 +17,6 @@ public class JsonBodyHandler<T> implements HttpResponse.BodyHandler<Supplier<T>>
         this.targetClass = targetClass;
     }
 
-    @Override
-    public HttpResponse.BodySubscriber<Supplier<T>> apply(HttpResponse.ResponseInfo responseInfo) {
-        return asJSON(this.targetClass);
-    }
-
-
     public static <W> HttpResponse.BodySubscriber<Supplier<W>> asJSON(Class<W> targetType) {
         HttpResponse.BodySubscriber<InputStream> upstream = HttpResponse.BodySubscribers.ofInputStream();
 
@@ -39,5 +33,10 @@ public class JsonBodyHandler<T> implements HttpResponse.BodyHandler<Supplier<T>>
                 throw new UncheckedIOException(e);
             }
         };
+    }
+
+    @Override
+    public HttpResponse.BodySubscriber<Supplier<T>> apply(HttpResponse.ResponseInfo responseInfo) {
+        return asJSON(this.targetClass);
     }
 }

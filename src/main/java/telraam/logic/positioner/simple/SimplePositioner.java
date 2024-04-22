@@ -13,27 +13,27 @@ import telraam.logic.positioner.Position;
 import telraam.logic.positioner.PositionSender;
 import telraam.logic.positioner.Positioner;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SimplePositioner implements Positioner {
+    private static final Logger logger = Logger.getLogger(SimplePositioner.class.getName());
     private final int QUEUE_SIZE = 50;
     private final int MIN_RSSI = -85;
     private final int DEBOUNCE_TIMEOUT = 1;
     private boolean debounceScheduled;
     private final ScheduledExecutorService scheduler;
-    private static final Logger logger = Logger.getLogger(SimplePositioner.class.getName());
     private final PositionSender positionSender;
     private final Map<Integer, Team> batonIdToTeam;
-    private final Map<Team, CircularQueue<Detection>> teamDetections;
+    private final Map<Integer, CircularQueue<Detection>> teamDetections;
     private final List<Integer> stations;
-    private final Map<Team, Position> teamPositions;
+    private final Map<Integer, Position> teamPositions;
 
     public SimplePositioner(Jdbi jdbi) {
         this.debounceScheduled = false;
@@ -45,14 +45,14 @@ public class SimplePositioner implements Positioner {
 
         TeamDAO teamDAO = jdbi.onDemand(TeamDAO.class);
         List<Team> teams = teamDAO.getAll();
-        for (Team team: teams) {
-            teamDetections.put(team, new CircularQueue<>(QUEUE_SIZE));
-            teamPositions.put(team, new Position(team.getId()));
+        for (Team team : teams) {
+            teamDetections.put(team.getId(), new CircularQueue<>(QUEUE_SIZE));
+            teamPositions.put(team.getId(), new Position(team.getId()));
         }
         List<BatonSwitchover> switchovers = jdbi.onDemand(BatonSwitchoverDAO.class).getAll();
         switchovers.sort(Comparator.comparing(BatonSwitchover::getTimestamp));
 
-        for (BatonSwitchover switchover: switchovers) {
+        for (BatonSwitchover switchover : switchovers) {
             batonIdToTeam.put(switchover.getNewBatonId(), teamDAO.getById(switchover.getTeamId()).get());
         }
 
@@ -63,13 +63,13 @@ public class SimplePositioner implements Positioner {
 
     public void calculatePositions() {
         logger.info("SimplePositioner: Calculating positions...");
-        for (Map.Entry<Team, CircularQueue<Detection>> entry: teamDetections.entrySet()) {
+        for (Map.Entry<Integer, CircularQueue<Detection>> entry : teamDetections.entrySet()) {
             List<Detection> detections = teamDetections.get(entry.getKey());
             detections.sort(Comparator.comparing(Detection::getTimestamp));
 
             int currentStationRssi = MIN_RSSI;
             int currentStationPosition = 0;
-            for (Detection detection: detections) {
+            for (Detection detection : detections) {
                 if (detection.getRssi() > currentStationRssi) {
                     currentStationRssi = detection.getRssi();
                     currentStationPosition = detection.getStationId();
@@ -84,21 +84,20 @@ public class SimplePositioner implements Positioner {
         logger.info("SimplePositioner: Done calculating positions");
     }
 
-    public void handle(Detection detection) {
+    public synchronized void handle(Detection detection) {
         Team team = batonIdToTeam.get(detection.getBatonId());
-        teamDetections.get(team).add(detection);
+        teamDetections.get(team.getId()).add(detection);
 
-        if (! debounceScheduled) {
+        if (!debounceScheduled) {
             debounceScheduled = true;
             scheduler.schedule(() -> {
                 try {
                     calculatePositions();
                 } catch (Exception e) {
-                    logger.severe(e.getMessage());
+                    logger.log(Level.SEVERE, e.getMessage(), e);
                 }
                 debounceScheduled = false;
             }, DEBOUNCE_TIMEOUT, TimeUnit.SECONDS);
         }
     }
-
 }
