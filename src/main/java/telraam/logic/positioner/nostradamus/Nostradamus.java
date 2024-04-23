@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class Nostradamus implements Positioner {
     private static final Logger logger = Logger.getLogger(Nostradamus.class.getName());
     private final int INTERVAL_CALCULATE_MS = 500; // How often to handle new detections (in milliseconds)
-    private final int INTERVAL_FETCH_MS = 60000; // Interval between fetching baton switchovers (in milliseconds)
+    private final int INTERVAL_FETCH_MS = 10000; // Interval between fetching baton switchovers (in milliseconds)
     private final int INTERVAL_DETECTIONS_MS = 3000; // Amount of milliseconds to group detections by
     private final int MAX_NO_DATA_MS = 30000; // Send a stationary position after receiving no station update for x amount of milliseconds
     private final int MEDIAN_AMOUNT = 10; // Calculate the median running speed of the last x intervals
