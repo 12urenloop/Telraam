@@ -103,15 +103,6 @@ public class WebsocketFetcher implements Fetcher {
             }
             this.fetch();
         });
-        websocketClient.addOnCloseHandler(() -> {
-            this.logger.severe(String.format("Websocket for station %s got closed", station.getName()));
-            try {
-                Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
-            } catch (InterruptedException e) {
-                logger.severe(e.getMessage());
-            }
-            this.fetch();
-        });
         websocketClient.addMessageHandler((String msg) -> {
             //Insert detections
             List<Detection> new_detections = new ArrayList<>();
