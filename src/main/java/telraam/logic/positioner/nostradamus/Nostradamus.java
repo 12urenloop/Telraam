@@ -24,7 +24,7 @@ public class Nostradamus implements Positioner {
     private final int INTERVAL_FETCH_MS = 60000; // Interval between fetching baton switchovers (in milliseconds)
     private final int INTERVAL_DETECTIONS_MS = 3000; // Amount of milliseconds to group detections by
     private final int MAX_NO_DATA_MS = 30000; // Send a stationary position after receiving no station update for x amount of milliseconds
-    private final int AVERAGE_AMOUNT = 10; // Calculate the median running speed of the last x intervals
+    private final int MEDIAN_AMOUNT = 10; // Calculate the median running speed of the last x intervals
     private final double AVERAGE_SPRINTING_SPEED_M_MS = 0.00684; // Average sprinting speed meters / milliseconds
     private final int MIN_RSSI = -84; // Minimum rssi strength for a detection
     private final int FINISH_OFFSET_M = 0; // Distance between the last station and the finish in meters
@@ -60,7 +60,7 @@ public class Nostradamus implements Positioner {
 
         return teams.stream().collect(Collectors.toMap(
                 Team::getId,
-                team -> new TeamData(team.getId(), INTERVAL_DETECTIONS_MS, stations, AVERAGE_AMOUNT, AVERAGE_SPRINTING_SPEED_M_MS, FINISH_OFFSET_M)
+                team -> new TeamData(team.getId(), INTERVAL_DETECTIONS_MS, stations, MEDIAN_AMOUNT, AVERAGE_SPRINTING_SPEED_M_MS, FINISH_OFFSET_M)
         ));
     }
 
