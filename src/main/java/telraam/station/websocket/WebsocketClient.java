@@ -1,6 +1,7 @@
 package telraam.station.websocket;
 
 import jakarta.websocket.*;
+import org.eclipse.jetty.websocket.core.exception.WebSocketTimeoutException;
 
 import java.net.URI;
 
@@ -27,12 +28,19 @@ public class WebsocketClient {
         try {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             container.setDefaultMaxTextMessageBufferSize(100 * 1048576);  // 100Mb
-            container.setDefaultMaxSessionIdleTimeout(0);
-            container.setAsyncSendTimeout(0);
+            container.setDefaultMaxSessionIdleTimeout(60);
             container.connectToServer(this, endpoint);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @OnError
+    public void onError(Session session, Throwable error) throws Throwable {
+        if (error instanceof WebSocketTimeoutException) {
+            return;
+        }
+        throw error;
     }
 
     @OnOpen
