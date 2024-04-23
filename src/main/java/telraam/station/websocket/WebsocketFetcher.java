@@ -90,10 +90,18 @@ public class WebsocketFetcher implements Fetcher {
             return;
         }
 
-
         WebsocketClient websocketClient = new WebsocketClient(url);
         websocketClient.addOnOpenHandler(() -> {
             websocketClient.sendMessage(wsMessageEncoded);
+        });
+        websocketClient.addOnCloseHandler(() -> {
+            this.logger.severe(String.format("Websocket for station %s got closed", station.getName()));
+            try {
+                Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
+            } catch (InterruptedException e) {
+                logger.severe(e.getMessage());
+            }
+            this.fetch();
         });
         websocketClient.addOnCloseHandler(() -> {
             this.logger.severe(String.format("Websocket for station %s got closed", station.getName()));

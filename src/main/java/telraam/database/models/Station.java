@@ -35,4 +35,8 @@ public class Station {
         this.name = name;
         this.broken = isBroken;
     }
+
+    public Station(Integer id) {
+        this.id = id;
+    }
 }
