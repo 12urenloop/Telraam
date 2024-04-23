@@ -1,6 +1,7 @@
 package telraam.logic.positioner.nostradamus;
 
 import lombok.Getter;
+import lombok.Setter;
 import telraam.database.models.Detection;
 import telraam.database.models.Station;
 import telraam.logic.positioner.Position;
@@ -13,7 +14,7 @@ public class TeamData {
     private final Map<Integer, StationData> stations;  // Station list
     private StationData currentStation; // Current station location
     private StationData previousStation; // Previous station location
-    @Getter
+    @Getter @Setter
     private long previousStationArrival; // Arrival time of previous station. Used to calculate the average times
     private final int totalDistance; // Total distance of the track
     private final float maxDeviance; // Maximum deviance the animation can have from the reality

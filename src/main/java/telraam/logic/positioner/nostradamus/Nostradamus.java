@@ -131,6 +131,7 @@ public class Nostradamus implements Positioner {
                                     entry.getValue().getPosition().getProgress()
                             ))
                     );
+                    entry.getValue().setPreviousStationArrival(entry.getValue().getPreviousStationArrival() + MAX_NO_DATA_MS);
                 }
             }
 
