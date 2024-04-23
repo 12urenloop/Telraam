@@ -1,11 +1,11 @@
 package telraam;
 
 import io.dropwizard.core.Application;
+import io.dropwizard.core.setup.Bootstrap;
+import io.dropwizard.core.setup.Environment;
 import io.dropwizard.jdbi3.JdbiFactory;
 import io.dropwizard.jdbi3.bundles.JdbiExceptionsBundle;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
-import io.dropwizard.core.setup.Bootstrap;
-import io.dropwizard.core.setup.Environment;
 import io.federecio.dropwizard.swagger.SwaggerBundle;
 import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import jakarta.servlet.DispatcherType;
@@ -25,13 +25,10 @@ import telraam.logic.lapper.robust.RobustLapper;
 import telraam.logic.lapper.slapper.Slapper;
 import telraam.logic.positioner.Positioner;
 import telraam.logic.positioner.nostradamus.Nostradamus;
-import telraam.logic.positioner.simple.SimplePositioner;
 import telraam.station.FetcherFactory;
-import telraam.station.websocket.WebsocketFetcher;
 import telraam.util.AcceptedLapsUtil;
 import telraam.websocket.WebSocketConnection;
 
-import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
@@ -93,11 +90,11 @@ public class App extends Application<AppConfiguration> {
 
         // Register websocket endpoint
         JettyWebSocketServletContainerInitializer.configure(
-            environment.getApplicationContext(),
-            (servletContext, wsContainer) -> {
-                wsContainer.setMaxTextMessageSize(65535);
-                wsContainer.addMapping("/ws", (req, res) -> new WebSocketConnection());
-            }
+                environment.getApplicationContext(),
+                (servletContext, wsContainer) -> {
+                    wsContainer.setMaxTextMessageSize(65535);
+                    wsContainer.addMapping("/ws", (req, res) -> new WebSocketConnection());
+                }
         );
 
         // Add api resources
@@ -143,7 +140,6 @@ public class App extends Application<AppConfiguration> {
             // Set up positioners
             Set<Positioner> positioners = new HashSet<>();
 
-//            positioners.add(new SimplePositioner(this.database));
             positioners.add(new Nostradamus(this.database));
 
             // Start fetch thread for each station
