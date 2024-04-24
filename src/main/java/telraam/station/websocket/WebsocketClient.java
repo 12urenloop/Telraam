@@ -28,7 +28,7 @@ public class WebsocketClient {
         try {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             container.setDefaultMaxTextMessageBufferSize(100 * 1048576);  // 100Mb
-            container.setDefaultMaxSessionIdleTimeout(60);
+            container.setDefaultMaxSessionIdleTimeout(60000);
             container.connectToServer(this, endpoint);
         } catch (Exception e) {
             throw new RuntimeException(e);
