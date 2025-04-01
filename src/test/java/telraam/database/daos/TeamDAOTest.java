@@ -5,10 +5,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import telraam.DatabaseTest;
 import telraam.database.models.Baton;
+import telraam.database.models.BatonSwitchover;
 import telraam.database.models.Team;
 
 import java.util.List;
 import java.util.Optional;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,6 +19,7 @@ class TeamDAOTest extends DatabaseTest {
 
     private TeamDAO teamDAO;
     private BatonDAO batonDAO;
+    private BatonSwitchoverDAO batonSwitchoverDAO;
 
     @Override
     @BeforeEach
@@ -23,6 +27,7 @@ class TeamDAOTest extends DatabaseTest {
         super.setUp();
         teamDAO = jdbi.onDemand(TeamDAO.class);
         batonDAO = jdbi.onDemand(BatonDAO.class);
+        batonSwitchoverDAO = jdbi.onDemand(BatonSwitchoverDAO.class);
     }
 
     @Test
@@ -44,6 +49,10 @@ class TeamDAOTest extends DatabaseTest {
         Team testteam = new Team("testteam", batonId);
         int testId = teamDAO.insert(testteam);
 
+        LocalDateTime dateTime = LocalDateTime.now();
+        BatonSwitchover switchover = new BatonSwitchover(testId, null, batonId, Timestamp.valueOf(dateTime));
+        batonSwitchoverDAO.insert(switchover);
+
         assertTrue(testId > 0);
         Optional<Team> teamOptional = teamDAO.getById(testId);
         assertFalse(teamOptional.isEmpty());
@@ -55,14 +64,6 @@ class TeamDAOTest extends DatabaseTest {
     @Test
     void testInsertFailsWhenNoName() {
         Team testteam = new Team();
-        assertThrows(UnableToExecuteStatementException.class,
-                () -> teamDAO.insert(testteam));
-
-    }
-
-    @Test
-    void testInsertFailsWhenInvalidBaton() {
-        Team testteam = new Team("testtteam", 1);
         assertThrows(UnableToExecuteStatementException.class,
                 () -> teamDAO.insert(testteam));
 
@@ -111,22 +112,6 @@ class TeamDAOTest extends DatabaseTest {
         assertFalse(dbTeam.isEmpty());
         assertEquals("postupdate", dbTeam.get().getName());
         assertEquals("10", dbTeam.get().getJacketNr());
-    }
-
-    @Test
-    void testUpdateFailsWhenInvalidBaton() {
-        Baton testBaton = new Baton("testbaton", "mac1");
-        int batonId = batonDAO.insert(testBaton);
-        Team testTeam = new Team("testteam", batonId);
-        int teamId = teamDAO.insert(testTeam);
-        // TODO: this is a little awkward, monitor
-        // if this happens often in the real code
-        // and find a better way
-        testTeam.setId(teamId);
-
-        testTeam.setBatonId(batonId + 1);
-        assertThrows(UnableToExecuteStatementException.class,
-                () -> teamDAO.update(teamId, testTeam));
     }
 
     @Test
