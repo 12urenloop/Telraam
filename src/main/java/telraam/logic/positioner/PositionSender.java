@@ -8,8 +8,8 @@ import java.util.List;
 public class PositionSender {
     private final WebSocketMessage<List<Position>> message = new WebSocketMessage<>();
 
-    public PositionSender() {
-        this.message.setTopic("position");
+    public PositionSender(String name) {
+        this.message.setTopic("position_" + name);
     }
 
     public void send(List<Position> positions) {
