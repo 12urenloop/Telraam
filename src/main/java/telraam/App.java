@@ -105,6 +105,7 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new LapResource(database.onDemand(LapDAO.class)));
         jersey.register(new TeamResource(database.onDemand(TeamDAO.class), database.onDemand(BatonSwitchoverDAO.class)));
         jersey.register(new LapSourceResource(database.onDemand(LapSourceDAO.class)));
+        jersey.register(new PositionSourceResource(database.onDemand(PositionSourceDAO.class)));
         jersey.register(new BatonSwitchoverResource(database.onDemand(BatonSwitchoverDAO.class)));
         jersey.register(new LapSourceSwitchoverResource(database.onDemand(LapSourceSwitchoverDAO.class)));
         jersey.register(new AcceptedLapsResource());

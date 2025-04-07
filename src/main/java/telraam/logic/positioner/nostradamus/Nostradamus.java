@@ -2,12 +2,10 @@ package telraam.logic.positioner.nostradamus;
 
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.BatonSwitchoverDAO;
+import telraam.database.daos.PositionSourceDAO;
 import telraam.database.daos.StationDAO;
 import telraam.database.daos.TeamDAO;
-import telraam.database.models.BatonSwitchover;
-import telraam.database.models.Detection;
-import telraam.database.models.Station;
-import telraam.database.models.Team;
+import telraam.database.models.*;
 import telraam.logic.positioner.Position;
 import telraam.logic.positioner.PositionSender;
 import telraam.logic.positioner.Positioner;
@@ -20,6 +18,7 @@ import java.util.stream.Collectors;
 
 public class Nostradamus implements Positioner {
     private static final Logger logger = Logger.getLogger(Nostradamus.class.getName());
+    private final String SOURCE_NAME = "nostradamus";
     private final int INTERVAL_CALCULATE_MS = 500; // How often to handle new detections (in milliseconds)
     private final int INTERVAL_FETCH_MS = 10000; // Interval between fetching baton switchovers (in milliseconds)
     private final int INTERVAL_DETECTIONS_MS = 3000; // Amount of milliseconds to group detections by
@@ -38,6 +37,12 @@ public class Nostradamus implements Positioner {
 
     public Nostradamus(Jdbi jdbi) {
         this.jdbi = jdbi;
+
+        PositionSourceDAO positionSourceDAO = jdbi.onDemand(PositionSourceDAO.class);
+        if (positionSourceDAO.getByName(SOURCE_NAME).isEmpty()) {
+            positionSourceDAO.insert(new PositionSource(SOURCE_NAME));
+        }
+
         this.newDetections = new ArrayList<>();
         this.detectionLock = new ReentrantLock();
         this.dataLock = new ReentrantLock();
@@ -46,7 +51,7 @@ public class Nostradamus implements Positioner {
         this.batonToTeam = new HashMap<>();
         this.teamData = getTeamData();
 
-        this.positionSender = new PositionSender();
+        this.positionSender = new PositionSender(SOURCE_NAME);
 
         new Thread(this::fetch).start();
         new Thread(this::calculatePosition).start();
