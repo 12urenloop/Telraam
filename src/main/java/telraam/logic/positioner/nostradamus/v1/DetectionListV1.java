@@ -1,4 +1,4 @@
-package telraam.logic.positioner.nostradamus;
+package telraam.logic.positioner.nostradamus.v1;
 
 import lombok.Getter;
 import telraam.database.models.Detection;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class DetectionList extends ArrayList<Detection> {
+public class DetectionListV1 extends ArrayList<Detection> {
 
     private final int interval;
     private final List<Integer> stations;
@@ -17,7 +17,7 @@ public class DetectionList extends ArrayList<Detection> {
     private Detection currentPosition;
     private Timestamp newestDetection;
 
-    public DetectionList(int interval, List<Station> stations) {
+    public DetectionListV1(int interval, List<Station> stations) {
         this.interval = interval;
         this.stations = stations.stream().sorted(Comparator.comparing(Station::getDistanceFromStart)).map(Station::getId).toList();
         this.currentPosition = new Detection(-1, 0, -100);

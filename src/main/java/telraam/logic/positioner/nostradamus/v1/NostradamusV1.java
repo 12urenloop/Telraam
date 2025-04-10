@@ -1,4 +1,4 @@
-package telraam.logic.positioner.nostradamus;
+package telraam.logic.positioner.nostradamus.v1;
 
 import org.jdbi.v3.core.Jdbi;
 import telraam.database.daos.BatonSwitchoverDAO;
@@ -16,9 +16,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class Nostradamus implements Positioner {
-    private static final Logger logger = Logger.getLogger(Nostradamus.class.getName());
-    private final String SOURCE_NAME = "nostradamus";
+public class NostradamusV1 implements Positioner {
+    private static final Logger logger = Logger.getLogger(NostradamusV1.class.getName());
+    private final String SOURCE_NAME = "nostradamus_v1";
     private final int INTERVAL_CALCULATE_MS = 500; // How often to handle new detections (in milliseconds)
     private final int INTERVAL_FETCH_MS = 10000; // Interval between fetching baton switchovers (in milliseconds)
     private final int INTERVAL_DETECTIONS_MS = 3000; // Amount of milliseconds to group detections by
@@ -30,12 +30,12 @@ public class Nostradamus implements Positioner {
     private final Jdbi jdbi;
     private final List<Detection> newDetections; // Contains not yet handled detections
     private Map<Integer, Integer> batonToTeam; // Baton ID to Team ID
-    private final Map<Integer, TeamData> teamData; // All team data
+    private final Map<Integer, TeamDataV1> teamData; // All team data
     private final PositionSender positionSender;
     private final Lock detectionLock;
     private final Lock dataLock;
 
-    public Nostradamus(Jdbi jdbi) {
+    public NostradamusV1(Jdbi jdbi) {
         this.jdbi = jdbi;
 
         PositionSourceDAO positionSourceDAO = jdbi.onDemand(PositionSourceDAO.class);
@@ -58,14 +58,14 @@ public class Nostradamus implements Positioner {
     }
 
     // Initiate the team data map
-    private Map<Integer, TeamData> getTeamData() {
+    private Map<Integer, TeamDataV1> getTeamData() {
         List<Station> stations = jdbi.onDemand(StationDAO.class).getAll();
         stations.sort(Comparator.comparing(Station::getDistanceFromStart));
         List<Team> teams = jdbi.onDemand(TeamDAO.class).getAll();
 
         return teams.stream().collect(Collectors.toMap(
                 Team::getId,
-                team -> new TeamData(team.getId(), INTERVAL_DETECTIONS_MS, stations, MEDIAN_AMOUNT, AVERAGE_SPRINTING_SPEED_M_MS, FINISH_OFFSET_M)
+                team -> new TeamDataV1(team.getId(), INTERVAL_DETECTIONS_MS, stations, MEDIAN_AMOUNT, AVERAGE_SPRINTING_SPEED_M_MS, FINISH_OFFSET_M)
         ));
     }
 
@@ -128,12 +128,14 @@ public class Nostradamus implements Positioner {
 
             // Send a stationary position if no new station data was received recently
             long now = System.currentTimeMillis();
-            for (Map.Entry<Integer, TeamData> entry: teamData.entrySet()) {
+            for (Map.Entry<Integer, TeamDataV1> entry: teamData.entrySet()) {
                 if (now - entry.getValue().getPreviousStationArrival() > MAX_NO_DATA_MS) {
                     positionSender.send(
                             Collections.singletonList(new Position(
                                     entry.getKey(),
-                                    entry.getValue().getPosition().getProgress()
+                                    entry.getValue().getPosition().progress(),
+                                    0,
+                                    System.currentTimeMillis()
                             ))
                     );
                     entry.getValue().setPreviousStationArrival(entry.getValue().getPreviousStationArrival() + MAX_NO_DATA_MS);

@@ -9,9 +9,7 @@ import telraam.database.models.Team;
 import telraam.logic.positioner.Position;
 import telraam.logic.positioner.PositionSender;
 import telraam.logic.positioner.Positioner;
-import telraam.logic.positioner.nostradamus.Nostradamus;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 

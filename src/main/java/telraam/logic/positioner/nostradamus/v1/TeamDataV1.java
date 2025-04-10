@@ -1,4 +1,4 @@
-package telraam.logic.positioner.nostradamus;
+package telraam.logic.positioner.nostradamus.v1;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,27 +7,30 @@ import telraam.database.models.Station;
 import telraam.logic.positioner.Position;
 
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class TeamData {
-    private final DetectionList detections; // List with all relevant detections
-    private final Map<Integer, StationData> stations;  // Station list
-    private StationData currentStation; // Current station location
-    private StationData previousStation; // Previous station location
+public class TeamDataV1 {
+    private static final Logger logger = Logger.getLogger(TeamDataV1.class.getName());
+    private final DetectionListV1 detections; // List with all relevant detections
+    private final Map<Integer, StationDataV1> stations;  // Station list
+    private StationDataV1 currentStation; // Current station location
+    private StationDataV1 previousStation; // Previous station location
     @Getter @Setter
     private long previousStationArrival; // Arrival time of previous station. Used to calculate the average times
     private final int totalDistance; // Total distance of the track
     private final float maxDeviance; // Maximum deviance the animation can have from the reality
     @Getter
-    private final Position position; // Data to send to the websocket
+    private Position position; // Data to send to the websocket
+    private final int teamId;
 
 
-    public TeamData(int teamId, int interval, List<Station> stations, int averageAmount, double sprintingSpeed, int finishOffset) {
+    public TeamDataV1(int teamId, int interval, List<Station> stations, int averageAmount, double sprintingSpeed, int finishOffset) {
         stations.sort(Comparator.comparing(Station::getDistanceFromStart));
         this.totalDistance = (int) (stations.get(stations.size() - 1).getDistanceFromStart() + finishOffset);
         this.stations = stations.stream().collect(Collectors.toMap(
                 Station::getId,
-                station -> new StationData(
+                station -> new StationDataV1(
                         stations,
                         stations.indexOf(station),
                         averageAmount,
@@ -38,11 +41,12 @@ public class TeamData {
         this.stations.forEach((stationId, stationData) -> stationData.times().add(
                 (long) (((stationData.nextStation().getDistanceFromStart() - stationData.station().getDistanceFromStart() + totalDistance) % totalDistance) / sprintingSpeed)
         ));
-        this.detections = new DetectionList(interval, stations);
+        this.detections = new DetectionListV1(interval, stations);
         this.previousStationArrival = System.currentTimeMillis();
-        this.currentStation = new StationData(); // Will never trigger `isNextStation` for the first station
-        this.position = new Position(teamId);
+        this.currentStation = new StationDataV1(); // Will never trigger `isNextStation` for the first station
         this.maxDeviance = (float) 1 / stations.size();
+        this.teamId = teamId;
+        this.position = new Position(teamId, 0, 0, System.currentTimeMillis());
     }
 
     // Add a new detection
@@ -85,8 +89,8 @@ public class TeamData {
         long currentTime = System.currentTimeMillis();
 
         // Animation is currently at progress x
-        long milliSecondsSince = currentTime - position.getTimestamp();
-        double theoreticalProgress = normalize(position.getProgress() + (position.getSpeed() * milliSecondsSince));
+        long milliSecondsSince = currentTime - position.timestamp();
+        double theoreticalProgress = normalize(position.progress() + (position.speed() * milliSecondsSince));
 
         // Arrive at next station at timestamp y and progress z
         double median = getMedian();
@@ -106,7 +110,7 @@ public class TeamData {
             speed = normalize(goalProgress - theoreticalProgress) / (nextStationArrival - currentTime);
         }
 
-        position.update(progress, speed, currentTime);
+        position = new Position(teamId, progress, speed, currentTime);
     }
 
     // Get the medium of the average times
