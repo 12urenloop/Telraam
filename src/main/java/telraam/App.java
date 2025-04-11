@@ -144,8 +144,8 @@ public class App extends Application<AppConfiguration> {
             Set<Positioner> positioners = new HashSet<>();
 
             positioners.add(new Stationary(this.database));
-            positioners.add(new Nostradamus(this.database));
             positioners.add(new NostradamusV1(this.database));
+            positioners.add(new Nostradamus(this.database));
 
             // Start fetch thread for each station
             FetcherFactory fetcherFactory = new FetcherFactory(this.database, lappers, positioners);

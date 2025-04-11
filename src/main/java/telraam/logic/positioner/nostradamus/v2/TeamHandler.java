@@ -10,14 +10,12 @@ import java.util.logging.Logger;
 
 public class TeamHandler {
     private static final Logger logger = Logger.getLogger(TeamHandler.class.getName());
-    // TODO: This won't be as effective for tracks with different lengths
-    private final double MAX_SPEED = 0.00003; // Max speed progress / ms
     private final double AVG_SPEED = 0.006; // Average sprinting speed (m / ms), results in a lap of 55 seconds in the 12ul
     private final int INTERVAL = 2000; // Only keep detections in a x ms interval
     private final int MAX_TIMES = 20; // Amount of speeds to keep track of to determine the median
     private  final int teamId;
     public AtomicInteger batonId;
-
+    private final double maxSpeed;
     private final Map<Integer, StationData> stationDataMap; // Map from station id to StationData
     private final Map<Integer, List<Double>> stationSpeeds; // Avg speed (progress / ms) to go from a stationId to the next
     private int currentStation; // Current station id
@@ -27,9 +25,10 @@ public class TeamHandler {
     private final LinkedList<Detection> detections;
     private Detection currentStationDetection;
 
-    public TeamHandler(int teamId, AtomicInteger batonId, Map<Integer, StationData> stationDataMap) {
+    public TeamHandler(int teamId, AtomicInteger batonId, double maxSpeed, Map<Integer, StationData> stationDataMap) {
         this.teamId = teamId;
         this.batonId = batonId;
+        this.maxSpeed = maxSpeed;
         this.stationDataMap = stationDataMap;
 
         this.stationSpeeds = new HashMap<>();
@@ -70,7 +69,7 @@ public class TeamHandler {
         double goalProgress = normalize(station.progress() + station.progressToNext()); // Where is the next station
         double speed = normalize(goalProgress - currentProgress) / intervalTime;
 
-        if (speed > MAX_SPEED) {
+        if (speed > maxSpeed) {
             // Sanity check
             currentProgress = stationDataMap.get(currentStation).progress();
             speed = getMedianSpeed(currentStation);

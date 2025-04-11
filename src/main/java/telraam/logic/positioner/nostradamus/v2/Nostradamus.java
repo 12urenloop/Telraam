@@ -18,16 +18,18 @@ import java.util.stream.Collectors;
 
 public class Nostradamus implements Positioner {
     private static final Logger logger = Logger.getLogger(Nostradamus.class.getName());
-    private final String SOURCE_NAME = "nostradamus_v2";
-    private final int MIN_RSSI = -90; // Minimum rssi strength that a detections needs to have
+    private final String SOURCE_NAME = "nostradamus";
+    private final int MIN_RSSI = -84; // Minimum rssi strength that a detections needs to have
     private final int INTERVAL_FETCH_MS = 10000;
     private final int INTERVAL_UPDATE_MS = 200;
-    private final int LENGTH_OFFSET = 10; // Distance from the last station to the finish in meter
+    private final int LENGTH_OFFSET = 40; // Distance from the last station to the finish in meter
+    private final double MAX_SPEED_M_MS = 0.00972222; // Maximum speed (m / ms) = 35 km / h
     private final Jdbi jdbi;
     private final PositionSender positionSender;
     ConcurrentHashMap<Integer, ConcurrentLinkedQueue<Detection>> newDetections;
     private final Map<Integer, TeamHandler> teamHandlers;
     private final Map<Integer, StationData> stationData;
+    private final double maxSpeedProgressMs; // Maximum speed (progress / ms)
 
     public Nostradamus(Jdbi jdbi) {
         this.jdbi = jdbi;
@@ -55,8 +57,12 @@ public class Nostradamus implements Positioner {
                     distanceToNext,
                     station.getDistanceFromStart() / length,
                     (double) distanceToNext / length,
-                    stations.get(nextIdx).getId()));
+                    stations.get(nextIdx).getId(),
+                    i
+            ));
         }
+
+        this.maxSpeedProgressMs = MAX_SPEED_M_MS / (stations.get(stations.size() - 1).getDistanceFromStart() + LENGTH_OFFSET);
 
         new Thread(this::fetch).start();
         new Thread(this::update).start();
@@ -78,7 +84,7 @@ public class Nostradamus implements Positioner {
             for (Map.Entry<Integer, Integer> entry: batonToTeam.entrySet()) {
                 teamHandlers.compute(entry.getValue(), (teamId, existingTeam) -> {
                     if (existingTeam == null) {
-                        return new TeamHandler(teamId, new AtomicInteger(entry.getKey()), stationData);
+                        return new TeamHandler(teamId, new AtomicInteger(entry.getKey()), maxSpeedProgressMs, stationData);
                     } else {
                         existingTeam.batonId.set(entry.getKey());
                         return existingTeam;
