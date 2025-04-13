@@ -34,8 +34,10 @@ public interface DetectionDAO extends DAO<Detection> {
     int insertAll(@BindBean List<Detection> detection);
 
     @SqlBatch("""
-            INSERT INTO detection (station_id, baton_id, timestamp, rssi, battery, remote_id, uptime_ms, timestamp_ingestion) \
-            VALUES (:stationId, (SELECT id FROM baton WHERE mac = :batonMac), :timestamp, :rssi, :battery, :remoteId, :uptimeMs, :timestampIngestion)
+            INSERT INTO detection (station_id, baton_id, timestamp, rssi, battery, remote_id, uptime_ms, timestamp_ingestion)
+            SELECT :stationId, b.id, :timestamp, :rssi, :battery, :remoteId, :uptimeMs, :timestampIngestion
+            FROM baton b
+            WHERE b.mac = :batonMac
             """)
     @GetGeneratedKeys({"id", "baton_id"})
     @RegisterBeanMapper(Detection.class)
