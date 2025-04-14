@@ -14,17 +14,17 @@ import java.util.Optional;
 public interface TeamDAO extends DAO<Team> {
 
     @Override
-    @SqlQuery("SELECT * FROM team")
+    @SqlQuery("SELECT t.*, tb.baton_id FROM team t LEFT JOIN team_baton_ids tb ON tb.team_id = t.id")
     @RegisterBeanMapper(Team.class)
     List<Team> getAll();
 
     @Override
-    @SqlUpdate("INSERT INTO team (name, baton_id, jacket_nr) VALUES (:name, :batonId, :jacketNr)")
+    @SqlUpdate("INSERT INTO team (name, jacket_nr) VALUES (:name, :jacketNr)")
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Team team);
 
     @Override
-    @SqlQuery("SELECT * FROM team WHERE id = :id")
+    @SqlQuery("SELECT t.*, tb.baton_id FROM team t LEFT JOIN team_baton_ids tb ON tb.team_id = t.id WHERE t.id = :id")
     @RegisterBeanMapper(Team.class)
     Optional<Team> getById(@Bind("id") int id);
 
@@ -33,6 +33,6 @@ public interface TeamDAO extends DAO<Team> {
     int deleteById(@Bind("id") int id);
 
     @Override
-    @SqlUpdate("UPDATE team SET name = :name, baton_id = :batonId, jacket_nr = :jacketNr WHERE id = :id")
+    @SqlUpdate("UPDATE team SET name = :name, jacket_nr = :jacketNr WHERE id = :id")
     int update(@Bind("id") int id, @BindBean Team modelObj);
 }
