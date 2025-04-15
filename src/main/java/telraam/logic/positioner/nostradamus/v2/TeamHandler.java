@@ -21,7 +21,6 @@ public class TeamHandler {
     private int currentStation; // Current station id
     private Position lastPosition;
     private final Queue<Position> positions;
-
     private final LinkedList<Detection> detections;
     private Detection currentStationDetection;
 
@@ -106,15 +105,15 @@ public class TeamHandler {
             }
 
             // Filter out old detections
-            long lastDetection = detections.getLast().getTimestamp().getTime();
+            long lastDetection = detections.stream().max(Comparator.comparing(d -> d.getTimestamp().getTime())).get().getTimestamp().getTime();
             detections.removeIf(d -> lastDetection - d.getTimestamp().getTime() > INTERVAL);
 
             // Determine new position
             int newStationId = detections.stream().max(Comparator.comparing(Detection::getRssi)).get().getStationId(); // detections will at least contain the last detection
-            if (currentStation != newStationId) {
+            if (currentStation != newStationId && stationAfter(newStationId)) {
                 // New position!
                 // Add new speed
-                if (currentStationDetection != null) { //  Necessary for the first station switch
+                if (currentStationDetection != null && newStationId == stationDataMap.get(currentStation).nextStationId()) { //  Necessary for the first station switch
                     double progress = normalize(stationDataMap.get(newStationId).progress() - stationDataMap.get(currentStation).progress());
                     double time = detection.getTimestamp().getTime() - currentStationDetection.getTimestamp().getTime();
                     stationSpeeds.get(currentStation).add(progress / time);
@@ -128,6 +127,15 @@ public class TeamHandler {
         }
 
         return newStation;
+    }
+
+    private boolean stationAfter(int newStationId) {
+        if (currentStationDetection == null) {
+            return true;
+        }
+
+        int stations = stationDataMap.size();
+        return (((stationDataMap.get(newStationId).index() - stationDataMap.get(currentStation).index()) % stations) + stations) % stations < 4;
     }
 
     private double getMedianSpeed(int stationId) {

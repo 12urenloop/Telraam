@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import telraam.api.responses.Template;
 
 public class AppConfiguration extends Configuration {
     @NotNull
@@ -27,4 +26,9 @@ public class AppConfiguration extends Configuration {
     @Getter @Setter
     @JsonProperty("database")
     private DataSourceFactory dataSourceFactory = new DataSourceFactory();
+
+    @NotNull
+    @Getter
+    @JsonProperty("finish_offset")
+    private int finishOffset;
 }

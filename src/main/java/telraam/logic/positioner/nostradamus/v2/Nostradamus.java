@@ -1,6 +1,7 @@
 package telraam.logic.positioner.nostradamus.v2;
 
 import org.jdbi.v3.core.Jdbi;
+import telraam.AppConfiguration;
 import telraam.database.daos.BatonSwitchoverDAO;
 import telraam.database.daos.PositionSourceDAO;
 import telraam.database.daos.StationDAO;
@@ -22,7 +23,6 @@ public class Nostradamus implements Positioner {
     private final int MIN_RSSI = -84; // Minimum rssi strength that a detections needs to have
     private final int INTERVAL_FETCH_MS = 10000;
     private final int INTERVAL_UPDATE_MS = 200;
-    private final int LENGTH_OFFSET = 40; // Distance from the last station to the finish in meter
     private final double MAX_SPEED_M_MS = 0.00972222; // Maximum speed (m / ms) = 35 km / h
     private final Jdbi jdbi;
     private final PositionSender positionSender;
@@ -31,7 +31,7 @@ public class Nostradamus implements Positioner {
     private final Map<Integer, StationData> stationData;
     private final double maxSpeedProgressMs; // Maximum speed (progress / ms)
 
-    public Nostradamus(Jdbi jdbi) {
+    public Nostradamus(AppConfiguration configuration, Jdbi jdbi) {
         this.jdbi = jdbi;
 
         // Add as source
@@ -48,7 +48,7 @@ public class Nostradamus implements Positioner {
         // Initialize station data list
         List<Station> stations = this.jdbi.onDemand(StationDAO.class).getAll();
         stations.sort(Comparator.comparing(Station::getDistanceFromStart));
-        int length = (int) (stations.get(stations.size() - 1).getDistanceFromStart() + LENGTH_OFFSET);
+        int length = (int) (stations.get(stations.size() - 1).getDistanceFromStart() + configuration.getFinishOffset());
         for (int i = 0; i < stations.size(); i++) {
             Station station = stations.get(i);
             int nextIdx = (i + 1) % stations.size();
@@ -62,7 +62,7 @@ public class Nostradamus implements Positioner {
             ));
         }
 
-        this.maxSpeedProgressMs = MAX_SPEED_M_MS / (stations.get(stations.size() - 1).getDistanceFromStart() + LENGTH_OFFSET);
+        this.maxSpeedProgressMs = MAX_SPEED_M_MS / (stations.get(stations.size() - 1).getDistanceFromStart() + configuration.getFinishOffset());
 
         new Thread(this::fetch).start();
         new Thread(this::update).start();
@@ -73,13 +73,14 @@ public class Nostradamus implements Positioner {
         while (true) {
             List<BatonSwitchover> switchovers = jdbi.onDemand(BatonSwitchoverDAO.class).getAll();
 
-            Map<Integer, Integer> batonToTeam = switchovers.stream().sorted(
-                    Comparator.comparing(BatonSwitchover::getTimestamp)
-            ).collect(Collectors.toMap(
-                    BatonSwitchover::getNewBatonId,
-                    BatonSwitchover::getTeamId,
-                    (existing, replacement) -> replacement
-            ));
+            Map<Integer, Integer> batonToTeam = switchovers.stream()
+                    .filter(switchover -> switchover.getNewBatonId() != null)
+                    .sorted(Comparator.comparing(BatonSwitchover::getTimestamp))
+                    .collect(Collectors.toMap(
+                        BatonSwitchover::getNewBatonId,
+                        BatonSwitchover::getTeamId,
+                        (existing, replacement) -> replacement
+                    ));
 
             for (Map.Entry<Integer, Integer> entry: batonToTeam.entrySet()) {
                 teamHandlers.compute(entry.getValue(), (teamId, existingTeam) -> {
