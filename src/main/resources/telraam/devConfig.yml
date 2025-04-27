@@ -46,6 +46,9 @@ database:
   # the minimum amount of time an connection must sit idle in the pool before it is eligible for eviction
   minIdleTime: 1 minute
 
+# Distance between the start and the last station
+finish_offset: 20
+
 # Logging settings.
 logging:
 

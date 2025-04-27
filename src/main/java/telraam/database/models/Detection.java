@@ -37,4 +37,11 @@ public class Detection {
         this.stationId = stationId;
         this.rssi = rssi;
     }
+
+    public Detection(Integer id, Integer stationId, Integer rssi, Timestamp timestamp) {
+        this.id = id;
+        this.stationId = stationId;
+        this.rssi = rssi;
+        this.timestamp = timestamp;
+    }
 }
