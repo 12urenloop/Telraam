@@ -34,6 +34,7 @@ import telraam.websocket.WebSocketConnection;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public class App extends Application<AppConfiguration> {
@@ -151,7 +152,17 @@ public class App extends Application<AppConfiguration> {
             FetcherFactory fetcherFactory = new FetcherFactory(this.database, lappers, positioners);
             StationDAO stationDAO = this.database.onDemand(StationDAO.class);
             for (Station station : stationDAO.getAll()) {
-                new Thread(() -> fetcherFactory.create(station).fetch()).start();
+                new Thread(() -> {
+                    var fetcher = fetcherFactory.create(station);
+                    while (true) {
+                        fetcher.fetch();
+                        try {
+                            TimeUnit.SECONDS.wait(1);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }).start();
             }
         }
 

@@ -152,8 +152,6 @@ public class WebsocketFetcher implements Fetcher {
             } catch (InterruptedException e) {
                 logger.severe(e.getMessage());
             }
-            this.fetch();
-            return;
         }
     }
 
