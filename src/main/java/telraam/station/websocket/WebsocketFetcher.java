@@ -23,7 +23,8 @@ public class WebsocketFetcher implements Fetcher {
     private final Set<Lapper> lappers;
     private final Set<Positioner> positioners;
     private Station station;
-    public final static Object obj = new Object();
+    public static final Object obj = new Object();
+    private WebsocketClient websocketClient;
 
     private final DetectionDAO detectionDAO;
     private final StationDAO stationDAO;
@@ -37,6 +38,15 @@ public class WebsocketFetcher implements Fetcher {
         this.positioners = positioners;
 
         this.station = station;
+        //Create URL
+        URI url;
+        try {
+            url = new URI(station.getUrl());
+        } catch (URISyntaxException ex) {
+            this.logger.severe(ex.getMessage());
+            return;
+        }
+        websocketClient = new WebsocketClient(url);
     }
 
     public void fetch() {
@@ -65,18 +75,14 @@ public class WebsocketFetcher implements Fetcher {
             return;
         }
 
-        //Create URL
-        URI url;
-        try {
-            url = new URI(station.getUrl());
-        } catch (URISyntaxException ex) {
-            this.logger.severe(ex.getMessage());
-            return;
-        }
 
-        WebsocketClient websocketClient = new WebsocketClient(url);
         websocketClient.addOnOpenHandler(() -> {
             websocketClient.sendMessage(wsMessageEncoded);
+        });
+        websocketClient.addOnErrorHandler(() -> {
+            synchronized (obj) {
+                obj.notifyAll();
+            }
         });
         websocketClient.addOnCloseHandler(() -> {
             this.logger.severe(String.format("Websocket for station %s got closed", station.getName()));
