@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AllArgsConstructor;
 import org.jdbi.v3.core.Jdbi;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import telraam.database.daos.BatonDAO;
 import telraam.database.daos.DetectionDAO;
 import telraam.database.daos.StationDAO;
 import telraam.database.models.Detection;
@@ -16,7 +15,6 @@ import telraam.station.models.RonnyDetection;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.*;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.logging.Logger;
@@ -25,16 +23,14 @@ public class WebsocketFetcher implements Fetcher {
     private final Set<Lapper> lappers;
     private final Set<Positioner> positioners;
     private Station station;
+    public final static Object obj = new Object();
 
-    private final BatonDAO batonDAO;
     private final DetectionDAO detectionDAO;
     private final StationDAO stationDAO;
 
-    private final HttpClient client = HttpClient.newHttpClient();
     private final Logger logger = Logger.getLogger(WebsocketFetcher.class.getName());
 
     public WebsocketFetcher(Jdbi database, Station station, Set<Lapper> lappers, Set<Positioner> positioners) {
-        this.batonDAO = database.onDemand(BatonDAO.class);
         this.detectionDAO = database.onDemand(DetectionDAO.class);
         this.stationDAO = database.onDemand(StationDAO.class);
         this.lappers = lappers;
@@ -66,12 +62,6 @@ public class WebsocketFetcher implements Fetcher {
             wsMessageEncoded = mapper.writeValueAsString(wsMessage);
         } catch (JsonProcessingException e) {
             logger.severe(e.getMessage());
-            try {
-                Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
-            } catch (InterruptedException ex) {
-                logger.severe(ex.getMessage());
-            }
-            this.fetch();
             return;
         }
 
@@ -81,12 +71,6 @@ public class WebsocketFetcher implements Fetcher {
             url = new URI(station.getUrl());
         } catch (URISyntaxException ex) {
             this.logger.severe(ex.getMessage());
-            try {
-                Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
-            } catch (InterruptedException e) {
-                logger.severe(e.getMessage());
-            }
-            this.fetch();
             return;
         }
 
@@ -96,12 +80,9 @@ public class WebsocketFetcher implements Fetcher {
         });
         websocketClient.addOnCloseHandler(() -> {
             this.logger.severe(String.format("Websocket for station %s got closed", station.getName()));
-            try {
-                Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
-            } catch (InterruptedException e) {
-                logger.severe(e.getMessage());
+            synchronized (obj) {
+                obj.notifyAll();
             }
-            this.fetch();
         });
         websocketClient.addMessageHandler((String msg) -> {
             //Insert detections
@@ -145,13 +126,13 @@ public class WebsocketFetcher implements Fetcher {
 
         try {
             websocketClient.listen();
+            synchronized (obj) {
+                obj.wait();
+            }
         } catch (RuntimeException ex) {
             this.logger.severe(ex.getMessage());
-            try {
-                Thread.sleep(Fetcher.ERROR_TIMEOUT_MS);
-            } catch (InterruptedException e) {
-                logger.severe(e.getMessage());
-            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
