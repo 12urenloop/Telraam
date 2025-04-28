@@ -155,7 +155,6 @@ public class App extends Application<AppConfiguration> {
                 new Thread(() -> {
                     var fetcher = fetcherFactory.create(station);
                     while (true) {
-                        System.out.println("Starting fetcher");
                         fetcher.fetch();
                         try {
                             Thread.sleep(1000);

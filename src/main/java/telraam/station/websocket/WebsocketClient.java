@@ -19,16 +19,18 @@ public class WebsocketClient {
     private MessageHandler messageHandler;
     private onStateChangeHandler onOpenHandler;
     private onStateChangeHandler onCloseHandler;
+    private onStateChangeHandler onErrorHandler;
+    private WebSocketContainer container;
 
     public WebsocketClient(URI endpointURI) throws RuntimeException {
         this.endpoint = endpointURI;
+        container = ContainerProvider.getWebSocketContainer();
+        container.setDefaultMaxTextMessageBufferSize(100 * 1048576);  // 100Mb
+        container.setDefaultMaxSessionIdleTimeout(60000);
     }
 
     public void listen() throws  RuntimeException {
         try {
-            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-            container.setDefaultMaxTextMessageBufferSize(100 * 1048576);  // 100Mb
-            container.setDefaultMaxSessionIdleTimeout(60000);
             container.connectToServer(this, endpoint);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -37,6 +39,10 @@ public class WebsocketClient {
 
     @OnError
     public void onError(Session session, Throwable error) throws Throwable {
+        if (this.onErrorHandler != null) {
+            this.onErrorHandler.handleChange();
+        }
+        session.close();
         if (error instanceof WebSocketTimeoutException) {
             return;
         }
@@ -72,6 +78,10 @@ public class WebsocketClient {
 
     public void addOnCloseHandler(onStateChangeHandler openHandler) {
         this.onCloseHandler = openHandler;
+    }
+
+    public void addOnErrorHandler(onStateChangeHandler errorHandler) {
+        this.onErrorHandler = errorHandler;
     }
 
     public void addMessageHandler(MessageHandler msgHandler) {
