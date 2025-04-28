@@ -157,7 +157,7 @@ public class App extends Application<AppConfiguration> {
                     while (true) {
                         fetcher.fetch();
                         try {
-                            TimeUnit.SECONDS.wait(1);
+                            Thread.sleep(1000);
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
