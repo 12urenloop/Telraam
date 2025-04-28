@@ -115,6 +115,7 @@ public class App extends Application<AppConfiguration> {
         jersey.register(new TimeResource());
         jersey.register(new LapCountResource(database.onDemand(TeamDAO.class), database.onDemand(LapDAO.class)));
         jersey.register(new MonitoringResource(database));
+        jersey.register(new PodiumResource());
         environment.healthChecks().register("template", new TemplateHealthCheck(configuration.getTemplate()));
 
         // Enable CORS
