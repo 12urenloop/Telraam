@@ -23,7 +23,7 @@ public class WebsocketFetcher implements Fetcher {
     private final Set<Lapper> lappers;
     private final Set<Positioner> positioners;
     private Station station;
-    public static final Object obj = new Object();
+    public final Object obj = new Object();
     private WebsocketClient websocketClient;
 
     private final DetectionDAO detectionDAO;
