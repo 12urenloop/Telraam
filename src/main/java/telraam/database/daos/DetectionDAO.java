@@ -73,7 +73,7 @@ public interface DetectionDAO extends DAO<Detection> {
 
     @SqlQuery("""
             WITH bso AS (SELECT teamid, newbatonid, timestamp AS current_timestamp, COALESCE( LEAD(timestamp) OVER (PARTITION BY teamid ORDER BY timestamp), timestamp + INTERVAL '1 year') AS next_baton_switch FROM batonswitchover)
-            SELECT baton_id, station_id, rssi, timestamp, teamid FROM detection d LEFT JOIN bso ON d.baton_id = bso.newbatonid AND d.timestamp BETWEEN bso.current_timestamp AND bso.next_baton_switch WHERE rssi > :minRssi
+            SELECT baton_id, station_id, rssi, timestamp, teamid FROM detection d LEFT JOIN bso ON d.baton_id = bso.newbatonid AND d.timestamp BETWEEN bso.current_timestamp AND bso.next_baton_switch WHERE rssi > :minRssi AND teamid IS NOT NULL ORDER BY timestamp
             """)
     @RegisterBeanMapper(Detection.class)
     List<Detection> getAllWithTeamId(@Bind("minRssi") int minRssi);
