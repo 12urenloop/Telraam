@@ -42,6 +42,7 @@ public class WebsocketClient {
         if (this.onErrorHandler != null) {
             this.onErrorHandler.handleChange();
         }
+        System.out.printf("Websocket get error %s%n", error);
         session.close();
         if (error instanceof WebSocketTimeoutException) {
             return;
@@ -60,6 +61,7 @@ public class WebsocketClient {
     @OnClose
     public void onClose(Session userSession, CloseReason reason) {
         this.session = null;
+        System.out.printf("Websocket get closed: %s%n", reason);
         if (this.onCloseHandler != null) {
             this.onCloseHandler.handleChange();
         }
