@@ -195,3 +195,5 @@ flycheck_*.el
 node_modules/
 
 .idea
+
+.env
