@@ -77,7 +77,7 @@ dependencies {
     implementation('org.postgresql:postgresql:42.7.10')
 
     // Testing
-    testImplementation('org.junit.jupiter:junit-jupiter:5.10.2')
+    testImplementation('org.junit.jupiter:junit-jupiter:6.0.3')
     testImplementation('org.flywaydb:flyway-core:12.4.0')
     testImplementation('org.mockito:mockito-core:5.23.0')
     testImplementation("io.dropwizard:dropwizard-testing:" + dropwizardVersion)
