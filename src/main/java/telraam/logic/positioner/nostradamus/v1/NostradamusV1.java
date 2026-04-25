@@ -63,6 +63,9 @@ public class NostradamusV1 implements Positioner {
         stations.sort(Comparator.comparing(Station::getDistanceFromStart));
         List<Team> teams = jdbi.onDemand(TeamDAO.class).getAll();
 
+        logger.info(teams.toString());
+        teams.forEach(t -> logger.info(t.getId().toString()));
+
         return teams.stream().collect(Collectors.toMap(
                 Team::getId,
                 team -> new TeamDataV1(team.getId(), INTERVAL_DETECTIONS_MS, stations, MEDIAN_AMOUNT, AVERAGE_SPRINTING_SPEED_M_MS, FINISH_OFFSET_M)
@@ -134,6 +137,7 @@ public class NostradamusV1 implements Positioner {
                             Collections.singletonList(new Position(
                                     entry.getKey(),
                                     entry.getValue().getPosition().progress(),
+                                    0,
                                     0,
                                     System.currentTimeMillis()
                             ))

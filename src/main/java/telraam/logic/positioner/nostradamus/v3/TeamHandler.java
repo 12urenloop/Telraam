@@ -1,4 +1,4 @@
-package telraam.logic.positioner.nostradamus.v2;
+package telraam.logic.positioner.nostradamus.v3;
 
 import telraam.database.models.Detection;
 import telraam.logic.positioner.Position;
@@ -9,32 +9,30 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class TeamHandler {
+    private static final Logger logger = Logger.getLogger(TeamHandler.class.getName());
     private final double AVG_SPEED = 0.006; // Average sprinting speed (m / ms), results in a lap of 55 seconds in the 12ul
     private final int INTERVAL = 2000; // Only keep detections in a x ms interval
-    private final int MAX_TIMES = 20; // Amount of speeds to keep track of to determine the median
+    private final int MAX_TIMES = 21; // Amount of speeds to keep track of to determine the median
     private  final int teamId;
     public AtomicInteger batonId;
-    private final double maxSpeed;
     private final Map<Integer, StationData> stationDataMap; // Map from station id to StationData
     private final Map<Integer, List<Double>> stationSpeeds; // Avg speed (progress / ms) to go from a stationId to the next
     private int currentStation; // Current station id
-    private Position lastPosition;
-    private final Queue<Position> positions;
+    private final List<Position> positions;
     private final LinkedList<Detection> detections;
     private Detection currentStationDetection;
 
-    public TeamHandler(int teamId, AtomicInteger batonId, double maxSpeed, Map<Integer, StationData> stationDataMap) {
+    public TeamHandler(int teamId, AtomicInteger batonId, Map<Integer, StationData> stationDataMap) {
         this.teamId = teamId;
         this.batonId = batonId;
-        this.maxSpeed = maxSpeed;
         this.stationDataMap = stationDataMap;
 
         this.stationSpeeds = new HashMap<>();
-        this.positions = new ArrayDeque<>();
+        this.positions = new ArrayList<>();
         this.detections = new LinkedList<>();
 
         this.currentStation = -1;
-        this.lastPosition = new Position(0, 0, 0, 0, 0);
+        this.positions.add(new Position(teamId, 0, 0, 0, 0));
         this.detections.add(new Detection(-1, -1, -1000, new Timestamp(0)));
 
         // Populate the stationSpeeds map with default values
@@ -46,44 +44,93 @@ public class TeamHandler {
         }
     }
 
-    public void update(List<Detection> detections) {
+    public List<Position> update(List<Detection> detections) {
+        if (teamId == 1) {
+            logger.info("Updating");
+        }
         boolean newStation = handleDetection(detections);
         if (!newStation) {
-            return;
+            return new ArrayList<>();
         }
 
         StationData station = stationDataMap.get(currentStation);
-        long timestamp = System.currentTimeMillis();
+        long now = System.currentTimeMillis();
+        List<Position> oldPositions = new ArrayList<>(positions.stream().filter(p -> p.timestamp() < now).toList());
+        if (oldPositions.isEmpty()) {
+            oldPositions.add(new Position(teamId, 0, 0, 0, 0));
+        }
+        Position lastPosition = oldPositions.get(oldPositions.size() - 1);
+        long interval = now - lastPosition.timestamp();
 
-        double currentProgress = normalize(lastPosition.progress() + lastPosition.speed() * (timestamp - lastPosition.timestamp())); // Where is the animation now
-
-        double maxDeviation = station.progressToNext();
-        if (circularDistance(currentProgress, station.progress()) > maxDeviation) {
+        double maxDeviation = station.progressToNext() * 2;
+        double position = normalize(lastPosition.progress() + lastPosition.speed() * interval + 0.5 * lastPosition.acceleration() * Math.pow(interval, 2));
+        if (circularDistance(position, station.progress()) > maxDeviation) {
             // Don't let the animation deviate too much from the reality
-            currentProgress = station.progress();
+            position = station.progress();
         }
 
-        long intervalTime = (long) (station.progressToNext() / getMedianSpeed(currentStation)); // How many ms until it should reach the next station
-        double goalProgress = normalize(station.progress() + station.progressToNext()); // Where is the next station
-        double speed = normalize(goalProgress - currentProgress) / intervalTime;
+        double progress = station.progressToNext();
+        double time = station.progressToNext() / getMedianSpeed(currentStation);
 
-        if (speed > maxSpeed) {
-            // Sanity check
-            currentProgress = stationDataMap.get(currentStation).progress();
-            speed = getMedianSpeed(currentStation);
-        }
+        // We'll generate 3 positions
+        // Part 1 -> (De)accelerate to try to sync the animation with the reality
+        // Part 2 -> Opposite acceleration towards the median speed
+        // Part 3 -> Continue at the median speed (no acceleration)
+        // The goal of part 1 is to try and sync the animation with the reality
+        // Part 2 will slow it down / speed it up back to its median (expected) speed
+        // Part 3 continues at the median speed to avoid any lasting (de)acceleration if we don't receive anymore data
+
+        // To simplify the calculation (no circular distance) we set the current position and timestamp to 0
+        double p0 = 0;
+        double v0 = lastPosition.speed() + 0.5 * lastPosition.acceleration() * Math.pow(interval, 2);
+        double a0; // Unknown
+        double t0 = 0;
+
+        double p1 = p0 + 0.5 * progress;
+        double v1; // Unknown
+        double a1; // Unknown
+        double t1 = t0 + 0.5 * time;
+
+        double p2 = p1 + 0.4 * progress;
+        double v2 = getMedianSpeed(currentStation);
+        double a2 = 0;
+        double t2 = t1 + 0.4 * time;
+
+        // Calculate
+        // a0 = (v1 - v0) / (t1 - t0)
+        // a1 = (v2 - v1) / (t2 - t1)
+        // v1
+
+        // v1 can be found by summing the progress
+        // p1 = p0 + v0 * (t1 - t0) + 0.5 * a0 * (t1 - t0)^2
+        // p2 = p1 + v1 * (t2 - t1) + 0.5 * a1 * (t2 - t1)^2
+        // p1 + p2 = ...
+        // ...
+        // v1 = (p2 - 0.5 * v0 * t1 - 0.5 * v2 * (t2 - t1)) / (0.5 * t2)
+        v1 = (p2 - 0.5 * v0 * t1 - 0.5 * v2 * (t2 - t1)) / (0.5 * t2);
+        a0 = (v1 - v0) / (t1 - t0);
+        a1 = (v2 - v1) / (t2 - t1);
+
+        // Re-add the position and timestamp
+        p0 = normalize(position + p0);
+        p1 = normalize(position + p1);
+        p2 = normalize(position + p2);
+
+        t0 = now + t0;
+        t1 = now + t1;
+        t2 = now + t2;
 
         positions.clear();
-        positions.add(new Position(teamId, currentProgress, speed, 0, timestamp));
-    }
-
-    public Position getPosition() {
-        if (!positions.isEmpty()) {
-            lastPosition = positions.poll();
-            return lastPosition;
+        positions.addAll(Arrays.asList(
+                new Position(teamId, p0, v0, a0, (long) t0),
+                new Position(teamId, p1, v1, a1, (long) t1),
+                new Position(teamId, p2, v2, a2, (long) t2)
+        ));
+        if (teamId == 1) {
+            logger.info(positions.toString());
         }
 
-        return null;
+        return positions;
     }
 
     private boolean handleDetection(List<Detection> newDetections) {
@@ -99,12 +146,12 @@ public class TeamHandler {
             detections.add(detection); // Newest detection is now at the end of the list
 
             if (detection.getStationId() == currentStation) {
-                // We've already determined that we have arrived at this station
+                // We're already at this station
                 continue;
             }
 
             // Filter out old detections
-            long lastDetection = detections.stream().max(Comparator.comparing(d -> d.getTimestamp().getTime())).get().getTimestamp().getTime();
+            long lastDetection = detections.getLast().getTimestamp().getTime();
             detections.removeIf(d -> lastDetection - d.getTimestamp().getTime() > INTERVAL);
 
             // Determine new position
@@ -164,5 +211,4 @@ public class TeamHandler {
     private double normalize(double amount) {
         return ((amount % 1) + 1) % 1;
     }
-
 }

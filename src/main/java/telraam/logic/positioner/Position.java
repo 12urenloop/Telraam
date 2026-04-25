@@ -10,5 +10,6 @@ public record Position (
         int teamId,
         double progress,
         double speed,
+        double acceleration,
         long timestamp
 ) {}
