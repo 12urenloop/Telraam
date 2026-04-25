@@ -79,7 +79,7 @@ dependencies {
     // Testing
     testImplementation('org.junit.jupiter:junit-jupiter:5.10.2')
     testImplementation('org.flywaydb:flyway-core:10.10.0')
-    testImplementation('org.mockito:mockito-core:5.11.0')
+    testImplementation('org.mockito:mockito-core:5.23.0')
     testImplementation("io.dropwizard:dropwizard-testing:" + dropwizardVersion)
 
     // Statistics for Viterbi-lapper
