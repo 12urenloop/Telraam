@@ -70,7 +70,7 @@ dependencies {
     // Websocket client libs
     compileOnly 'jakarta.websocket:jakarta.websocket-client-api:2.3.0-M2'
     // Impl for jakarta websocket clients
-    implementation 'org.eclipse.jetty.websocket:websocket-jakarta-client:11.0.20'
+    implementation 'org.eclipse.jetty.websocket:websocket-jakarta-client:11.0.26'
 
     // Database
     implementation('com.h2database:h2:2.4.240')
