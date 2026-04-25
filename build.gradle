@@ -74,7 +74,7 @@ dependencies {
 
     // Database
     implementation('com.h2database:h2:2.2.220')
-    implementation('org.postgresql:postgresql:42.7.3')
+    implementation('org.postgresql:postgresql:42.7.10')
 
     // Testing
     testImplementation('org.junit.jupiter:junit-jupiter:5.10.2')
