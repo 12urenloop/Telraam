@@ -73,7 +73,7 @@ dependencies {
     implementation 'org.eclipse.jetty.websocket:websocket-jakarta-client:11.0.20'
 
     // Database
-    implementation('com.h2database:h2:2.2.220')
+    implementation('com.h2database:h2:2.4.240')
     implementation('org.postgresql:postgresql:42.7.10')
 
     // Testing
