@@ -2,6 +2,7 @@ services:
   db:
     image: docker.io/library/postgres:18.3
     restart: unless-stopped
+    command: postgres -c config_file=/etc/postgresql.conf
     environment:
       POSTGRES_DB: "${TELRAAM_DB}"
       POSTGRES_USER: "${TELRAAM_DB_USER}"
@@ -10,6 +11,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
+      - ./postgresql.conf:/etc/postgresql.conf
       - db:/data/postgres
 
 volumes:
