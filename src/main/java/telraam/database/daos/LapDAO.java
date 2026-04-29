@@ -38,8 +38,8 @@ public interface LapDAO extends DAO<Lap> {
     @RegisterBeanMapper(LapCount.class)
     LapCount getAllForTeamBeforeTime(@Bind("lapSourceId") Integer lapSourceId, @Bind("teamId") Integer teamId, @Bind("timestamp") Timestamp timestamp);
 
-    @SqlUpdate("INSERT INTO lap (team_id, lap_source_id, timestamp) " +
-            "VALUES (:teamId, :lapSourceId, :timestamp)")
+    @SqlUpdate("INSERT INTO lap (team_id, lap_source_id, timestamp, manual) " +
+            "VALUES (:teamId, :lapSourceId, :timestamp, :manual)")
     @GetGeneratedKeys({"id"})
     int insert(@BindBean Lap lap);
 
@@ -56,6 +56,7 @@ public interface LapDAO extends DAO<Lap> {
             "team_id = :teamId, " +
             "lap_source_id = :lapSourceId, " +
             "timestamp = :timestamp " +
+            "manual = :manual " +
             "WHERE id = :id")
     int update(@Bind("id") int id, @BindBean Lap modelObj);
 
@@ -69,7 +70,7 @@ public interface LapDAO extends DAO<Lap> {
     @SqlBatch("DELETE FROM lap WHERE id = :id")
     void deleteAllById(@BindBean Iterator<Lap> laps);
 
-    @SqlBatch("INSERT INTO lap (team_id, lap_source_id, timestamp) VALUES (:teamId, :lapSourceId, :timestamp)")
+    @SqlBatch("INSERT INTO lap (team_id, lap_source_id, timestamp, manual) VALUES (:teamId, :lapSourceId, :timestamp, :manual)")
     void insertAll(@BindBean Iterator<Lap> laps);
 
     @SqlBatch("UPDATE lap SET timestamp = :timestamp WHERE id = :id")
