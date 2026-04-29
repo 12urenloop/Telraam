@@ -12,7 +12,7 @@ public class Lap {
     private Integer teamId;
     private Integer lapSourceId;
 
-    private Boolean manual;
+    private Boolean manual = false;
     private Timestamp timestamp;
 
     public Lap(Integer teamId, Integer lapSourceId, Timestamp timestamp) {
