@@ -38,7 +38,7 @@ public class Stationary implements Positioner {
             long timestamp = System.currentTimeMillis();
             List<Team> teams = jdbi.onDemand(TeamDAO.class).getAll();
 
-            List<Position> positions = teams.stream().map(t -> new Position(t.getId(), 0, 0, timestamp)).toList();
+            List<Position> positions = teams.stream().map(t -> new Position(t.getId(), 0, 0,0,  timestamp)).toList();
             positionSender.send(positions);
 
             try {

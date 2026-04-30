@@ -46,7 +46,7 @@ public class TeamDataV1 {
         this.currentStation = new StationDataV1(); // Will never trigger `isNextStation` for the first station
         this.maxDeviance = (float) 1 / stations.size();
         this.teamId = teamId;
-        this.position = new Position(teamId, 0, 0, System.currentTimeMillis());
+        this.position = new Position(teamId, 0, 0, 0, System.currentTimeMillis());
     }
 
     // Add a new detection
@@ -110,7 +110,7 @@ public class TeamDataV1 {
             speed = normalize(goalProgress - theoreticalProgress) / (nextStationArrival - currentTime);
         }
 
-        position = new Position(teamId, progress, speed, currentTime);
+        position = new Position(teamId, progress, speed, 0, currentTime);
     }
 
     // Get the medium of the average times
