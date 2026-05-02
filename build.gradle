@@ -10,7 +10,7 @@ plugins {
     id 'java'
     id 'application'
     id 'idea'
-    id 'org.flywaydb.flyway' version "12.4.0"
+    id 'org.flywaydb.flyway' version "12.5.0"
 }
 
 group 'telraam'
