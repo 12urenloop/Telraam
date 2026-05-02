@@ -2,7 +2,7 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:12.4.0")
+        classpath("org.flywaydb:flyway-database-postgresql:12.5.0")
     }
 }
 
@@ -10,7 +10,7 @@ plugins {
     id 'java'
     id 'application'
     id 'idea'
-    id 'org.flywaydb.flyway' version "12.4.0"
+    id 'org.flywaydb.flyway' version "12.5.0"
 }
 
 group 'telraam'
@@ -78,7 +78,7 @@ dependencies {
 
     // Testing
     testImplementation('org.junit.jupiter:junit-jupiter:5.10.2')
-    testImplementation('org.flywaydb:flyway-core:12.4.0')
+    testImplementation('org.flywaydb:flyway-core:12.5.0')
     testImplementation('org.mockito:mockito-core:5.23.0')
     testImplementation("io.dropwizard:dropwizard-testing:" + dropwizardVersion)
 
