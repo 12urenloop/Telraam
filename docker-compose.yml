@@ -1,6 +1,6 @@
 services:
   db:
-    image: docker.io/library/postgres:18.3
+    image: docker.io/library/postgres:18.4
     restart: unless-stopped
     command: postgres -cconfig_file=/config/postgresql.conf -chba_file=/config/postgresql_hba.conf
     environment:
